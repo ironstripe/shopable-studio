@@ -68,7 +68,7 @@ const VideoPlayer = ({
     <div className="relative w-full max-w-[960px] mx-auto">
       <div
         ref={containerRef}
-        className="relative bg-black rounded-lg overflow-hidden"
+        className="relative bg-black rounded-lg"
       >
         {videoSrc ? (
           <video
@@ -92,7 +92,7 @@ const VideoPlayer = ({
         )}
 
         {activeHotspots.map((hotspot) => (
-          <div key={hotspot.id}>
+          <div key={hotspot.id} className="relative" style={{ zIndex: 10 }}>
             <VideoHotspot
               hotspot={hotspot}
               currentTime={currentTime}
