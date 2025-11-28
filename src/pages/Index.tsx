@@ -155,6 +155,7 @@ const Index = () => {
               products={products}
               onUpdateHotspot={handleUpdateHotspot}
               onDeleteHotspot={handleDeleteHotspot}
+              onUpdateProducts={setProducts}
             />
           </div>
         </div>
