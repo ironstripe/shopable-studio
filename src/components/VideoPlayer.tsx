@@ -63,7 +63,7 @@ const VideoPlayer = ({
       video.removeEventListener("play", handleTimeUpdate);
       video.removeEventListener("pause", handleTimeUpdate);
     };
-  }, []);
+  }, [videoSrc]);
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!videoRef.current || !containerRef.current) return;
