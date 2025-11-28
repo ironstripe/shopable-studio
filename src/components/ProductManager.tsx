@@ -97,8 +97,10 @@ const ProductManager = ({ products, onUpdateProducts }: ProductManagerProps) => 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="border-gray-300">
-          <Package className="w-4 h-4 mr-2" />
+        <Button 
+          variant="link" 
+          className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-normal justify-start"
+        >
           Manage Products
         </Button>
       </DialogTrigger>
