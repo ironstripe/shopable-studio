@@ -167,7 +167,7 @@ const VideoPlayer = ({
                   hotspot={hotspot}
                   currentTime={currentTime}
                   isSelected={selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id}
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => handleHotspotClick(hotspot, e)}
                 />
                 {!isPreviewMode && activeToolbarHotspotId === hotspot.id && (
                   <HotspotToolbar
