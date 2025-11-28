@@ -104,7 +104,7 @@ const Index = () => {
       {/* Header */}
       <header className="border-b border-gray-200 bg-white">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <img src={shopableLogo} alt="Shopable" className="h-14" />
+          <img src={shopableLogo} alt="Shopable" className="h-10" />
           <div className="flex gap-3">
             <input
               ref={fileInputRef}
