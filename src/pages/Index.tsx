@@ -11,6 +11,7 @@ const Index = () => {
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
+  const [activeToolbarHotspotId, setActiveToolbarHotspotId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Demo products
@@ -62,7 +63,14 @@ const Index = () => {
       productId: productKeys[0],
     };
     setHotspots([...hotspots, newHotspot]);
+    setActiveToolbarHotspotId(newHotspot.id);
+    setSelectedHotspot(null);
     toast.success("Hotspot created! Click Edit to configure.");
+  };
+
+  const handleHotspotSelect = (hotspotId: string) => {
+    setActiveToolbarHotspotId(hotspotId);
+    setSelectedHotspot(null);
   };
 
   const handleUpdateHotspot = (updatedHotspot: Hotspot) => {
@@ -75,6 +83,7 @@ const Index = () => {
   const handleDeleteHotspot = (hotspotId: string) => {
     setHotspots(hotspots.filter((h) => h.id !== hotspotId));
     setSelectedHotspot(null);
+    setActiveToolbarHotspotId(null);
     toast.success("Hotspot deleted");
   };
 
@@ -144,9 +153,11 @@ const Index = () => {
           hotspots={hotspots}
           products={products}
           selectedHotspot={selectedHotspot}
+          activeToolbarHotspotId={activeToolbarHotspotId}
           onAddHotspot={handleAddHotspot}
           onEditHotspot={setSelectedHotspot}
           onDeleteHotspot={handleDeleteHotspot}
+          onHotspotSelect={handleHotspotSelect}
         />
       </main>
 

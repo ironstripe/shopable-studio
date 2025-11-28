@@ -9,9 +9,11 @@ interface VideoPlayerProps {
   hotspots: Hotspot[];
   products: Record<string, Product>;
   selectedHotspot: Hotspot | null;
+  activeToolbarHotspotId: string | null;
   onAddHotspot: (x: number, y: number, time: number) => void;
   onEditHotspot: (hotspot: Hotspot) => void;
   onDeleteHotspot: (hotspotId: string) => void;
+  onHotspotSelect: (hotspotId: string) => void;
 }
 
 const VideoPlayer = ({
@@ -19,9 +21,11 @@ const VideoPlayer = ({
   hotspots,
   products,
   selectedHotspot,
+  activeToolbarHotspotId,
   onAddHotspot,
   onEditHotspot,
   onDeleteHotspot,
+  onHotspotSelect,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,10 +57,7 @@ const VideoPlayer = ({
 
   const handleHotspotClick = (hotspot: Hotspot, e: React.MouseEvent) => {
     e.stopPropagation();
-    const product = products[hotspot.productId];
-    if (product) {
-      setSelectedProduct(product);
-    }
+    onHotspotSelect(hotspot.id);
   };
 
   const activeHotspots = hotspots.filter(
@@ -91,21 +92,21 @@ const VideoPlayer = ({
         )}
 
         {activeHotspots.map((hotspot) => (
-          <>
+          <div key={hotspot.id}>
             <VideoHotspot
-              key={hotspot.id}
               hotspot={hotspot}
               currentTime={currentTime}
-              isSelected={selectedHotspot?.id === hotspot.id}
+              isSelected={selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id}
               onClick={(e) => handleHotspotClick(hotspot, e)}
             />
-            <HotspotToolbar
-              key={`toolbar-${hotspot.id}`}
-              hotspot={hotspot}
-              onEdit={() => onEditHotspot(hotspot)}
-              onDelete={() => onDeleteHotspot(hotspot.id)}
-            />
-          </>
+            {activeToolbarHotspotId === hotspot.id && (
+              <HotspotToolbar
+                hotspot={hotspot}
+                onEdit={() => onEditHotspot(hotspot)}
+                onDelete={() => onDeleteHotspot(hotspot.id)}
+              />
+            )}
+          </div>
         ))}
       </div>
 
