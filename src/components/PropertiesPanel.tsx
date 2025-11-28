@@ -11,12 +11,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
+import ProductManager from "./ProductManager";
 
 interface PropertiesPanelProps {
   selectedHotspot: Hotspot | null;
   products: Record<string, Product>;
   onUpdateHotspot: (hotspot: Hotspot) => void;
   onDeleteHotspot: (hotspotId: string) => void;
+  onUpdateProducts: (products: Record<string, Product>) => void;
 }
 
 const PropertiesPanel = ({
@@ -24,6 +26,7 @@ const PropertiesPanel = ({
   products,
   onUpdateHotspot,
   onDeleteHotspot,
+  onUpdateProducts,
 }: PropertiesPanelProps) => {
   if (!selectedHotspot) {
     return (
@@ -95,7 +98,13 @@ const PropertiesPanel = ({
         </div>
 
         <div>
-          <Label htmlFor="productId">Product</Label>
+          <div className="flex items-center justify-between mb-2">
+            <Label htmlFor="productId">Product</Label>
+            <ProductManager
+              products={products}
+              onUpdateProducts={onUpdateProducts}
+            />
+          </div>
           <Select
             value={selectedHotspot.productId}
             onValueChange={(value) =>
