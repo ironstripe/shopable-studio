@@ -90,6 +90,16 @@ const Index = () => {
     toast.success("Hotspot deleted");
   };
 
+  const handleUpdateHotspotPosition = (hotspotId: string, x: number, y: number) => {
+    setHotspots(
+      hotspots.map((h) => (h.id === hotspotId ? { ...h, x, y } : h))
+    );
+    // Also update selectedHotspot if it's the one being dragged
+    if (selectedHotspot?.id === hotspotId) {
+      setSelectedHotspot({ ...selectedHotspot, x, y });
+    }
+  };
+
   const handleExport = () => {
     const project: VideoProject = {
       videoSrc: videoSrc || "",
@@ -165,6 +175,7 @@ const Index = () => {
           onEditHotspot={setSelectedHotspot}
           onDeleteHotspot={handleDeleteHotspot}
           onHotspotSelect={handleHotspotSelect}
+          onUpdateHotspotPosition={handleUpdateHotspotPosition}
         />
       </main>
 

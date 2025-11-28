@@ -24,6 +24,7 @@ interface VideoPlayerProps {
   onEditHotspot: (hotspot: Hotspot) => void;
   onDeleteHotspot: (hotspotId: string) => void;
   onHotspotSelect: (hotspotId: string) => void;
+  onUpdateHotspotPosition: (hotspotId: string, x: number, y: number) => void;
 }
 
 const VideoPlayer = ({
@@ -38,11 +39,18 @@ const VideoPlayer = ({
   onEditHotspot,
   onDeleteHotspot,
   onHotspotSelect,
+  onUpdateHotspotPosition,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [draggingHotspot, setDraggingHotspot] = useState<{
+    id: string;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
+  const [didDrag, setDidDrag] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -79,8 +87,54 @@ const VideoPlayer = ({
     onAddHotspot(x, y, actualTime);
   };
 
+  const handleDragStart = (hotspot: Hotspot, e: React.MouseEvent) => {
+    if (isPreviewMode || !containerRef.current) return;
+    
+    e.stopPropagation();
+    e.preventDefault();
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const offsetX = (e.clientX - rect.left) / rect.width - hotspot.x;
+    const offsetY = (e.clientY - rect.top) / rect.height - hotspot.y;
+    
+    setDraggingHotspot({ id: hotspot.id, offsetX, offsetY });
+    setDidDrag(false);
+  };
+
+  const handleDragMove = (e: MouseEvent) => {
+    if (!draggingHotspot || !containerRef.current) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width - draggingHotspot.offsetX));
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height - draggingHotspot.offsetY));
+    
+    onUpdateHotspotPosition(draggingHotspot.id, x, y);
+    setDidDrag(true);
+  };
+
+  const handleDragEnd = () => {
+    setDraggingHotspot(null);
+  };
+
+  useEffect(() => {
+    if (draggingHotspot) {
+      document.addEventListener('mousemove', handleDragMove);
+      document.addEventListener('mouseup', handleDragEnd);
+      return () => {
+        document.removeEventListener('mousemove', handleDragMove);
+        document.removeEventListener('mouseup', handleDragEnd);
+      };
+    }
+  }, [draggingHotspot]);
+
   const handleHotspotClick = (hotspot: Hotspot, e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // If we just finished dragging, don't trigger click actions
+    if (didDrag) {
+      setDidDrag(false);
+      return;
+    }
     
     if (isPreviewMode) {
       // Preview mode: Show product card
@@ -168,9 +222,12 @@ const VideoPlayer = ({
                   hotspot={hotspot}
                   currentTime={currentTime}
                   isSelected={selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id}
+                  isDragging={draggingHotspot?.id === hotspot.id}
+                  isEditMode={!isPreviewMode}
                   onClick={(e) => handleHotspotClick(hotspot, e)}
+                  onDragStart={(e) => handleDragStart(hotspot, e)}
                 />
-                {!isPreviewMode && activeToolbarHotspotId === hotspot.id && (
+                {!isPreviewMode && activeToolbarHotspotId === hotspot.id && !draggingHotspot && (
                   <HotspotToolbar
                     hotspot={hotspot}
                     onEdit={() => onEditHotspot(hotspot)}

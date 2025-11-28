@@ -5,10 +5,13 @@ interface VideoHotspotProps {
   hotspot: Hotspot;
   currentTime: number;
   isSelected: boolean;
+  isDragging: boolean;
+  isEditMode: boolean;
   onClick: (e: React.MouseEvent) => void;
+  onDragStart: (e: React.MouseEvent) => void;
 }
 
-const VideoHotspot = ({ hotspot, currentTime, isSelected, onClick }: VideoHotspotProps) => {
+const VideoHotspot = ({ hotspot, currentTime, isSelected, isDragging, isEditMode, onClick, onDragStart }: VideoHotspotProps) => {
   const countdown = Math.ceil(hotspot.timeEnd - currentTime);
   const isActive = currentTime >= hotspot.timeStart && currentTime <= hotspot.timeEnd;
 
@@ -16,8 +19,10 @@ const VideoHotspot = ({ hotspot, currentTime, isSelected, onClick }: VideoHotspo
 
   return (
     <div
-      className={`absolute cursor-pointer transition-all ${
+      className={`absolute transition-all select-none ${
         isSelected ? "hotspot-pulse scale-110" : "hotspot-pulse"
+      } ${
+        isDragging ? "cursor-grabbing opacity-80" : isEditMode ? "cursor-grab" : "cursor-pointer"
       }`}
       style={{
         left: `${hotspot.x * 100}%`,
@@ -27,6 +32,7 @@ const VideoHotspot = ({ hotspot, currentTime, isSelected, onClick }: VideoHotspo
         pointerEvents: 'auto',
       }}
       onClick={onClick}
+      onMouseDown={isEditMode ? onDragStart : undefined}
     >
       <HotspotIcon
         style={hotspot.style}
