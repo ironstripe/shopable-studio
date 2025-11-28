@@ -1,4 +1,5 @@
 export type HotspotStyle = "smart-badge" | "screen" | "flash-circle" | "tag-bubble" | "lux-dot";
+export type ClickBehavior = "card-then-shop" | "direct-shop" | "card-only";
 
 export interface Hotspot {
   id: string;
@@ -10,6 +11,7 @@ export interface Hotspot {
   style: HotspotStyle;
   ctaLabel: string;
   scale: number;
+  clickBehavior: ClickBehavior;
 }
 
 export interface Product {

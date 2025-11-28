@@ -14,6 +14,7 @@ const Index = () => {
   const [activeToolbarHotspotId, setActiveToolbarHotspotId] = useState<string | null>(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Demo products
   const [products, setProducts] = useState<Record<string, Product>>({
@@ -65,6 +66,7 @@ const Index = () => {
       style: "smart-badge",
       ctaLabel: "Kaufen",
       scale: 1,
+      clickBehavior: "card-then-shop",
     };
     setHotspots([...hotspots, newHotspot]);
     setActiveToolbarHotspotId(newHotspot.id);
@@ -110,6 +112,16 @@ const Index = () => {
     }
   };
 
+  const handleSelectFromList = (hotspot: Hotspot) => {
+    setSelectedHotspot(hotspot);
+    setActiveToolbarHotspotId(hotspot.id);
+    
+    if (videoRef.current) {
+      const seekTime = Math.max(0, hotspot.timeStart - 0.5);
+      videoRef.current.currentTime = seekTime;
+    }
+  };
+
   const handleExport = () => {
     const project: VideoProject = {
       videoSrc: videoSrc || "",
@@ -123,6 +135,7 @@ const Index = () => {
           style: h.style,
           ctaLabel: h.ctaLabel,
           scale: h.scale,
+          clickBehavior: h.clickBehavior,
         })),
       products,
     };
@@ -188,16 +201,19 @@ const Index = () => {
           onHotspotSelect={handleHotspotSelect}
           onUpdateHotspotPosition={handleUpdateHotspotPosition}
           onUpdateHotspotScale={handleUpdateHotspotScale}
+          onVideoRef={(ref) => (videoRef.current = ref)}
         />
       </main>
 
       {/* Properties Sidebar */}
       <PropertiesPanel
+        hotspots={hotspots}
         selectedHotspot={selectedHotspot}
         products={products}
         onUpdateHotspot={handleUpdateHotspot}
         onDeleteHotspot={handleDeleteHotspot}
         onUpdateProducts={setProducts}
+        onSelectFromList={handleSelectFromList}
         onClose={() => setSelectedHotspot(null)}
       />
     </div>

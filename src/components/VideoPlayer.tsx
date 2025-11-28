@@ -26,6 +26,7 @@ interface VideoPlayerProps {
   onHotspotSelect: (hotspotId: string) => void;
   onUpdateHotspotPosition: (hotspotId: string, x: number, y: number) => void;
   onUpdateHotspotScale: (hotspotId: string, scale: number) => void;
+  onVideoRef?: (ref: HTMLVideoElement | null) => void;
 }
 
 const VideoPlayer = ({
@@ -42,11 +43,13 @@ const VideoPlayer = ({
   onHotspotSelect,
   onUpdateHotspotPosition,
   onUpdateHotspotScale,
+  onVideoRef,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [showShopButton, setShowShopButton] = useState(true);
   const [draggingHotspot, setDraggingHotspot] = useState<{
     id: string;
     offsetX: number;
@@ -58,6 +61,10 @@ const VideoPlayer = ({
     initialDistance: number;
   } | null>(null);
   const [didDrag, setDidDrag] = useState(false);
+
+  useEffect(() => {
+    onVideoRef?.(videoRef.current);
+  }, [videoRef.current, onVideoRef]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -190,21 +197,34 @@ const VideoPlayer = ({
   const handleHotspotClick = (hotspot: Hotspot, e: React.MouseEvent) => {
     e.stopPropagation();
     
-    // If we just finished dragging, don't trigger click actions
     if (didDrag) {
       setDidDrag(false);
       return;
     }
     
     if (isPreviewMode) {
-      // Preview mode: Show product card
       const product = products[hotspot.productId];
-      if (product) {
-        videoRef.current?.pause();
-        setSelectedProduct(product);
+      if (!product) return;
+      
+      switch (hotspot.clickBehavior) {
+        case "direct-shop":
+          window.open(product.link, "_blank");
+          break;
+        
+        case "card-only":
+          videoRef.current?.pause();
+          setSelectedProduct(product);
+          setShowShopButton(false);
+          break;
+        
+        case "card-then-shop":
+        default:
+          videoRef.current?.pause();
+          setSelectedProduct(product);
+          setShowShopButton(true);
+          break;
       }
     } else {
-      // Edit mode: Show toolbar
       onHotspotSelect(hotspot.id);
     }
   };
@@ -305,8 +325,10 @@ const VideoPlayer = ({
       {selectedProduct && (
         <ProductCard
           product={selectedProduct}
+          showShopButton={showShopButton}
           onClose={() => {
             setSelectedProduct(null);
+            setShowShopButton(true);
             videoRef.current?.play();
           }}
         />
