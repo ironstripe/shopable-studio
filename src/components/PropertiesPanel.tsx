@@ -137,12 +137,10 @@ const PropertiesPanel = ({
               </Select>
             </div>
 
-            <div>
-              <ProductManager
-                products={products}
-                onUpdateProducts={onUpdateProducts}
-              />
-            </div>
+            <ProductManager
+              products={products}
+              onUpdateProducts={onUpdateProducts}
+            />
           </div>
         </div>
 
