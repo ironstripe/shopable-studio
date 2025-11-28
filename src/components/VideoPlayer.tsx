@@ -3,6 +3,14 @@ import { Hotspot, Product } from "@/types/video";
 import VideoHotspot from "./VideoHotspot";
 import ProductCard from "./ProductCard";
 import HotspotToolbar from "./HotspotToolbar";
+import { Eye, Pencil } from "lucide-react";
+import { Button } from "./ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface VideoPlayerProps {
   videoSrc: string | null;
@@ -11,6 +19,7 @@ interface VideoPlayerProps {
   selectedHotspot: Hotspot | null;
   activeToolbarHotspotId: string | null;
   isPreviewMode: boolean;
+  onTogglePreviewMode: () => void;
   onAddHotspot: (x: number, y: number, time: number) => void;
   onEditHotspot: (hotspot: Hotspot) => void;
   onDeleteHotspot: (hotspotId: string) => void;
@@ -24,6 +33,7 @@ const VideoPlayer = ({
   selectedHotspot,
   activeToolbarHotspotId,
   isPreviewMode,
+  onTogglePreviewMode,
   onAddHotspot,
   onEditHotspot,
   onDeleteHotspot,
@@ -94,6 +104,32 @@ const VideoPlayer = ({
         ref={containerRef}
         className="relative bg-black rounded-lg"
       >
+        {/* Mode Toggle Icon */}
+        {videoSrc && (
+          <div className="absolute top-4 right-4 z-[15]">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={onTogglePreviewMode}
+                    size="icon"
+                    variant={isPreviewMode ? "default" : "secondary"}
+                    className="rounded-full w-10 h-10 shadow-lg"
+                  >
+                    {isPreviewMode ? (
+                      <Eye className="w-5 h-5" />
+                    ) : (
+                      <Pencil className="w-5 h-5" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  <p>{isPreviewMode ? "Preview Mode" : "Hotspot Mode"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )}
         {videoSrc ? (
           <video
             ref={videoRef}
