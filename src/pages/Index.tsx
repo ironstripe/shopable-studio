@@ -118,7 +118,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
-        <div className="flex items-center justify-between px-6 py-4">
+        <div className="flex items-center justify-between px-6 py-2">
           <img src={shopableLogo} alt="Shopable" className="w-[140px] h-auto" />
           <div className="flex gap-3">
             <input
@@ -148,7 +148,7 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8 pt-24">
+      <main className="container mx-auto px-6 py-8 pt-20">
         <VideoPlayer
           videoSrc={videoSrc}
           hotspots={hotspots}
