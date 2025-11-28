@@ -29,7 +29,7 @@ const PropertiesPanel = ({
     return (
       <Card className="p-6 bg-card border-border">
         <p className="text-muted-foreground text-center">
-          Click on the video to add a hotspot or select an existing one to edit
+          Double-click on the video to add a hotspot or select an existing one to edit
         </p>
       </Card>
     );

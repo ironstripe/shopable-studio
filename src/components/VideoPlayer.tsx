@@ -35,7 +35,7 @@ const VideoPlayer = ({
     return () => video.removeEventListener("timeupdate", handleTimeUpdate);
   }, []);
 
-  const handleVideoClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleVideoDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!videoRef.current || !containerRef.current) return;
     
     const rect = containerRef.current.getBoundingClientRect();
@@ -63,8 +63,8 @@ const VideoPlayer = ({
     <div className="relative w-full max-w-[960px] mx-auto">
       <div
         ref={containerRef}
-        className="relative bg-black rounded-lg overflow-hidden cursor-crosshair"
-        onClick={handleVideoClick}
+        className="relative bg-black rounded-lg overflow-hidden"
+        onDoubleClick={handleVideoDoubleClick}
       >
         {videoSrc ? (
           <video
@@ -72,7 +72,6 @@ const VideoPlayer = ({
             src={videoSrc}
             controls
             className="w-full"
-            onClick={(e) => e.stopPropagation()}
           />
         ) : (
           <div className="w-full aspect-video flex items-center justify-center bg-secondary">
