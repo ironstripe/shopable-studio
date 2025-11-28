@@ -11,11 +11,12 @@ interface HotspotToolbarProps {
 const HotspotToolbar = ({ hotspot, onEdit, onDelete }: HotspotToolbarProps) => {
   return (
     <div
-      className="absolute z-20 flex gap-1 bg-card border border-border rounded-md shadow-lg p-1"
+      className="absolute flex gap-1 bg-card border border-border rounded-md shadow-lg p-1"
       style={{
         left: `${hotspot.x * 100}%`,
         top: `${hotspot.y * 100}%`,
         transform: "translate(-50%, calc(-100% - 8px))",
+        zIndex: 20,
       }}
       onClick={(e) => e.stopPropagation()}
     >

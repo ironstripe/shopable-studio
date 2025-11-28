@@ -40,11 +40,8 @@ const VideoPlayer = ({
     return () => video.removeEventListener("timeupdate", handleTimeUpdate);
   }, []);
 
-  const handleVideoClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!videoRef.current || !containerRef.current) return;
-    
-    // Check if click was on video element itself (not on hotspot or toolbar)
-    if (e.target !== e.currentTarget && e.target !== videoRef.current) return;
     
     const rect = containerRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
@@ -71,7 +68,6 @@ const VideoPlayer = ({
       <div
         ref={containerRef}
         className="relative bg-black rounded-lg overflow-hidden"
-        onClick={handleVideoClick}
       >
         {videoSrc ? (
           <video
@@ -84,6 +80,14 @@ const VideoPlayer = ({
           <div className="w-full aspect-video flex items-center justify-center bg-secondary">
             <p className="text-muted-foreground">Upload a video to get started</p>
           </div>
+        )}
+
+        {/* Click overlay for hotspot placement - covers video except controls */}
+        {videoSrc && (
+          <div 
+            className="absolute inset-0 bottom-[50px] hotspot-placement-cursor z-[5]"
+            onClick={handleOverlayClick}
+          />
         )}
 
         {activeHotspots.map((hotspot) => (

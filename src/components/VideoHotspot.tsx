@@ -15,7 +15,7 @@ const VideoHotspot = ({ hotspot, currentTime, isSelected, onClick }: VideoHotspo
 
   return (
     <div
-      className={`absolute cursor-pointer z-10 transition-all ${
+      className={`absolute cursor-pointer transition-all ${
         isSelected ? "hotspot-pulse scale-110" : "hotspot-pulse"
       }`}
       style={{
@@ -23,6 +23,7 @@ const VideoHotspot = ({ hotspot, currentTime, isSelected, onClick }: VideoHotspo
         top: `${hotspot.y * 100}%`,
         transform: "translate(-50%, -50%)",
         filter: isSelected ? "drop-shadow(0 0 12px hsl(var(--primary)))" : "none",
+        zIndex: 10,
       }}
       onClick={onClick}
     >
