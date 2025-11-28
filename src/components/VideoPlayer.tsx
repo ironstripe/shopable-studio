@@ -103,23 +103,28 @@ const VideoPlayer = ({
           />
         )}
 
-        {activeHotspots.map((hotspot) => (
-          <div key={hotspot.id} className="relative" style={{ zIndex: 10 }}>
-            <VideoHotspot
-              hotspot={hotspot}
-              currentTime={currentTime}
-              isSelected={selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id}
-              onClick={(e) => handleHotspotClick(hotspot, e)}
-            />
-            {activeToolbarHotspotId === hotspot.id && (
-              <HotspotToolbar
-                hotspot={hotspot}
-                onEdit={() => onEditHotspot(hotspot)}
-                onDelete={() => onDeleteHotspot(hotspot.id)}
-              />
-            )}
+        {/* Hotspots overlay - absolutely positioned over video */}
+        {videoSrc && (
+          <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 10 }}>
+            {activeHotspots.map((hotspot) => (
+              <div key={hotspot.id} className="pointer-events-auto">
+                <VideoHotspot
+                  hotspot={hotspot}
+                  currentTime={currentTime}
+                  isSelected={selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id}
+                  onClick={(e) => handleHotspotClick(hotspot, e)}
+                />
+                {activeToolbarHotspotId === hotspot.id && (
+                  <HotspotToolbar
+                    hotspot={hotspot}
+                    onEdit={() => onEditHotspot(hotspot)}
+                    onDelete={() => onDeleteHotspot(hotspot.id)}
+                  />
+                )}
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
 
       {selectedProduct && (
