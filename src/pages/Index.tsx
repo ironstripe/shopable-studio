@@ -5,6 +5,7 @@ import PropertiesPanel from "@/components/PropertiesPanel";
 import { Button } from "@/components/ui/button";
 import { Upload, Download } from "lucide-react";
 import { toast } from "sonner";
+import shopableLogo from "@/assets/shopable-logo.png";
 
 const Index = () => {
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
@@ -101,11 +102,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card">
+      <header className="border-b border-gray-200 bg-white">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">
-            <span className="text-primary">Shopable</span> Video Player
-          </h1>
+          <div className="flex items-center gap-3">
+            <img src={shopableLogo} alt="Shopable" className="h-8" />
+            <span className="text-xl font-medium text-gray-600">Video Player</span>
+          </div>
           <div className="flex gap-3">
             <input
               ref={fileInputRef}
