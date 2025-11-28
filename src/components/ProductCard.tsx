@@ -5,9 +5,10 @@ import { X } from "lucide-react";
 interface ProductCardProps {
   product: Product;
   onClose: () => void;
+  showShopButton?: boolean;
 }
 
-const ProductCard = ({ product, onClose }: ProductCardProps) => {
+const ProductCard = ({ product, onClose, showShopButton = true }: ProductCardProps) => {
   return (
     <Card className="fixed bottom-8 right-8 w-80 bg-shopable-black/80 backdrop-blur-sm border-border p-6 shadow-2xl z-50">
       <button
@@ -19,14 +20,20 @@ const ProductCard = ({ product, onClose }: ProductCardProps) => {
       
       <h3 className="text-xl font-semibold text-foreground mb-2">{product.title}</h3>
       <p className="text-2xl font-bold text-primary mb-4">{product.price}</p>
-      <a
-        href={product.link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-block px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
-      >
-        View Product
-      </a>
+      {showShopButton ? (
+        <a
+          href={product.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
+        >
+          View Product
+        </a>
+      ) : (
+        <span className="inline-block px-6 py-2 bg-muted text-muted-foreground rounded-lg font-medium">
+          More Info
+        </span>
+      )}
     </Card>
   );
 };

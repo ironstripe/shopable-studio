@@ -1,4 +1,4 @@
-import { Hotspot, Product } from "@/types/video";
+import { Hotspot, Product, ClickBehavior } from "@/types/video";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -10,48 +10,63 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { X } from "lucide-react";
 import ProductManager from "./ProductManager";
+import HotspotList from "./HotspotList";
 
 interface PropertiesPanelProps {
+  hotspots: Hotspot[];
   selectedHotspot: Hotspot | null;
   products: Record<string, Product>;
   onUpdateHotspot: (hotspot: Hotspot) => void;
   onDeleteHotspot: (hotspotId: string) => void;
   onUpdateProducts: (products: Record<string, Product>) => void;
+  onSelectFromList: (hotspot: Hotspot) => void;
   onClose: () => void;
 }
 
 const PropertiesPanel = ({
+  hotspots,
   selectedHotspot,
   products,
   onUpdateHotspot,
   onDeleteHotspot,
   onUpdateProducts,
+  onSelectFromList,
   onClose,
 }: PropertiesPanelProps) => {
-  if (!selectedHotspot) {
-    return null;
-  }
-
-  const duration = selectedHotspot.timeEnd - selectedHotspot.timeStart;
+  const duration = selectedHotspot ? selectedHotspot.timeEnd - selectedHotspot.timeStart : 0;
 
   return (
     <div className="fixed right-0 top-0 h-full w-[360px] bg-[#1A1A1A] border-l border-border shadow-2xl z-50 overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-border/50">
-        <h2 className="text-lg font-semibold text-foreground">Hotspot Properties</h2>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          className="h-8 w-8 p-0 hover:bg-white/10"
-        >
-          <X className="w-4 h-4" />
-        </Button>
+        <h2 className="text-lg font-semibold text-foreground">Editor</h2>
+        {selectedHotspot && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="h-8 w-8 p-0 hover:bg-white/10"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        )}
       </div>
 
-      <div className="p-6 space-y-6">
+      {/* Hotspot List - Always visible */}
+      <HotspotList
+        hotspots={hotspots}
+        products={products}
+        selectedHotspotId={selectedHotspot?.id || null}
+        onSelectHotspot={onSelectFromList}
+        onDeleteHotspot={onDeleteHotspot}
+      />
+
+      {/* Hotspot Properties - Only when selected */}
+      {selectedHotspot && (
+        <div className="p-6 space-y-6">
         {/* TIME Section */}
         <div className="space-y-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-[#AAAAAA]">
@@ -143,6 +158,38 @@ const PropertiesPanel = ({
               onUpdateProducts={onUpdateProducts}
             />
           </div>
+        </div>
+
+        {/* CLICK BEHAVIOR Section */}
+        <div className="space-y-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-[#AAAAAA]">
+            Click Behavior
+          </h3>
+          <RadioGroup
+            value={selectedHotspot.clickBehavior}
+            onValueChange={(value) =>
+              onUpdateHotspot({ ...selectedHotspot, clickBehavior: value as ClickBehavior })
+            }
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="card-then-shop" id="card-then-shop" />
+              <Label htmlFor="card-then-shop" className="text-[#CCCCCC] text-sm cursor-pointer">
+                Product Card → Shop (Standard)
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="direct-shop" id="direct-shop" />
+              <Label htmlFor="direct-shop" className="text-[#CCCCCC] text-sm cursor-pointer">
+                Direct to Shop
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="card-only" id="card-only" />
+              <Label htmlFor="card-only" className="text-[#CCCCCC] text-sm cursor-pointer">
+                Product Card only
+              </Label>
+            </div>
+          </RadioGroup>
         </div>
 
         {/* STYLE Section */}
@@ -252,20 +299,21 @@ const PropertiesPanel = ({
           </div>
         </div>
 
-        {/* DELETE Section */}
-        <div className="pt-4">
-          <Button
-            variant="ghost"
-            onClick={() => {
-              onDeleteHotspot(selectedHotspot.id);
-              onClose();
-            }}
-            className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive"
-          >
-            Delete Hotspot
-          </Button>
+          {/* DELETE Section */}
+          <div className="pt-4">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                onDeleteHotspot(selectedHotspot.id);
+                onClose();
+              }}
+              className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              Delete Hotspot
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
