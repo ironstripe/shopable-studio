@@ -100,36 +100,36 @@ const VideoPlayer = ({
 
   return (
     <div className="relative w-full max-w-[960px] mx-auto">
+      {/* Mode Toggle Icon - Fixed Position */}
+      {videoSrc && (
+        <div className="fixed top-24 right-8 z-50">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={onTogglePreviewMode}
+                  size="icon"
+                  variant={isPreviewMode ? "secondary" : "default"}
+                  className="rounded-full w-12 h-12 shadow-xl ring-2 ring-white"
+                >
+                  {isPreviewMode ? (
+                    <Eye className="w-5 h-5" />
+                  ) : (
+                    <Pencil className="w-5 h-5" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p>{isPreviewMode ? "Preview Mode" : "Hotspot Mode"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
       <div
         ref={containerRef}
-        className="relative bg-black rounded-lg"
+        className="relative bg-black rounded-lg overflow-visible"
       >
-        {/* Mode Toggle Icon */}
-        {videoSrc && (
-          <div className="absolute top-4 right-4 z-[15]">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={onTogglePreviewMode}
-                    size="icon"
-                    variant={isPreviewMode ? "secondary" : "default"}
-                    className="rounded-full w-10 h-10 shadow-lg ring-2 ring-white"
-                  >
-                    {isPreviewMode ? (
-                      <Eye className="w-5 h-5" />
-                    ) : (
-                      <Pencil className="w-5 h-5" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left">
-                  <p>{isPreviewMode ? "Preview Mode" : "Hotspot Mode"}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        )}
         {videoSrc ? (
           <video
             ref={videoRef}
