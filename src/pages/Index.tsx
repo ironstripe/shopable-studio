@@ -64,6 +64,7 @@ const Index = () => {
       productId: productKeys[0],
       style: "smart-badge",
       ctaLabel: "Kaufen",
+      scale: 1,
     };
     setHotspots([...hotspots, newHotspot]);
     setActiveToolbarHotspotId(newHotspot.id);
@@ -100,19 +101,29 @@ const Index = () => {
     }
   };
 
+  const handleUpdateHotspotScale = (hotspotId: string, scale: number) => {
+    setHotspots(
+      hotspots.map((h) => (h.id === hotspotId ? { ...h, scale } : h))
+    );
+    if (selectedHotspot?.id === hotspotId) {
+      setSelectedHotspot({ ...selectedHotspot, scale });
+    }
+  };
+
   const handleExport = () => {
     const project: VideoProject = {
       videoSrc: videoSrc || "",
-      hotspots: hotspots.map((h) => ({
-        timeStart: h.timeStart,
-        timeEnd: h.timeEnd,
-        x: h.x,
-        y: h.y,
-        productId: h.productId,
-        id: h.id,
-        style: h.style,
-        ctaLabel: h.ctaLabel,
-      })),
+        hotspots: hotspots.map((h) => ({
+          timeStart: h.timeStart,
+          timeEnd: h.timeEnd,
+          x: h.x,
+          y: h.y,
+          productId: h.productId,
+          id: h.id,
+          style: h.style,
+          ctaLabel: h.ctaLabel,
+          scale: h.scale,
+        })),
       products,
     };
 
@@ -176,6 +187,7 @@ const Index = () => {
           onDeleteHotspot={handleDeleteHotspot}
           onHotspotSelect={handleHotspotSelect}
           onUpdateHotspotPosition={handleUpdateHotspotPosition}
+          onUpdateHotspotScale={handleUpdateHotspotScale}
         />
       </main>
 

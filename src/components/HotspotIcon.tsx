@@ -5,12 +5,18 @@ interface HotspotIconProps {
   countdown: number;
   ctaLabel: string;
   isSelected?: boolean;
+  scale?: number;
 }
 
-const HotspotIcon = ({ style, countdown, ctaLabel, isSelected }: HotspotIconProps) => {
+const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1 }: HotspotIconProps) => {
+  const baseStyle = {
+    transform: `scale(${scale})`,
+    transformOrigin: 'center center',
+  };
+  
   const glowStyle = isSelected
-    ? { filter: "drop-shadow(0 0 12px #FF6A00)" }
-    : {};
+    ? { ...baseStyle, filter: "drop-shadow(0 0 12px #FF6A00)" }
+    : baseStyle;
 
   switch (style) {
     case "smart-badge":
