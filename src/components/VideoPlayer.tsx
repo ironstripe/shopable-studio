@@ -36,6 +36,9 @@ const VideoPlayer = ({
   }, []);
 
   const handleVideoDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (!videoRef.current || !containerRef.current) return;
     
     const rect = containerRef.current.getBoundingClientRect();
@@ -72,6 +75,7 @@ const VideoPlayer = ({
             src={videoSrc}
             controls
             className="w-full"
+            onDoubleClick={(e) => e.stopPropagation()}
           />
         ) : (
           <div className="w-full aspect-video flex items-center justify-center bg-secondary">
