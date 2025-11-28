@@ -63,8 +63,10 @@ const VideoPlayer = ({
   const [didDrag, setDidDrag] = useState(false);
 
   useEffect(() => {
-    onVideoRef?.(videoRef.current);
-  }, [videoRef.current, onVideoRef]);
+    if (onVideoRef && videoRef.current) {
+      onVideoRef(videoRef.current);
+    }
+  }, [onVideoRef]);
 
   useEffect(() => {
     const video = videoRef.current;
