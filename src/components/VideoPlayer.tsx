@@ -10,6 +10,7 @@ interface VideoPlayerProps {
   products: Record<string, Product>;
   selectedHotspot: Hotspot | null;
   activeToolbarHotspotId: string | null;
+  isPreviewMode: boolean;
   onAddHotspot: (x: number, y: number, time: number) => void;
   onEditHotspot: (hotspot: Hotspot) => void;
   onDeleteHotspot: (hotspotId: string) => void;
@@ -22,6 +23,7 @@ const VideoPlayer = ({
   products,
   selectedHotspot,
   activeToolbarHotspotId,
+  isPreviewMode,
   onAddHotspot,
   onEditHotspot,
   onDeleteHotspot,
@@ -69,7 +71,17 @@ const VideoPlayer = ({
 
   const handleHotspotClick = (hotspot: Hotspot, e: React.MouseEvent) => {
     e.stopPropagation();
-    onHotspotSelect(hotspot.id);
+    
+    if (isPreviewMode) {
+      // Preview mode: Show product card
+      const product = products[hotspot.productId];
+      if (product) {
+        setSelectedProduct(product);
+      }
+    } else {
+      // Edit mode: Show toolbar
+      onHotspotSelect(hotspot.id);
+    }
   };
 
   const activeHotspots = hotspots.filter(
@@ -95,8 +107,8 @@ const VideoPlayer = ({
           </div>
         )}
 
-        {/* Click overlay for hotspot placement - covers video except controls */}
-        {videoSrc && (
+        {/* Click overlay for hotspot placement - covers video except controls (only in edit mode) */}
+        {videoSrc && !isPreviewMode && (
           <div 
             className="absolute inset-0 bottom-[50px] hotspot-placement-cursor z-[5]"
             onClick={handleOverlayClick}
@@ -107,14 +119,21 @@ const VideoPlayer = ({
         {videoSrc && (
           <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 10 }}>
             {activeHotspots.map((hotspot) => (
-              <div key={hotspot.id} className="pointer-events-auto">
+              <div 
+                key={hotspot.id} 
+                className="pointer-events-auto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleHotspotClick(hotspot, e);
+                }}
+              >
                 <VideoHotspot
                   hotspot={hotspot}
                   currentTime={currentTime}
                   isSelected={selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id}
-                  onClick={(e) => handleHotspotClick(hotspot, e)}
+                  onClick={(e) => e.stopPropagation()}
                 />
-                {activeToolbarHotspotId === hotspot.id && (
+                {!isPreviewMode && activeToolbarHotspotId === hotspot.id && (
                   <HotspotToolbar
                     hotspot={hotspot}
                     onEdit={() => onEditHotspot(hotspot)}
