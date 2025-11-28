@@ -3,7 +3,7 @@ import { Hotspot, Product, VideoProject } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import PropertiesPanel from "@/components/PropertiesPanel";
 import { Button } from "@/components/ui/button";
-import { Upload, Download } from "lucide-react";
+import { Upload, Download, Eye, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import shopableLogo from "@/assets/shopable-logo.png";
 
@@ -12,6 +12,7 @@ const Index = () => {
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
   const [activeToolbarHotspotId, setActiveToolbarHotspotId] = useState<string | null>(null);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Demo products
@@ -128,6 +129,23 @@ const Index = () => {
               className="hidden"
             />
             <Button
+              onClick={() => setIsPreviewMode(!isPreviewMode)}
+              variant={isPreviewMode ? "default" : "outline"}
+              className={isPreviewMode ? "" : "bg-gray-100 text-gray-900 hover:bg-gray-200 border border-gray-300"}
+            >
+              {isPreviewMode ? (
+                <>
+                  <Eye className="w-4 h-4 mr-2" />
+                  Preview Mode
+                </>
+              ) : (
+                <>
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit Mode
+                </>
+              )}
+            </Button>
+            <Button
               onClick={() => fileInputRef.current?.click()}
               className="bg-gray-100 text-gray-900 hover:bg-gray-200 border border-gray-300"
             >
@@ -154,6 +172,7 @@ const Index = () => {
           products={products}
           selectedHotspot={selectedHotspot}
           activeToolbarHotspotId={activeToolbarHotspotId}
+          isPreviewMode={isPreviewMode}
           onAddHotspot={handleAddHotspot}
           onEditHotspot={setSelectedHotspot}
           onDeleteHotspot={handleDeleteHotspot}
