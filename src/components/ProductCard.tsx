@@ -9,7 +9,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, onClose }: ProductCardProps) => {
   return (
-    <Card className="fixed bottom-8 right-8 w-80 bg-shopable-black/80 backdrop-blur-sm border-border p-6 shadow-2xl">
+    <Card className="fixed bottom-8 right-8 w-80 bg-shopable-black/80 backdrop-blur-sm border-border p-6 shadow-2xl z-50">
       <button
         onClick={onClose}
         className="absolute top-4 right-4 text-foreground hover:text-primary transition-colors"
