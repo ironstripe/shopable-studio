@@ -15,7 +15,7 @@ const HotspotToolbar = ({ hotspot, onEdit, onDelete }: HotspotToolbarProps) => {
       style={{
         left: `${hotspot.x * 100}%`,
         top: `${hotspot.y * 100}%`,
-        transform: "translate(-50%, calc(-100% - 8px))",
+        transform: "translate(-50%, calc(100% + 8px))",
         zIndex: 20,
       }}
       onClick={(e) => e.stopPropagation()}

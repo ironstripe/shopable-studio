@@ -24,6 +24,7 @@ const VideoHotspot = ({ hotspot, currentTime, isSelected, onClick }: VideoHotspo
         transform: "translate(-50%, -50%)",
         filter: isSelected ? "drop-shadow(0 0 12px hsl(var(--primary)))" : "none",
         zIndex: 10,
+        pointerEvents: 'auto',
       }}
       onClick={onClick}
     >
