@@ -3,10 +3,11 @@ import { Hotspot } from "@/types/video";
 interface VideoHotspotProps {
   hotspot: Hotspot;
   currentTime: number;
+  isSelected: boolean;
   onClick: (e: React.MouseEvent) => void;
 }
 
-const VideoHotspot = ({ hotspot, currentTime, onClick }: VideoHotspotProps) => {
+const VideoHotspot = ({ hotspot, currentTime, isSelected, onClick }: VideoHotspotProps) => {
   const countdown = Math.ceil(hotspot.timeEnd - currentTime);
   const isActive = currentTime >= hotspot.timeStart && currentTime <= hotspot.timeEnd;
 
@@ -14,11 +15,14 @@ const VideoHotspot = ({ hotspot, currentTime, onClick }: VideoHotspotProps) => {
 
   return (
     <div
-      className="absolute cursor-pointer hotspot-pulse z-10"
+      className={`absolute cursor-pointer z-10 transition-all ${
+        isSelected ? "hotspot-pulse scale-110" : "hotspot-pulse"
+      }`}
       style={{
         left: `${hotspot.x * 100}%`,
         top: `${hotspot.y * 100}%`,
         transform: "translate(-50%, -50%)",
+        filter: isSelected ? "drop-shadow(0 0 12px hsl(var(--primary)))" : "none",
       }}
       onClick={onClick}
     >
