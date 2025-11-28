@@ -47,17 +47,23 @@ const Index = () => {
   };
 
   const handleAddHotspot = (x: number, y: number, time: number) => {
+    const productKeys = Object.keys(products);
+    if (productKeys.length === 0) {
+      toast.error("Please add at least one product before creating hotspots");
+      return;
+    }
+
     const newHotspot: Hotspot = {
       id: `hotspot-${Date.now()}`,
       timeStart: time,
       timeEnd: time + 3,
       x,
       y,
-      productId: Object.keys(products)[0],
+      productId: productKeys[0],
     };
     setHotspots([...hotspots, newHotspot]);
     setSelectedHotspot(newHotspot);
-    toast.success("Hotspot added");
+    toast.success("Hotspot added - it will appear during playback between " + time.toFixed(1) + "s and " + (time + 3).toFixed(1) + "s");
   };
 
   const handleUpdateHotspot = (updatedHotspot: Hotspot) => {
