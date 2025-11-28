@@ -19,7 +19,9 @@ const VideoHotspot = ({ hotspot, currentTime, isSelected, isDragging, isEditMode
 
   return (
     <div
-      className={`absolute transition-all select-none ${
+      className={`absolute select-none ${
+        isDragging ? "" : "transition-all"
+      } ${
         isSelected ? "hotspot-pulse scale-110" : "hotspot-pulse"
       } ${
         isDragging ? "cursor-grabbing opacity-80" : isEditMode ? "cursor-grab" : "cursor-pointer"
@@ -28,7 +30,7 @@ const VideoHotspot = ({ hotspot, currentTime, isSelected, isDragging, isEditMode
         left: `${hotspot.x * 100}%`,
         top: `${hotspot.y * 100}%`,
         transform: "translate(-50%, -50%)",
-        zIndex: 10,
+        zIndex: isDragging ? 100 : 10,
         pointerEvents: 'auto',
       }}
       onClick={onClick}
