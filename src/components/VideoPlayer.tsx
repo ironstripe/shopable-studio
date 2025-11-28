@@ -86,6 +86,7 @@ const VideoPlayer = ({
       // Preview mode: Show product card
       const product = products[hotspot.productId];
       if (product) {
+        videoRef.current?.pause();
         setSelectedProduct(product);
       }
     } else {
@@ -187,6 +188,7 @@ const VideoPlayer = ({
           product={selectedProduct}
           onClose={() => {
             setSelectedProduct(null);
+            videoRef.current?.play();
           }}
         />
       )}
