@@ -75,7 +75,6 @@ const VideoPlayer = ({
             src={videoSrc}
             controls
             className="w-full"
-            onDoubleClick={(e) => e.stopPropagation()}
           />
         ) : (
           <div className="w-full aspect-video flex items-center justify-center bg-secondary">
