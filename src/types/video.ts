@@ -1,3 +1,5 @@
+export type HotspotStyle = "smart-badge" | "screen" | "flash-circle" | "tag-bubble" | "lux-dot";
+
 export interface Hotspot {
   id: string;
   timeStart: number;
@@ -5,6 +7,8 @@ export interface Hotspot {
   x: number;
   y: number;
   productId: string;
+  style: HotspotStyle;
+  ctaLabel: string;
 }
 
 export interface Product {
