@@ -2,21 +2,26 @@ import { useRef, useState, useEffect } from "react";
 import { Hotspot, Product } from "@/types/video";
 import VideoHotspot from "./VideoHotspot";
 import ProductCard from "./ProductCard";
+import HotspotToolbar from "./HotspotToolbar";
 
 interface VideoPlayerProps {
   videoSrc: string | null;
   hotspots: Hotspot[];
   products: Record<string, Product>;
+  selectedHotspot: Hotspot | null;
   onAddHotspot: (x: number, y: number, time: number) => void;
-  onSelectHotspot: (hotspot: Hotspot | null) => void;
+  onEditHotspot: (hotspot: Hotspot) => void;
+  onDeleteHotspot: (hotspotId: string) => void;
 }
 
 const VideoPlayer = ({
   videoSrc,
   hotspots,
   products,
+  selectedHotspot,
   onAddHotspot,
-  onSelectHotspot,
+  onEditHotspot,
+  onDeleteHotspot,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -35,11 +40,11 @@ const VideoPlayer = ({
     return () => video.removeEventListener("timeupdate", handleTimeUpdate);
   }, []);
 
-  const handleVideoDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
+  const handleVideoClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!videoRef.current || !containerRef.current) return;
+    
+    // Check if click was on video element itself (not on hotspot or toolbar)
+    if (e.target !== e.currentTarget && e.target !== videoRef.current) return;
     
     const rect = containerRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
@@ -54,7 +59,6 @@ const VideoPlayer = ({
     const product = products[hotspot.productId];
     if (product) {
       setSelectedProduct(product);
-      onSelectHotspot(hotspot);
     }
   };
 
@@ -67,7 +71,7 @@ const VideoPlayer = ({
       <div
         ref={containerRef}
         className="relative bg-black rounded-lg overflow-hidden"
-        onDoubleClick={handleVideoDoubleClick}
+        onClick={handleVideoClick}
       >
         {videoSrc ? (
           <video
@@ -83,12 +87,21 @@ const VideoPlayer = ({
         )}
 
         {activeHotspots.map((hotspot) => (
-          <VideoHotspot
-            key={hotspot.id}
-            hotspot={hotspot}
-            currentTime={currentTime}
-            onClick={(e) => handleHotspotClick(hotspot, e)}
-          />
+          <>
+            <VideoHotspot
+              key={hotspot.id}
+              hotspot={hotspot}
+              currentTime={currentTime}
+              isSelected={selectedHotspot?.id === hotspot.id}
+              onClick={(e) => handleHotspotClick(hotspot, e)}
+            />
+            <HotspotToolbar
+              key={`toolbar-${hotspot.id}`}
+              hotspot={hotspot}
+              onEdit={() => onEditHotspot(hotspot)}
+              onDelete={() => onDeleteHotspot(hotspot.id)}
+            />
+          </>
         ))}
       </div>
 
@@ -97,7 +110,6 @@ const VideoPlayer = ({
           product={selectedProduct}
           onClose={() => {
             setSelectedProduct(null);
-            onSelectHotspot(null);
           }}
         />
       )}

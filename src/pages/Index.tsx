@@ -62,8 +62,7 @@ const Index = () => {
       productId: productKeys[0],
     };
     setHotspots([...hotspots, newHotspot]);
-    setSelectedHotspot(newHotspot);
-    toast.success("Hotspot added - it will appear during playback between " + time.toFixed(1) + "s and " + (time + 3).toFixed(1) + "s");
+    toast.success("Hotspot created! Click Edit to configure.");
   };
 
   const handleUpdateHotspot = (updatedHotspot: Hotspot) => {
@@ -140,27 +139,26 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <VideoPlayer
-              videoSrc={videoSrc}
-              hotspots={hotspots}
-              products={products}
-              onAddHotspot={handleAddHotspot}
-              onSelectHotspot={setSelectedHotspot}
-            />
-          </div>
-          <div>
-            <PropertiesPanel
-              selectedHotspot={selectedHotspot}
-              products={products}
-              onUpdateHotspot={handleUpdateHotspot}
-              onDeleteHotspot={handleDeleteHotspot}
-              onUpdateProducts={setProducts}
-            />
-          </div>
-        </div>
+        <VideoPlayer
+          videoSrc={videoSrc}
+          hotspots={hotspots}
+          products={products}
+          selectedHotspot={selectedHotspot}
+          onAddHotspot={handleAddHotspot}
+          onEditHotspot={setSelectedHotspot}
+          onDeleteHotspot={handleDeleteHotspot}
+        />
       </main>
+
+      {/* Properties Sidebar */}
+      <PropertiesPanel
+        selectedHotspot={selectedHotspot}
+        products={products}
+        onUpdateHotspot={handleUpdateHotspot}
+        onDeleteHotspot={handleDeleteHotspot}
+        onUpdateProducts={setProducts}
+        onClose={() => setSelectedHotspot(null)}
+      />
     </div>
   );
 };
