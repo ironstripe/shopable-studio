@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 import { Hotspot, Product, VideoProject } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import PropertiesPanel from "@/components/PropertiesPanel";
-import ProductManager from "@/components/ProductManager";
 import { Button } from "@/components/ui/button";
 import { Upload, Download } from "lucide-react";
 import { toast } from "sonner";
@@ -113,10 +112,6 @@ const Index = () => {
               accept="video/*"
               onChange={handleVideoUpload}
               className="hidden"
-            />
-            <ProductManager
-              products={products}
-              onUpdateProducts={setProducts}
             />
             <Button
               onClick={() => fileInputRef.current?.click()}
