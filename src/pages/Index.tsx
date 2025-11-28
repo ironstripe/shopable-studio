@@ -205,17 +205,19 @@ const Index = () => {
         />
       </main>
 
-      {/* Properties Sidebar */}
-      <PropertiesPanel
-        hotspots={hotspots}
-        selectedHotspot={selectedHotspot}
-        products={products}
-        onUpdateHotspot={handleUpdateHotspot}
-        onDeleteHotspot={handleDeleteHotspot}
-        onUpdateProducts={setProducts}
-        onSelectFromList={handleSelectFromList}
-        onClose={() => setSelectedHotspot(null)}
-      />
+      {/* Properties Sidebar - only show when video is uploaded */}
+      {videoSrc && (
+        <PropertiesPanel
+          hotspots={hotspots}
+          selectedHotspot={selectedHotspot}
+          products={products}
+          onUpdateHotspot={handleUpdateHotspot}
+          onDeleteHotspot={handleDeleteHotspot}
+          onUpdateProducts={setProducts}
+          onSelectFromList={handleSelectFromList}
+          onClose={() => setSelectedHotspot(null)}
+        />
+      )}
     </div>
   );
 };
