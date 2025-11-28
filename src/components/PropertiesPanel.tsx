@@ -144,6 +144,56 @@ const PropertiesPanel = ({
           </div>
         </div>
 
+        {/* STYLE Section */}
+        <div className="space-y-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-[#AAAAAA]">
+            Style
+          </h3>
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="hotspotStyle" className="text-[#CCCCCC] text-sm mb-1.5 block">
+                Hotspot Style
+              </Label>
+              <Select
+                value={selectedHotspot.style}
+                onValueChange={(value) =>
+                  onUpdateHotspot({ ...selectedHotspot, style: value as any })
+                }
+              >
+                <SelectTrigger className="bg-[#242424] border-[#333333] text-white">
+                  <SelectValue placeholder="Select a style" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="smart-badge">Smart Badge</SelectItem>
+                  <SelectItem value="screen">Screen Icon</SelectItem>
+                  <SelectItem value="flash-circle">Flash Circle</SelectItem>
+                  <SelectItem value="tag-bubble">Tag Bubble</SelectItem>
+                  <SelectItem value="lux-dot">Luxury Dot</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="ctaLabel" className="text-[#CCCCCC] text-sm mb-1.5 block">
+                CTA Label
+              </Label>
+              <Input
+                id="ctaLabel"
+                type="text"
+                value={selectedHotspot.ctaLabel}
+                onChange={(e) =>
+                  onUpdateHotspot({
+                    ...selectedHotspot,
+                    ctaLabel: e.target.value,
+                  })
+                }
+                placeholder="z.B. Kaufen"
+                className="bg-[#242424] border-[#333333] text-white"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* POSITION Section */}
         <div className="space-y-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-[#AAAAAA]">

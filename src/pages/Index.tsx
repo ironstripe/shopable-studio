@@ -62,6 +62,8 @@ const Index = () => {
       x,
       y,
       productId: productKeys[0],
+      style: "smart-badge",
+      ctaLabel: "Kaufen",
     };
     setHotspots([...hotspots, newHotspot]);
     setActiveToolbarHotspotId(newHotspot.id);
@@ -98,6 +100,8 @@ const Index = () => {
         y: h.y,
         productId: h.productId,
         id: h.id,
+        style: h.style,
+        ctaLabel: h.ctaLabel,
       })),
       products,
     };
