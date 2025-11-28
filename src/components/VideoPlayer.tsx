@@ -113,8 +113,8 @@ const VideoPlayer = ({
                   <Button
                     onClick={onTogglePreviewMode}
                     size="icon"
-                    variant={isPreviewMode ? "default" : "secondary"}
-                    className="rounded-full w-10 h-10 shadow-lg"
+                    variant={isPreviewMode ? "secondary" : "default"}
+                    className="rounded-full w-10 h-10 shadow-lg ring-2 ring-white"
                   >
                     {isPreviewMode ? (
                       <Eye className="w-5 h-5" />
