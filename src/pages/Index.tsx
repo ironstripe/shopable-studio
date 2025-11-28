@@ -104,10 +104,7 @@ const Index = () => {
       {/* Header */}
       <header className="border-b border-gray-200 bg-white">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={shopableLogo} alt="Shopable" className="h-8" />
-            <span className="text-xl font-medium text-gray-600">Video Player</span>
-          </div>
+          <img src={shopableLogo} alt="Shopable" className="h-10" />
           <div className="flex gap-3">
             <input
               ref={fileInputRef}
@@ -118,7 +115,7 @@ const Index = () => {
             />
             <Button
               onClick={() => fileInputRef.current?.click()}
-              className="bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              className="bg-gray-100 text-gray-900 hover:bg-gray-200 border border-gray-300"
             >
               <Upload className="w-4 h-4 mr-2" />
               Upload Video

@@ -17,7 +17,7 @@ All colors MUST be HSL.
     --popover: 0 0% 12%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 18 100% 50%;
+    --primary: 215 98% 53%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 16%;
@@ -26,7 +26,7 @@ All colors MUST be HSL.
     --muted: 0 0% 20%;
     --muted-foreground: 0 0% 60%;
 
-    --accent: 18 100% 50%;
+    --accent: 215 98% 53%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -34,14 +34,14 @@ All colors MUST be HSL.
 
     --border: 0 0% 20%;
     --input: 0 0% 20%;
-    --ring: 18 100% 50%;
+    --ring: 215 98% 53%;
 
     --radius: 0.75rem;
 
-    --shopable-orange: 18 100% 50%;
-    --shopable-black: 0 0% 0%;
-    --shopable-white: 0 0% 100%;
-    --shopable-dark-grey: 0 0% 10%;
+    --shopable-blue: 215 98% 53%;
+    --shopable-black: 0 0% 4%;
+    --shopable-grey-900: 0 0% 12%;
+    --shopable-grey-300: 0 0% 82%;
   }
 }
 
@@ -52,7 +52,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 }
 

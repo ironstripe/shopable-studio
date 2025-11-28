@@ -48,10 +48,10 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         shopable: {
-          orange: "hsl(var(--shopable-orange))",
+          blue: "hsl(var(--shopable-blue))",
           black: "hsl(var(--shopable-black))",
-          white: "hsl(var(--shopable-white))",
-          grey: "hsl(var(--shopable-dark-grey))",
+          grey900: "hsl(var(--shopable-grey-900))",
+          grey300: "hsl(var(--shopable-grey-300))",
         },
       },
       borderRadius: {
