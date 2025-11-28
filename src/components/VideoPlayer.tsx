@@ -25,6 +25,7 @@ interface VideoPlayerProps {
   onDeleteHotspot: (hotspotId: string) => void;
   onHotspotSelect: (hotspotId: string) => void;
   onUpdateHotspotPosition: (hotspotId: string, x: number, y: number) => void;
+  onUpdateHotspotScale: (hotspotId: string, scale: number) => void;
 }
 
 const VideoPlayer = ({
@@ -40,6 +41,7 @@ const VideoPlayer = ({
   onDeleteHotspot,
   onHotspotSelect,
   onUpdateHotspotPosition,
+  onUpdateHotspotScale,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -49,6 +51,11 @@ const VideoPlayer = ({
     id: string;
     offsetX: number;
     offsetY: number;
+  } | null>(null);
+  const [resizingHotspot, setResizingHotspot] = useState<{
+    id: string;
+    initialScale: number;
+    initialDistance: number;
   } | null>(null);
   const [didDrag, setDidDrag] = useState(false);
 
@@ -116,6 +123,51 @@ const VideoPlayer = ({
     setDraggingHotspot(null);
   };
 
+  const getDistanceFromCenter = (hotspot: Hotspot, clientX: number, clientY: number) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return 0;
+    
+    const centerX = rect.left + hotspot.x * rect.width;
+    const centerY = rect.top + hotspot.y * rect.height;
+    
+    return Math.sqrt(
+      Math.pow(clientX - centerX, 2) + 
+      Math.pow(clientY - centerY, 2)
+    );
+  };
+
+  const handleResizeStart = (hotspot: Hotspot, e: React.MouseEvent) => {
+    if (isPreviewMode || !containerRef.current) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const initialDistance = getDistanceFromCenter(hotspot, e.clientX, e.clientY);
+    
+    setResizingHotspot({
+      id: hotspot.id,
+      initialScale: hotspot.scale,
+      initialDistance: Math.max(initialDistance, 10),
+    });
+  };
+
+  const handleResizeMove = (e: MouseEvent) => {
+    if (!resizingHotspot) return;
+    
+    const hotspot = hotspots.find(h => h.id === resizingHotspot.id);
+    if (!hotspot) return;
+    
+    const currentDistance = getDistanceFromCenter(hotspot, e.clientX, e.clientY);
+    const scaleRatio = currentDistance / resizingHotspot.initialDistance;
+    const newScale = Math.min(2, Math.max(0.5, resizingHotspot.initialScale * scaleRatio));
+    
+    onUpdateHotspotScale(resizingHotspot.id, newScale);
+  };
+
+  const handleResizeEnd = () => {
+    setResizingHotspot(null);
+  };
+
   useEffect(() => {
     if (draggingHotspot) {
       document.addEventListener('mousemove', handleDragMove);
@@ -125,7 +177,15 @@ const VideoPlayer = ({
         document.removeEventListener('mouseup', handleDragEnd);
       };
     }
-  }, [draggingHotspot]);
+    if (resizingHotspot) {
+      document.addEventListener('mousemove', handleResizeMove);
+      document.addEventListener('mouseup', handleResizeEnd);
+      return () => {
+        document.removeEventListener('mousemove', handleResizeMove);
+        document.removeEventListener('mouseup', handleResizeEnd);
+      };
+    }
+  }, [draggingHotspot, resizingHotspot]);
 
   const handleHotspotClick = (hotspot: Hotspot, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -223,9 +283,11 @@ const VideoPlayer = ({
                   currentTime={currentTime}
                   isSelected={selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id}
                   isDragging={draggingHotspot?.id === hotspot.id}
+                  isResizing={resizingHotspot?.id === hotspot.id}
                   isEditMode={!isPreviewMode}
                   onClick={(e) => handleHotspotClick(hotspot, e)}
                   onDragStart={(e) => handleDragStart(hotspot, e)}
+                  onResizeStart={(e) => handleResizeStart(hotspot, e)}
                 />
                 {!isPreviewMode && activeToolbarHotspotId === hotspot.id && !draggingHotspot && (
                   <HotspotToolbar

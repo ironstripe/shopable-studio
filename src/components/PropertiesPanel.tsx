@@ -2,6 +2,7 @@ import { Hotspot, Product } from "@/types/video";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -190,6 +191,33 @@ const PropertiesPanel = ({
                 placeholder="z.B. Kaufen"
                 className="bg-[#242424] border-[#333333] text-white"
               />
+            </div>
+          </div>
+        </div>
+
+        {/* SIZE Section */}
+        <div className="space-y-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-[#AAAAAA]">
+            Size
+          </h3>
+          <div>
+            <Label htmlFor="scale" className="text-[#CCCCCC] text-sm mb-1.5 block">
+              Scale
+            </Label>
+            <div className="flex items-center gap-3">
+              <Slider
+                value={[selectedHotspot.scale * 100]}
+                min={50}
+                max={200}
+                step={5}
+                onValueChange={(value) =>
+                  onUpdateHotspot({ ...selectedHotspot, scale: value[0] / 100 })
+                }
+                className="flex-1"
+              />
+              <span className="text-white text-sm w-16 text-right">
+                {Math.round(selectedHotspot.scale * 100)}%
+              </span>
             </div>
           </div>
         </div>

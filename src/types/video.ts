@@ -9,6 +9,7 @@ export interface Hotspot {
   productId: string;
   style: HotspotStyle;
   ctaLabel: string;
+  scale: number;
 }
 
 export interface Product {
