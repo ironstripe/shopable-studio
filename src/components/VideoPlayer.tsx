@@ -41,18 +41,30 @@ const VideoPlayer = ({
     };
 
     video.addEventListener("timeupdate", handleTimeUpdate);
-    return () => video.removeEventListener("timeupdate", handleTimeUpdate);
+    video.addEventListener("seeked", handleTimeUpdate);
+    video.addEventListener("play", handleTimeUpdate);
+    video.addEventListener("pause", handleTimeUpdate);
+    
+    return () => {
+      video.removeEventListener("timeupdate", handleTimeUpdate);
+      video.removeEventListener("seeked", handleTimeUpdate);
+      video.removeEventListener("play", handleTimeUpdate);
+      video.removeEventListener("pause", handleTimeUpdate);
+    };
   }, []);
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!videoRef.current || !containerRef.current) return;
     
+    // Force sync currentTime state with actual video time
+    const actualTime = videoRef.current.currentTime;
+    setCurrentTime(actualTime);
+    
     const rect = containerRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
-    const time = videoRef.current.currentTime;
 
-    onAddHotspot(x, y, time);
+    onAddHotspot(x, y, actualTime);
   };
 
   const handleHotspotClick = (hotspot: Hotspot, e: React.MouseEvent) => {
