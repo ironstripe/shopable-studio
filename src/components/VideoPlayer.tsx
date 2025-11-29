@@ -253,61 +253,56 @@ const VideoPlayer = ({
   return (
     <div className="relative w-full flex justify-center">
       <div className="w-full max-w-[960px]">
-        {/* Mode Controls - Fixed Bar Above Video */}
+        {/* Mode Controls - Sticky Bar Above Video */}
         {videoSrc && (
-          <>
-            <div className="fixed top-[65px] left-0 right-0 z-40 px-6 pt-4 pb-2 bg-white/95 backdrop-blur-sm">
-              <div className="flex flex-col items-center max-w-[960px] mx-auto">
-                {/* Segmented Toggle - Centered */}
-                <div className="inline-flex items-center rounded-lg bg-white border border-gray-300 p-0.5 shadow-sm">
-                  <button
-                    onClick={() => isPreviewMode && onTogglePreviewMode()}
-                    className={cn(
-                      "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200",
-                      !isPreviewMode 
-                        ? "bg-[#3B82F6] text-white" 
-                        : "bg-white text-[#6B7280] border border-[rgba(0,0,0,0.08)] hover:bg-[rgba(59,130,246,0.05)] hover:text-gray-700"
-                    )}
-                  >
-                    Edit Hotspots
-                  </button>
-                  <button
-                    onClick={() => !isPreviewMode && onTogglePreviewMode()}
-                    className={cn(
-                      "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200",
-                      isPreviewMode 
-                        ? "bg-[#3B82F6] text-white" 
-                        : "bg-white text-[#6B7280] border border-[rgba(0,0,0,0.08)] hover:bg-[rgba(59,130,246,0.05)] hover:text-gray-700"
-                    )}
-                  >
-                    Preview
-                  </button>
-                </div>
-                
-                {/* Helper Text - Below Toggle */}
-                {!isPreviewMode && (
-                  <p className="text-[12px] text-[#6B7280] mt-2.5 mb-0">
-                    ✎ Edit mode – click in the video to add a hotspot.
-                  </p>
-                )}
-                {isPreviewMode && <div className="h-3" />}
+          <div className="sticky top-[80px] z-40 px-6 pt-4 pb-2 bg-white/95 backdrop-blur-sm">
+            <div className="flex flex-col items-center max-w-[960px] mx-auto">
+              {/* Segmented Toggle - Centered */}
+              <div className="inline-flex items-center rounded-lg bg-white border border-gray-300 p-0.5 shadow-sm">
+                <button
+                  onClick={() => isPreviewMode && onTogglePreviewMode()}
+                  className={cn(
+                    "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200",
+                    !isPreviewMode 
+                      ? "bg-[#3B82F6] text-white" 
+                      : "bg-white text-[#6B7280] border border-[rgba(0,0,0,0.08)] hover:bg-[rgba(59,130,246,0.05)] hover:text-gray-700"
+                  )}
+                >
+                  Edit Hotspots
+                </button>
+                <button
+                  onClick={() => !isPreviewMode && onTogglePreviewMode()}
+                  className={cn(
+                    "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200",
+                    isPreviewMode 
+                      ? "bg-[#3B82F6] text-white" 
+                      : "bg-white text-[#6B7280] border border-[rgba(0,0,0,0.08)] hover:bg-[rgba(59,130,246,0.05)] hover:text-gray-700"
+                  )}
+                >
+                  Preview
+                </button>
               </div>
+              
+              {/* Helper Text - Below Toggle */}
+              {!isPreviewMode && (
+                <p className="text-[12px] text-[#6B7280] mt-2.5 mb-0">
+                  ✎ Edit mode – click in the video to add a hotspot.
+                </p>
+              )}
+              {isPreviewMode && <div className="h-3" />}
             </div>
-            
-            {/* Spacer to account for fixed bar */}
-            <div className={cn(!isPreviewMode ? "h-[100px]" : "h-[85px]")} />
-          </>
+          </div>
         )}
       
-      <div
-        ref={containerRef}
-        className={cn(
-          "relative overflow-visible transition-all duration-300",
-          videoSrc && "bg-gradient-to-br from-[#101010] to-[#181818] rounded-[14px] p-1",
-          videoSrc && "shadow-[0_4px_16px_rgba(0,0,0,0.12)]",
-          videoSrc && !isPreviewMode && "ring-2 ring-[rgba(59,130,246,0.4)]"
-        )}
-      >
+        <div
+          ref={containerRef}
+          className={cn(
+            "relative overflow-visible transition-all duration-300",
+            videoSrc && "bg-gradient-to-br from-[#101010] to-[#181818] rounded-[14px] p-1",
+            videoSrc && "shadow-[0_4px_16px_rgba(0,0,0,0.12)]",
+            videoSrc && !isPreviewMode && "ring-2 ring-[rgba(59,130,246,0.4)]"
+          )}
+        >
         {videoSrc ? (
           <video
             ref={videoRef}
