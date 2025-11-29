@@ -60,7 +60,7 @@ const Index = () => {
       x,
       y,
       productId: productKeys[0],
-      style: "badge-small",
+      style: "badge-bubble-small",
       ctaLabel: "Kaufen",
       scale: 1,
       clickBehavior: "show-card",
