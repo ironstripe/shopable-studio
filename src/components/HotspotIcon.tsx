@@ -266,7 +266,7 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price 
         className="flex items-center gap-2 group animate-fade-in"
         style={{ ...baseStyle, animationDuration: '220ms' }}
       >
-        <div className="w-[2px] h-[2px] rounded-full bg-[#F7F5EF] opacity-40 group-hover:opacity-100 transition-opacity duration-200" style={{ boxShadow: '0 0 3px rgba(247,245,239,0.5)' }} />
+        <div className="w-[4px] h-[4px] rounded-full bg-[#F7F5EF] opacity-80 group-hover:opacity-100 transition-opacity duration-200" style={{ boxShadow: '0 0 6px rgba(247,245,239,0.7)' }} />
         <span 
           className="font-spectral text-[12px] font-light text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"
           style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
