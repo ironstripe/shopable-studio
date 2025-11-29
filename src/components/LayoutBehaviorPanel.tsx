@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { X, AlertCircle } from "lucide-react";
 import { usePanelResize } from "@/hooks/use-panel-resize";
+import { usePanelDrag } from "@/hooks/use-panel-drag";
 import { ResizeHandle } from "@/components/ResizeHandle";
 
 interface LayoutBehaviorPanelProps {
@@ -107,6 +108,8 @@ const LayoutBehaviorPanel = ({
     defaultWidth: 360,
     defaultHeight: 500,
   });
+
+  const { offset, dragHandleProps } = usePanelDrag();
 
   // Validation errors
   const [errors, setErrors] = useState<{ start?: string; duration?: string }>({});
@@ -956,15 +959,23 @@ const LayoutBehaviorPanel = ({
   return (
     <div
       className="relative bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-[#E1E4E8] overflow-hidden flex flex-col"
-      style={{ width: `${width}px`, height: `${height}px` }}
+      style={{ 
+        width: `${width}px`, 
+        height: `${height}px`,
+        transform: `translate(${offset.x}px, ${offset.y}px)`,
+      }}
       onClick={(e) => e.stopPropagation()}
     >
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-[#E1E4E8]">
+      {/* Header - Drag Handle */}
+      <div 
+        className="px-4 py-3 border-b border-[#E1E4E8]"
+        {...dragHandleProps}
+      >
         <div className="flex items-center justify-between mb-1">
           <h3 className="text-sm font-semibold text-[#111827]">Layout & Behavior</h3>
           <button
             onClick={onClose}
+            onMouseDown={(e) => e.stopPropagation()}
             className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[#F7F8FA] transition-colors"
           >
             <X className="w-4 h-4 text-[#6B7280]" />

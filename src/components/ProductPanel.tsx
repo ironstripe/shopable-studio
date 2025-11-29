@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Plus, Check, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePanelResize } from "@/hooks/use-panel-resize";
+import { usePanelDrag } from "@/hooks/use-panel-drag";
 import { ResizeHandle } from "@/components/ResizeHandle";
 
 interface ProductPanelProps {
@@ -50,6 +51,8 @@ const ProductPanel = ({
     defaultWidth: 340,
     defaultHeight: 400,
   });
+
+  const { offset, dragHandleProps } = usePanelDrag();
 
   const productList = Object.values(products);
   const filteredProducts = productList.filter((p) =>
@@ -109,8 +112,18 @@ const ProductPanel = ({
   // Empty State
   if (productList.length === 0) {
     return (
-      <div className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-5" style={{ width: `${width}px`, height: `${height}px` }}>
-        <div className="flex flex-col items-center justify-center py-6 text-center">
+      <div 
+        className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-5" 
+        style={{ 
+          width: `${width}px`, 
+          height: `${height}px`,
+          transform: `translate(${offset.x}px, ${offset.y}px)`,
+        }}
+      >
+        <div 
+          className="flex flex-col items-center justify-center py-6 text-center"
+          {...dragHandleProps}
+        >
           <div className="w-12 h-12 rounded-full bg-[rgba(59,130,246,0.1)] flex items-center justify-center mb-3">
             <Plus className="w-6 h-6 text-[#3B82F6]" />
           </div>
@@ -134,8 +147,18 @@ const ProductPanel = ({
   // Create Mode
   if (viewMode === "create" || (viewMode === "list" && productList.length === 0)) {
     return (
-      <div className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] overflow-hidden flex flex-col" style={{ width: `${width}px`, height: `${height}px` }}>
-        <h3 className="text-[14px] font-semibold text-[#111827] p-5 pb-0 mb-4">
+      <div 
+        className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] overflow-hidden flex flex-col" 
+        style={{ 
+          width: `${width}px`, 
+          height: `${height}px`,
+          transform: `translate(${offset.x}px, ${offset.y}px)`,
+        }}
+      >
+        <h3 
+          className="text-[14px] font-semibold text-[#111827] p-5 pb-0 mb-4"
+          {...dragHandleProps}
+        >
           Create product
         </h3>
         
@@ -279,8 +302,18 @@ const ProductPanel = ({
   // Edit Mode
   if (viewMode === "edit" && editingProduct) {
     return (
-      <div className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] overflow-hidden flex flex-col" style={{ width: `${width}px`, height: `${height}px` }}>
-        <h3 className="text-[14px] font-semibold text-[#111827] p-5 pb-0 mb-4">
+      <div 
+        className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] overflow-hidden flex flex-col" 
+        style={{ 
+          width: `${width}px`, 
+          height: `${height}px`,
+          transform: `translate(${offset.x}px, ${offset.y}px)`,
+        }}
+      >
+        <h3 
+          className="text-[14px] font-semibold text-[#111827] p-5 pb-0 mb-4"
+          {...dragHandleProps}
+        >
           Edit Product
         </h3>
         
@@ -382,9 +415,19 @@ const ProductPanel = ({
 
   // List Mode (Default)
   return (
-    <div className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-4 flex flex-col" style={{ width: `${width}px`, height: `${height}px` }}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
+    <div 
+      className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-4 flex flex-col" 
+      style={{ 
+        width: `${width}px`, 
+        height: `${height}px`,
+        transform: `translate(${offset.x}px, ${offset.y}px)`,
+      }}
+    >
+      {/* Header - Drag Handle */}
+      <div 
+        className="flex items-center justify-between mb-3"
+        {...dragHandleProps}
+      >
         <h3 className="text-[13px] font-semibold text-[#111827]">
           Select Product
         </h3>
