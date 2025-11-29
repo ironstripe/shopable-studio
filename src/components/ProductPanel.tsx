@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Product } from "@/types/video";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +53,21 @@ const ProductPanel = ({
   });
 
   const { offset, dragHandleProps } = usePanelDrag();
+
+  // ESC key handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (viewMode === "create" || viewMode === "edit") {
+          setViewMode("list");
+        } else {
+          onClose();
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [viewMode, onClose]);
 
   const productList = Object.values(products);
   const filteredProducts = productList.filter((p) =>
@@ -467,7 +482,7 @@ const ProductPanel = ({
     >
       {/* Header - Drag Handle */}
       <div 
-        className="flex items-center justify-between py-2 -mx-5 px-5 mb-2"
+        className="flex items-center justify-between py-3 -mx-5 px-5 mb-3"
         {...dragHandleProps}
       >
         <h3 className="text-[15px] font-medium text-neutral-800">
@@ -476,7 +491,7 @@ const ProductPanel = ({
         <button
           onClick={() => setViewMode("create")}
           onMouseDown={(e) => e.stopPropagation()}
-          className="flex items-center gap-1 px-2 py-1 text-[13px] font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-[#3B82F6] bg-[rgba(59,130,246,0.06)] hover:bg-[rgba(59,130,246,0.12)] rounded-full transition-colors"
         >
           <Plus className="w-4 h-4" />
           New
@@ -484,7 +499,7 @@ const ProductPanel = ({
       </div>
 
       {/* Search Bar */}
-      <div className="relative mb-3">
+      <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
         <Input
           value={searchQuery}

@@ -1,9 +1,10 @@
 import { useRef, useState, useEffect } from "react";
-import { Hotspot, Product } from "@/types/video";
+import { Hotspot, Product, VideoCTA as VideoCTAType } from "@/types/video";
 import VideoHotspot from "./VideoHotspot";
 import ProductCard from "./ProductCard";
 import HotspotInlineEditor from "./HotspotInlineEditor";
 import VideoUploadZone from "./VideoUploadZone";
+import VideoCTA from "./VideoCTA";
 import { cn } from "@/lib/utils";
 
 interface VideoPlayerProps {
@@ -25,6 +26,9 @@ interface VideoPlayerProps {
   onVideoRef?: (ref: HTMLVideoElement | null) => void;
   onVideoLoad: (src: string) => void;
   shouldAutoOpenProductPanel?: boolean;
+  highlightedHotspotId?: string | null;
+  videoCTA?: VideoCTAType;
+  onUpdateVideoCTA?: (cta: VideoCTAType) => void;
 }
 
 const VideoPlayer = ({
@@ -46,10 +50,14 @@ const VideoPlayer = ({
   onVideoRef,
   onVideoLoad,
   shouldAutoOpenProductPanel,
+  highlightedHotspotId,
+  videoCTA,
+  onUpdateVideoCTA,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedProductHotspot, setSelectedProductHotspot] = useState<Hotspot | null>(null);
   const [showShopButton, setShowShopButton] = useState(true);
@@ -79,16 +87,26 @@ const VideoPlayer = ({
       setCurrentTime(video.currentTime);
     };
 
+    const handlePlay = () => {
+      setIsPlaying(true);
+      handleTimeUpdate();
+    };
+
+    const handlePause = () => {
+      setIsPlaying(false);
+      handleTimeUpdate();
+    };
+
     video.addEventListener("timeupdate", handleTimeUpdate);
     video.addEventListener("seeked", handleTimeUpdate);
-    video.addEventListener("play", handleTimeUpdate);
-    video.addEventListener("pause", handleTimeUpdate);
+    video.addEventListener("play", handlePlay);
+    video.addEventListener("pause", handlePause);
     
     return () => {
       video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("seeked", handleTimeUpdate);
-      video.removeEventListener("play", handleTimeUpdate);
-      video.removeEventListener("pause", handleTimeUpdate);
+      video.removeEventListener("play", handlePlay);
+      video.removeEventListener("pause", handlePause);
     };
   }, [videoSrc]);
 
@@ -372,6 +390,7 @@ const VideoPlayer = ({
                       price={price}
                       hotspotIndex={getHotspotIndex(hotspot)}
                       hasProduct={!!hotspot.productId}
+                      isHighlighted={highlightedHotspotId === hotspot.id}
                     />
                     {!isPreviewMode && (selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id) && !draggingHotspot && (
                       <HotspotInlineEditor
@@ -404,6 +423,17 @@ const VideoPlayer = ({
               setShowShopButton(true);
               videoRef.current?.play();
             }}
+          />
+        )}
+
+        {/* Video CTA */}
+        {videoCTA && videoRef.current && (
+          <VideoCTA
+            videoCTA={videoCTA}
+            currentTime={currentTime}
+            videoDuration={videoRef.current.duration || 0}
+            containerRef={containerRef}
+            isPlaying={isPlaying}
           />
         )}
       </div>

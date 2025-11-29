@@ -31,6 +31,15 @@ export type HotspotStyle =
 
 export type ClickBehavior = "show-card" | "direct-link" | "no-action";
 
+// Video-level CTA (Global Video Link)
+export type VideoCTAMode = "off" | "show-at-end" | "always-visible";
+
+export interface VideoCTA {
+  label: string;
+  url: string;
+  mode: VideoCTAMode;
+}
+
 // Product Card Family System (Extensible Architecture)
 export type CardFamily = "retail" | "luxury" | "editorial" | "fineline" | "ecommerce";
 
@@ -80,4 +89,5 @@ export interface VideoProject {
   videoSrc: string;
   hotspots: Hotspot[];
   products: Record<string, Product>;
+  videoCTA?: VideoCTA;
 }

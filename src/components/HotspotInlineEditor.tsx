@@ -36,6 +36,18 @@ const HotspotInlineEditor = ({
     }
   }, [autoOpenProductPanel]);
 
+  // ESC key handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (productOpen) setProductOpen(false);
+        if (layoutOpen) setLayoutOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [productOpen, layoutOpen]);
+
   const hasProduct = !!hotspot.productId;
 
   // Redirect to product picker if trying to open layout without product
