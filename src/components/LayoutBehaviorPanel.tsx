@@ -37,6 +37,10 @@ const migrateOldStyle = (style: string): HotspotStyle => {
     "minimal-dot-strong": "minimal-dot-micro-dot",
     "minimal-dot-default": "minimal-dot-pure-line",
     "minimal-dot-pulse": "minimal-dot-micro-dot",
+    // Luxury Line old variants migration to new refined designs
+    "luxury-line-serif-minimal": "luxury-line-serif-whisper",
+    "luxury-line-floating-label": "luxury-line-glass-veil",
+    "luxury-line-ultra-dot": "luxury-line-dot-reveal",
   };
   return (migrationMap[style] || style) as HotspotStyle;
 };
@@ -114,7 +118,7 @@ const LayoutBehaviorPanel = ({
     } else if (type === "minimal-dot") {
       setSelectedVariant("pure-line");
     } else if (type === "luxury-line") {
-      setSelectedVariant("serif-minimal");
+      setSelectedVariant("serif-whisper");
     } else if (type === "ecommerce-line") {
       setSelectedVariant("price-tag-compact");
     } else if (type === "editorial-line") {
@@ -212,10 +216,10 @@ const LayoutBehaviorPanel = ({
     if (family === "luxury-line") {
       return (
         <div className="bg-[#2A2A2A] rounded-lg px-3 py-2 flex flex-col items-start gap-0.5">
-          <span className="font-spectral text-sm font-light text-white tracking-wide">
+          <span className="font-spectral text-sm font-light text-[#F7F5EF] tracking-wide">
             1. Product Name
           </span>
-          <div className="w-16 h-[1px] bg-[#E8DCC0]" />
+          <div className="w-20 h-[0.5px] bg-[#F7F5EF]/60" />
         </div>
       );
     }
@@ -298,24 +302,24 @@ const LayoutBehaviorPanel = ({
   // Luxury Line specific variants
   const luxuryLineVariants = [
     { 
-      value: "serif-minimal", 
-      label: "Luxury Serif Minimal",
-      description: "Editorial style with thin underline"
+      value: "serif-whisper", 
+      label: "Serif Whisper Tag",
+      description: "Thin serif with ultra-thin underline"
     },
     { 
       value: "gold-accent", 
-      label: "Luxury Gold Accent",
-      description: "Gold number and champagne underline"
+      label: "Gold Accent Line",
+      description: "Soft gold number with champagne underline"
     },
     { 
-      value: "floating-label", 
-      label: "Minimal Floating Label",
-      description: "Translucent background label"
+      value: "glass-veil", 
+      label: "Glass Veil Label",
+      description: "Translucent background with blur"
     },
     { 
-      value: "ultra-dot", 
-      label: "Ultra Minimal Dot",
-      description: "Tiny dot with hover reveal"
+      value: "dot-reveal", 
+      label: "Minimal Dot Reveal",
+      description: "Tiny dot with hover text reveal"
     }
   ];
 
@@ -462,44 +466,44 @@ const LayoutBehaviorPanel = ({
 
   // Get preview for Luxury Line variants
   const getLuxuryLineVariantPreview = (variant: string) => {
-    if (variant === "serif-minimal") {
+    if (variant === "serif-whisper") {
       return (
-        <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2 flex flex-col items-center gap-0.5">
-          <span className="font-spectral text-[10px] font-light text-white/90 tracking-wide">
+        <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2 flex flex-col items-start gap-0.5">
+          <span className="font-spectral text-[10px] font-light text-[#F7F5EF] tracking-wide">
             1. Product
           </span>
-          <div className="w-10 h-[1px] bg-white/60" />
+          <div className="w-12 h-[0.5px] bg-[#F7F5EF]/60" />
         </div>
       );
     }
     
     if (variant === "gold-accent") {
       return (
-        <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2 flex flex-col items-center gap-0.5">
+        <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2 flex flex-col items-start gap-0.5">
           <div className="flex items-center gap-1">
-            <span className="font-spectral text-[10px] font-light text-[#E8DCC0]">1.</span>
+            <span className="font-spectral text-[10px] font-light text-[#D6C29A]">1.</span>
             <span className="font-spectral text-[10px] font-light text-white tracking-wide">Product</span>
           </div>
-          <div className="w-10 h-[1px] bg-[#D4C7A1]" />
+          <div className="w-12 h-[0.5px] bg-[#C9B58F]" />
         </div>
       );
     }
     
-    if (variant === "floating-label") {
+    if (variant === "glass-veil") {
       return (
         <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2">
-          <div className="bg-black/40 rounded px-2 py-1">
-            <span className="font-inter-thin text-[10px] font-extralight text-white">Product</span>
+          <div className="bg-white/10 backdrop-blur-[6px] border border-white/20 rounded px-2 py-1">
+            <span className="text-[10px] font-light text-white">Product</span>
           </div>
         </div>
       );
     }
     
-    // ultra-dot
+    // dot-reveal
     return (
-      <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2 flex items-center justify-center gap-1.5">
-        <div className="w-[3px] h-[3px] rounded-full bg-white" />
-        <span className="font-inter-thin text-[9px] font-extralight text-white/60">Shop</span>
+      <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2 flex items-center gap-1.5">
+        <div className="w-[2px] h-[2px] rounded-full bg-[#F7F5EF]" />
+        <span className="text-[9px] font-light text-white/60">Shop</span>
       </div>
     );
   };

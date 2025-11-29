@@ -11,7 +11,7 @@ export type BadgeBubbleVariant = "classic" | "outline" | "ghost" | "accent-split
 export type FineLineVariant = "pure-line" | "soft-glass" | "editorial-slim" | "micro-dot";
 
 // Luxury Line specific variants
-export type LuxuryLineVariant = "serif-minimal" | "gold-accent" | "floating-label" | "ultra-dot";
+export type LuxuryLineVariant = "serif-whisper" | "gold-accent" | "glass-veil" | "dot-reveal";
 
 // E-Commerce Line specific variants
 export type ECommerceLineVariant = "price-tag-compact" | "product-label-extended" | "cta-pill-focus" | "ecom-meta-strip";
@@ -25,7 +25,7 @@ export type HotspotStyle =
   | "icon-cta-pill-small" | "icon-cta-pill-large" | "icon-cta-pill-light" | "icon-cta-pill-strong"
   | "badge-bubble-classic" | "badge-bubble-outline" | "badge-bubble-ghost" | "badge-bubble-accent-split"
   | "minimal-dot-pure-line" | "minimal-dot-soft-glass" | "minimal-dot-editorial-slim" | "minimal-dot-micro-dot"
-  | "luxury-line-serif-minimal" | "luxury-line-gold-accent" | "luxury-line-floating-label" | "luxury-line-ultra-dot"
+  | "luxury-line-serif-whisper" | "luxury-line-gold-accent" | "luxury-line-glass-veil" | "luxury-line-dot-reveal"
   | "ecommerce-line-price-tag-compact" | "ecommerce-line-product-label-extended" | "ecommerce-line-cta-pill-focus" | "ecommerce-line-ecom-meta-strip"
   | "editorial-line-headline-tag" | "editorial-line-vertical-label" | "editorial-line-caption-box" | "editorial-line-editorial-marker";
 

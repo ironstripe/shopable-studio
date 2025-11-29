@@ -214,17 +214,20 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price 
     );
   }
 
-  // Luxury Line variants
-  if (style === "luxury-line-serif-minimal") {
+  // Luxury Line variants - Refined luxury aesthetics
+  if (style === "luxury-line-serif-whisper") {
     return (
       <div 
-        className="flex flex-col items-start gap-0.5 animate-fade-in"
-        style={{ ...baseStyle, animationDuration: '240ms', textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
+        className="flex flex-col items-start gap-0.5 animate-fade-in group"
+        style={{ ...baseStyle, animationDuration: '220ms' }}
       >
-        <span className="font-spectral text-[13px] font-light text-white tracking-wide">
+        <span 
+          className="font-spectral text-[13px] font-light text-[#F7F5EF] tracking-wide group-hover:opacity-100 opacity-90 transition-opacity duration-150"
+          style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
+        >
           {countdown}. {ctaLabel}
         </span>
-        <div className="w-full h-[1px] bg-white/60" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
+        <div className="w-full h-[0.5px] bg-[#F7F5EF]/60 group-hover:bg-[#F7F5EF]/80 transition-colors duration-150" />
       </div>
     );
   }
@@ -232,40 +235,40 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price 
   if (style === "luxury-line-gold-accent") {
     return (
       <div 
-        className="flex flex-col items-start gap-0.5 animate-fade-in"
-        style={{ ...baseStyle, animationDuration: '240ms', textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
+        className="flex flex-col items-start gap-0.5 animate-fade-in group"
+        style={{ ...baseStyle, animationDuration: '220ms' }}
       >
         <div className="flex items-center gap-1.5">
-          <span className="font-spectral text-[13px] font-light text-[#E8DCC0]">{countdown}.</span>
-          <span className="font-spectral text-[13px] font-light text-white tracking-wide">{ctaLabel}</span>
+          <span className="font-spectral text-[13px] font-light text-[#D6C29A]" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{countdown}.</span>
+          <span className="font-spectral text-[13px] font-light text-white tracking-wide" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{ctaLabel}</span>
         </div>
-        <div className="w-full h-[1px] bg-[#D4C7A1]" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
+        <div className="w-full h-[0.5px] bg-[#C9B58F] opacity-70 group-hover:opacity-100 transition-opacity duration-150" />
       </div>
     );
   }
 
-  if (style === "luxury-line-floating-label") {
+  if (style === "luxury-line-glass-veil") {
     return (
       <div 
-        className="bg-black/40 backdrop-blur-sm rounded px-2.5 py-1.5 animate-fade-in"
-        style={{ ...baseStyle, animationDuration: '240ms' }}
+        className="bg-white/10 backdrop-blur-[6px] border border-white/20 rounded px-3 py-1.5 animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '220ms', transform: `scale(${scale})` }}
       >
-        <span className="font-inter-thin text-[12px] font-extralight text-white tracking-wide">
-          {ctaLabel}
+        <span className="text-[12px] font-light text-white tracking-wide" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+          <sup className="text-[9px] mr-1">{countdown}</sup>{ctaLabel}
         </span>
       </div>
     );
   }
 
-  if (style === "luxury-line-ultra-dot") {
+  if (style === "luxury-line-dot-reveal") {
     return (
       <div 
         className="flex items-center gap-2 group animate-fade-in"
-        style={{ ...baseStyle, animationDuration: '240ms' }}
+        style={{ ...baseStyle, animationDuration: '220ms' }}
       >
-        <div className="w-[3px] h-[3px] rounded-full bg-white group-hover:opacity-30 transition-opacity duration-200" style={{ boxShadow: '0 0 4px rgba(255,255,255,0.6)' }} />
+        <div className="w-[2px] h-[2px] rounded-full bg-[#F7F5EF] opacity-40 group-hover:opacity-100 transition-opacity duration-200" style={{ boxShadow: '0 0 3px rgba(247,245,239,0.5)' }} />
         <span 
-          className="font-inter-thin text-[12px] font-extralight text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          className="font-spectral text-[12px] font-light text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"
           style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
         >
           {ctaLabel}
