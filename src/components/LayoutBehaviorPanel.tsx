@@ -30,8 +30,13 @@ const migrateOldStyle = (style: string): HotspotStyle => {
     "badge-bubble-light-shadow": "badge-bubble-outline",
     "badge-bubble-strong": "badge-bubble-classic",
     "badge-bubble-strong-shadow": "badge-bubble-classic",
-    "minimal-dot-default": "minimal-dot-small",
-    "minimal-dot-pulse": "minimal-dot-strong",
+    // Fine Line (minimal-dot) old variants migration to new creative styles
+    "minimal-dot-small": "minimal-dot-pure-line",
+    "minimal-dot-large": "minimal-dot-soft-glass",
+    "minimal-dot-light": "minimal-dot-editorial-slim",
+    "minimal-dot-strong": "minimal-dot-micro-dot",
+    "minimal-dot-default": "minimal-dot-pure-line",
+    "minimal-dot-pulse": "minimal-dot-micro-dot",
   };
   return (migrationMap[style] || style) as HotspotStyle;
 };
@@ -106,6 +111,8 @@ const LayoutBehaviorPanel = ({
     // Auto-select appropriate default variant when switching families
     if (type === "badge-bubble") {
       setSelectedVariant("classic");
+    } else if (type === "minimal-dot") {
+      setSelectedVariant("pure-line");
     } else if (type === "luxury-line") {
       setSelectedVariant("serif-minimal");
     } else if (type === "ecommerce-line") {
@@ -261,6 +268,30 @@ const LayoutBehaviorPanel = ({
       value: "accent-split", 
       label: "Accent Split",
       description: "Two-part with prominent CTA"
+    }
+  ];
+
+  // Fine Line specific variants (creative style-based)
+  const fineLineVariants = [
+    { 
+      value: "pure-line", 
+      label: "Pure Line",
+      description: "Ultra-thin outline, clean minimal style"
+    },
+    { 
+      value: "soft-glass", 
+      label: "Soft Glass Line",
+      description: "Semi-transparent with subtle blur"
+    },
+    { 
+      value: "editorial-slim", 
+      label: "Editorial Slim Tag",
+      description: "Magazine-style with thin borders"
+    },
+    { 
+      value: "micro-dot", 
+      label: "Micro Dot Label",
+      description: "Dot indicator with text label"
     }
   ];
 
@@ -536,6 +567,52 @@ const LayoutBehaviorPanel = ({
     { value: "strong", label: "Strong", description: "Higher contrast, stronger border" },
   ];
 
+  // Get preview for Fine Line variants
+  const getFineLineVariantPreview = (variant: string) => {
+    if (variant === "pure-line") {
+      return (
+        <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2 flex items-center gap-1.5 border border-white/70">
+          <span className="text-white text-[10px] font-light">3</span>
+          <div className="w-[0.5px] h-3 bg-white/50" />
+          <span className="text-white text-[9px] font-light tracking-wide">Shop</span>
+        </div>
+      );
+    }
+    
+    if (variant === "soft-glass") {
+      return (
+        <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2">
+          <div className="flex items-center gap-1 bg-white/10 backdrop-blur-[3px] border border-white/30 rounded px-2 py-1">
+            <span className="text-white text-[10px] font-light">3</span>
+            <span className="text-white/50 text-[10px]">•</span>
+            <span className="text-white text-[9px] font-light">Shop</span>
+          </div>
+        </div>
+      );
+    }
+    
+    if (variant === "editorial-slim") {
+      return (
+        <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2 flex flex-col items-center gap-0.5">
+          <div className="w-12 h-[0.5px] bg-white/60" />
+          <div className="flex items-center gap-1 px-1.5 py-0.5">
+            <span className="text-white text-[8px] font-light align-super">3</span>
+            <span className="text-white text-[9px] font-light tracking-wider">SHOP</span>
+          </div>
+          <div className="w-12 h-[0.5px] bg-white/60" />
+        </div>
+      );
+    }
+    
+    // micro-dot
+    return (
+      <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2 flex items-center justify-center gap-1.5">
+        <div className="w-[4px] h-[4px] rounded-full bg-white opacity-60" />
+        <span className="text-white text-[9px] font-light">Shop</span>
+      </div>
+    );
+  };
+
   // Get preview for Editorial Line variants
   const getEditorialLineVariantPreview = (variant: string) => {
     if (variant === "headline-tag") {
@@ -584,6 +661,7 @@ const LayoutBehaviorPanel = ({
   // Determine which variants to show based on selected family
   const currentVariants = 
     selectedType === "badge-bubble" ? badgeBubbleVariants :
+    selectedType === "minimal-dot" ? fineLineVariants :
     selectedType === "luxury-line" ? luxuryLineVariants : 
     selectedType === "ecommerce-line" ? ecommerceLineVariants : 
     selectedType === "editorial-line" ? editorialLineVariants :
@@ -688,6 +766,8 @@ const LayoutBehaviorPanel = ({
                 <div className="flex items-center justify-center h-9">
                   {selectedType === "badge-bubble"
                     ? getBadgeBubbleVariantPreview(variant.value)
+                    : selectedType === "minimal-dot"
+                    ? getFineLineVariantPreview(variant.value)
                     : selectedType === "luxury-line" 
                     ? getLuxuryLineVariantPreview(variant.value)
                     : selectedType === "ecommerce-line"

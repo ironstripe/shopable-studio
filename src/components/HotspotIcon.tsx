@@ -159,55 +159,57 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price 
     );
   }
 
-  // Minimal Dot (Fine Line) variants - text-based with semi-transparent dark backgrounds
-  if (style === "minimal-dot-small") {
+  // Fine Line variants - creative style-based designs
+  if (style === "minimal-dot-pure-line") {
     return (
       <div 
-        className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5"
-        style={{ ...glowStyle, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
+        className="flex items-center gap-2 border border-white/70 rounded px-3 py-1.5 animate-fade-in group"
+        style={{ ...baseStyle, animationDuration: '180ms' }}
       >
-        <span className="text-white text-sm font-medium">{countdown}</span>
+        <span className="text-white text-sm font-light" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{countdown}</span>
+        <div className="w-[0.5px] h-4 bg-white/50" />
+        <span className="text-white text-xs font-light tracking-wide" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{ctaLabel}</span>
+      </div>
+    );
+  }
+
+  if (style === "minimal-dot-soft-glass") {
+    return (
+      <div 
+        className="flex items-center gap-1.5 bg-white/10 backdrop-blur-[4px] border border-white/30 rounded px-3 py-1.5 shadow-[0_2px_12px_rgba(0,0,0,0.06)] animate-fade-in group"
+        style={{ ...baseStyle, animationDuration: '180ms' }}
+      >
+        <span className="text-white text-sm font-light" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{countdown}</span>
         <span className="text-white/50 text-sm">•</span>
-        <span className="text-white text-xs">{ctaLabel}</span>
+        <span className="text-white text-xs font-light" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{ctaLabel}</span>
       </div>
     );
   }
 
-  if (style === "minimal-dot-large") {
+  if (style === "minimal-dot-editorial-slim") {
     return (
       <div 
-        className="flex items-center gap-2 bg-black/35 backdrop-blur-sm rounded-full px-4 py-2"
-        style={{ ...glowStyle, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
+        className="flex flex-col items-center gap-0.5 animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '180ms' }}
       >
-        <span className="text-white text-base font-medium">{countdown}</span>
-        <span className="text-white/50 text-base">•</span>
-        <span className="text-white text-sm">{ctaLabel}</span>
+        <div className="w-full h-[0.5px] bg-white/60" />
+        <div className="flex items-center gap-1.5 px-2 py-1">
+          <span className="text-white text-[10px] font-light align-super" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{countdown}</span>
+          <span className="text-white text-xs font-light tracking-wider" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{ctaLabel.toUpperCase()}</span>
+        </div>
+        <div className="w-full h-[0.5px] bg-white/60" />
       </div>
     );
   }
 
-  if (style === "minimal-dot-light") {
+  if (style === "minimal-dot-micro-dot") {
     return (
       <div 
-        className="flex items-center gap-1.5 bg-black/20 backdrop-blur-sm rounded-full px-3 py-1.5"
-        style={{ ...glowStyle, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
+        className="flex items-center gap-2 group animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '180ms' }}
       >
-        <span className="text-white text-sm font-light">{countdown}</span>
-        <span className="text-white/50 text-sm">•</span>
-        <span className="text-white text-xs font-light">{ctaLabel}</span>
-      </div>
-    );
-  }
-
-  if (style === "minimal-dot-strong") {
-    return (
-      <div 
-        className="flex items-center gap-1.5 bg-black/45 rounded-full px-3 py-1.5"
-        style={{ ...glowStyle, textShadow: '0 2px 4px rgba(0,0,0,0.7)' }}
-      >
-        <span className="text-white text-base font-semibold">{countdown}</span>
-        <span className="text-white/50 text-base">•</span>
-        <span className="text-white text-sm font-semibold">{ctaLabel}</span>
+        <div className="w-[5px] h-[5px] rounded-full bg-white opacity-60 group-hover:opacity-100 transition-opacity duration-150" />
+        <span className="text-white text-xs font-light" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>{ctaLabel}</span>
       </div>
     );
   }
