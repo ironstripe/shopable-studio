@@ -13,7 +13,7 @@ interface HotspotInlineEditorProps {
   onUpdateHotspot: (hotspot: Hotspot) => void;
   onDeleteHotspot: () => void;
   onUpdateProduct: (product: Product) => void;
-  onCreateProduct: (product: Omit<Product, "id">) => void;
+  onCreateProduct: (product: Omit<Product, "id">) => string;
   autoOpenProductPanel?: boolean;
 }
 
@@ -72,9 +72,9 @@ const HotspotInlineEditor = ({
             }}
             onUpdateProduct={onUpdateProduct}
             onCreateProduct={(newProduct) => {
-              const id = `product-${Date.now()}`;
-              onCreateProduct(newProduct);
-              onUpdateHotspot({ ...hotspot, productId: id });
+              const newId = onCreateProduct(newProduct);
+              onUpdateHotspot({ ...hotspot, productId: newId });
+              setProductOpen(false);
             }}
             onClose={() => setProductOpen(false)}
           />

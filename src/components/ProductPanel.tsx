@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 interface ProductPanelProps {
   products: Record<string, Product>;
-  selectedProductId: string;
+  selectedProductId?: string;
   onSelectProduct: (productId: string) => void;
   onUpdateProduct: (product: Product) => void;
   onCreateProduct: (product: Omit<Product, "id">) => void;
@@ -156,6 +156,16 @@ const ProductPanel = ({
               className="h-9 text-[13px]"
             />
           </div>
+          
+          <div>
+            <Label className="text-[12px] text-[#6B7280] mb-1.5">Thumbnail URL</Label>
+            <Input
+              value={creatingProduct.thumbnail}
+              onChange={(e) => setCreatingProduct({ ...creatingProduct, thumbnail: e.target.value })}
+              placeholder="https://example.com/image.jpg"
+              className="h-9 text-[13px]"
+            />
+          </div>
         </div>
 
         <div className="flex gap-2 mt-5 pt-4 border-t border-[rgba(0,0,0,0.06)]">
@@ -240,6 +250,16 @@ const ProductPanel = ({
             <Input
               value={editingProduct.price}
               onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })}
+              className="h-9 text-[13px]"
+            />
+          </div>
+          
+          <div>
+            <Label className="text-[12px] text-[#6B7280] mb-1.5">Thumbnail URL</Label>
+            <Input
+              value={editingProduct.thumbnail || ""}
+              onChange={(e) => setEditingProduct({ ...editingProduct, thumbnail: e.target.value })}
+              placeholder="https://example.com/image.jpg"
               className="h-9 text-[13px]"
             />
           </div>

@@ -130,13 +130,14 @@ const Index = () => {
     toast.success("Product updated");
   };
 
-  const handleCreateProduct = (newProduct: Omit<Product, "id">) => {
+  const handleCreateProduct = (newProduct: Omit<Product, "id">): string => {
     const id = `product-${Date.now()}`;
     setProducts({
       ...products,
       [id]: { ...newProduct, id },
     });
     toast.success("Product created");
+    return id;
   };
 
   const handleExport = () => {

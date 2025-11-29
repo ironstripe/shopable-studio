@@ -21,7 +21,7 @@ interface VideoPlayerProps {
   onUpdateHotspotPosition: (hotspotId: string, x: number, y: number) => void;
   onUpdateHotspotScale: (hotspotId: string, scale: number) => void;
   onUpdateProduct: (product: Product) => void;
-  onCreateProduct: (product: Omit<Product, "id">) => void;
+  onCreateProduct: (product: Omit<Product, "id">) => string;
   onVideoRef?: (ref: HTMLVideoElement | null) => void;
   onVideoLoad: (src: string) => void;
   shouldAutoOpenProductPanel?: boolean;
