@@ -11,9 +11,10 @@ interface VideoHotspotProps {
   onClick: (e: React.MouseEvent) => void;
   onDragStart: (e: React.MouseEvent) => void;
   onResizeStart: (e: React.MouseEvent) => void;
+  price?: string;
 }
 
-const VideoHotspot = ({ hotspot, currentTime, isSelected, isDragging, isResizing, isEditMode, onClick, onDragStart, onResizeStart }: VideoHotspotProps) => {
+const VideoHotspot = ({ hotspot, currentTime, isSelected, isDragging, isResizing, isEditMode, onClick, onDragStart, onResizeStart, price }: VideoHotspotProps) => {
   const countdown = Math.ceil(hotspot.timeEnd - currentTime);
   const isActive = currentTime >= hotspot.timeStart && currentTime <= hotspot.timeEnd;
 
@@ -44,6 +45,7 @@ const VideoHotspot = ({ hotspot, currentTime, isSelected, isDragging, isResizing
         ctaLabel={hotspot.ctaLabel}
         isSelected={isSelected}
         scale={hotspot.scale}
+        price={price}
       />
       
       {/* Resize handle - only visible in edit mode when selected */}

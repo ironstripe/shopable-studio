@@ -327,39 +327,45 @@ const VideoPlayer = ({
           {/* Hotspots overlay - absolutely positioned over video */}
           {videoSrc && (
             <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 10 }}>
-              {activeHotspots.map((hotspot) => (
-                <div
-                  key={hotspot.id}
-                  className="pointer-events-auto"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleHotspotClick(hotspot, e);
-                  }}
-                >
-                  <VideoHotspot
-                    hotspot={hotspot}
-                    currentTime={currentTime}
-                    isSelected={selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id}
-                    isDragging={draggingHotspot?.id === hotspot.id}
-                    isResizing={resizingHotspot?.id === hotspot.id}
-                    isEditMode={!isPreviewMode}
-                    onClick={(e) => handleHotspotClick(hotspot, e)}
-                    onDragStart={(e) => handleDragStart(hotspot, e)}
-                    onResizeStart={(e) => handleResizeStart(hotspot, e)}
-                  />
-                  {!isPreviewMode && (selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id) && !draggingHotspot && (
-                    <HotspotInlineEditor
+              {activeHotspots.map((hotspot) => {
+                const product = hotspot.productId ? products[hotspot.productId] : null;
+                const price = product?.price;
+                
+                return (
+                  <div
+                    key={hotspot.id}
+                    className="pointer-events-auto"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleHotspotClick(hotspot, e);
+                    }}
+                  >
+                    <VideoHotspot
                       hotspot={hotspot}
-                      products={products}
-                      onUpdateHotspot={onUpdateHotspot}
-                      onDeleteHotspot={() => onDeleteHotspot(hotspot.id)}
-                      onUpdateProduct={onUpdateProduct}
-                      onCreateProduct={onCreateProduct}
-                      autoOpenProductPanel={shouldAutoOpenProductPanel && !hotspot.productId}
+                      currentTime={currentTime}
+                      isSelected={selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id}
+                      isDragging={draggingHotspot?.id === hotspot.id}
+                      isResizing={resizingHotspot?.id === hotspot.id}
+                      isEditMode={!isPreviewMode}
+                      onClick={(e) => handleHotspotClick(hotspot, e)}
+                      onDragStart={(e) => handleDragStart(hotspot, e)}
+                      onResizeStart={(e) => handleResizeStart(hotspot, e)}
+                      price={price}
                     />
-                  )}
-                </div>
-              ))}
+                    {!isPreviewMode && (selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id) && !draggingHotspot && (
+                      <HotspotInlineEditor
+                        hotspot={hotspot}
+                        products={products}
+                        onUpdateHotspot={onUpdateHotspot}
+                        onDeleteHotspot={() => onDeleteHotspot(hotspot.id)}
+                        onUpdateProduct={onUpdateProduct}
+                        onCreateProduct={onCreateProduct}
+                        autoOpenProductPanel={shouldAutoOpenProductPanel && !hotspot.productId}
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

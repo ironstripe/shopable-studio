@@ -6,9 +6,10 @@ interface HotspotIconProps {
   ctaLabel: string;
   isSelected?: boolean;
   scale?: number;
+  price?: string;
 }
 
-const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1 }: HotspotIconProps) => {
+const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price }: HotspotIconProps) => {
   const baseStyle = {
     transform: `scale(${scale})`,
     transformOrigin: 'center center',
@@ -297,7 +298,7 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1 }: Hots
       >
         <span className="text-[#111111] text-[13px] font-medium leading-tight">{ctaLabel}</span>
         <div className="flex items-center gap-1.5 mt-0.5">
-          <span className="text-[#6B7280] text-[12px]">349.–</span>
+          <span className="text-[#6B7280] text-[12px]">{price || "–.–"}</span>
           <span className="text-[#6B7280] text-[12px]">·</span>
           <span className="text-[#3B82F6] text-[12px] font-medium">Shop →</span>
         </div>
@@ -328,7 +329,7 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1 }: Hots
         style={{ ...baseStyle, animationDuration: '200ms', minWidth: '120px' }}
       >
         <span className="text-[#111111] text-[13px] font-medium">{ctaLabel}</span>
-        <span className="text-[#6B7280] text-[12px]">349.–</span>
+        <span className="text-[#6B7280] text-[12px]">{price || "–.–"}</span>
       </div>
     );
   }
