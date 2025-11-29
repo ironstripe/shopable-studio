@@ -9,19 +9,47 @@ interface UsePanelResizeOptions {
   defaultHeight: number;
 }
 
+type ResizeMode = 'width' | 'height' | 'both';
+
 export function usePanelResize(options: UsePanelResizeOptions) {
   const { minWidth = 200, maxWidth = 600, minHeight = 200, maxHeight = 600, defaultWidth, defaultHeight } = options;
   const [width, setWidth] = useState(defaultWidth);
   const [height, setHeight] = useState(defaultHeight);
   const isResizingRef = useRef(false);
+  const resizeModeRef = useRef<ResizeMode>('both');
   const startXRef = useRef(0);
   const startYRef = useRef(0);
   const startWidthRef = useRef(0);
   const startHeightRef = useRef(0);
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+  const handleRightEdgeMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     isResizingRef.current = true;
+    resizeModeRef.current = 'width';
+    startXRef.current = e.clientX;
+    startYRef.current = e.clientY;
+    startWidthRef.current = width;
+    startHeightRef.current = height;
+    document.body.style.cursor = "ew-resize";
+    document.body.style.userSelect = "none";
+  }, [width, height]);
+
+  const handleBottomEdgeMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizingRef.current = true;
+    resizeModeRef.current = 'height';
+    startXRef.current = e.clientX;
+    startYRef.current = e.clientY;
+    startWidthRef.current = width;
+    startHeightRef.current = height;
+    document.body.style.cursor = "ns-resize";
+    document.body.style.userSelect = "none";
+  }, [width, height]);
+
+  const handleCornerMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizingRef.current = true;
+    resizeModeRef.current = 'both';
     startXRef.current = e.clientX;
     startYRef.current = e.clientY;
     startWidthRef.current = width;
@@ -36,10 +64,16 @@ export function usePanelResize(options: UsePanelResizeOptions) {
 
       const deltaX = e.clientX - startXRef.current;
       const deltaY = e.clientY - startYRef.current;
-      const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidthRef.current + deltaX));
-      const newHeight = Math.max(minHeight, Math.min(maxHeight, startHeightRef.current + deltaY));
-      setWidth(newWidth);
-      setHeight(newHeight);
+      
+      if (resizeModeRef.current === 'width' || resizeModeRef.current === 'both') {
+        const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidthRef.current + deltaX));
+        setWidth(newWidth);
+      }
+      
+      if (resizeModeRef.current === 'height' || resizeModeRef.current === 'both') {
+        const newHeight = Math.max(minHeight, Math.min(maxHeight, startHeightRef.current + deltaY));
+        setHeight(newHeight);
+      }
     };
 
     const handleMouseUp = () => {
@@ -62,8 +96,14 @@ export function usePanelResize(options: UsePanelResizeOptions) {
   return {
     width,
     height,
-    resizeHandleProps: {
-      onMouseDown: handleMouseDown,
+    rightEdgeProps: {
+      onMouseDown: handleRightEdgeMouseDown,
+    },
+    bottomEdgeProps: {
+      onMouseDown: handleBottomEdgeMouseDown,
+    },
+    cornerProps: {
+      onMouseDown: handleCornerMouseDown,
     },
   };
 }
