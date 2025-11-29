@@ -136,6 +136,12 @@ const Index = () => {
     }
     setSelectedHotspot(hotspot);
     setActiveToolbarHotspotId(hotspot.id);
+    
+    // Seek video to hotspot position
+    if (videoRef.current) {
+      const seekTime = Math.max(0, hotspot.timeStart - 0.5);
+      videoRef.current.currentTime = seekTime;
+    }
   };
 
   const handleOpenProductPanel = (hotspot: Hotspot) => {
@@ -143,6 +149,12 @@ const Index = () => {
     setActiveToolbarHotspotId(hotspot.id);
     setShouldAutoOpenProductPanel(true);
     setTimeout(() => setShouldAutoOpenProductPanel(false), 100);
+    
+    // Seek video to hotspot position
+    if (videoRef.current) {
+      const seekTime = Math.max(0, hotspot.timeStart - 0.5);
+      videoRef.current.currentTime = seekTime;
+    }
   };
 
   const handleUpdateProduct = (updatedProduct: Product) => {
