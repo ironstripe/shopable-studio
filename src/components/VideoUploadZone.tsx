@@ -83,11 +83,11 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
   };
 
   return (
-    <div className="w-full aspect-video flex flex-col items-center justify-center py-20 px-8 animate-upload-enter">
+    <div className="w-full flex flex-col items-center justify-center py-12 px-8 animate-upload-enter">
       {/* Upload Area - File picker and drag & drop */}
       <div
         className={cn(
-          "w-full flex-1 flex flex-col items-center justify-center",
+          "w-full max-h-[380px] flex flex-col items-center justify-center py-12",
           "bg-white rounded-3xl border-2 border-dashed border-gray-300",
           "transition-all duration-200 cursor-pointer shadow-sm",
           "hover:border-[rgba(0,122,255,0.8)] hover:bg-gray-50 hover:shadow-[0_0_12px_rgba(0,122,255,0.25)]",
