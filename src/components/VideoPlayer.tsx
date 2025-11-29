@@ -254,41 +254,43 @@ const VideoPlayer = ({
     <div className="relative w-full max-w-[960px] mx-auto">
       {/* Mode Controls - Above Video */}
       {videoSrc && (
-        <div className="relative z-10 flex items-center justify-between mt-4 mb-6">
-          {/* Helper Text - Left */}
-          {!isPreviewMode && (
-            <p className="text-sm text-muted-foreground">
-              Edit mode – click in the video to add a hotspot.
-            </p>
-          )}
-          
-          {/* Spacer when in preview mode */}
-          {isPreviewMode && <div />}
-          
-          {/* Segmented Toggle - Right */}
-          <div className="inline-flex items-center rounded-full bg-white border border-gray-200 p-1 shadow-sm min-w-[280px]">
-            <button
-              onClick={() => isPreviewMode && onTogglePreviewMode()}
-              className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
-                !isPreviewMode 
-                  ? "bg-primary text-white shadow-sm" 
-                  : "text-gray-700 hover:text-gray-900"
-              )}
-            >
-              Edit Hotspots
-            </button>
-            <button
-              onClick={() => !isPreviewMode && onTogglePreviewMode()}
-              className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
-                isPreviewMode 
-                  ? "bg-primary text-white shadow-sm" 
-                  : "text-gray-700 hover:text-gray-900"
-              )}
-            >
-              Preview
-            </button>
+        <div className="sticky top-20 z-40 -mx-6 px-6 py-3 bg-white/95 backdrop-blur-sm border-b border-border/50 mb-6">
+          <div className="flex items-center justify-between max-w-[960px] mx-auto">
+            {/* Helper Text - Left */}
+            {!isPreviewMode && (
+              <p className="text-sm text-muted-foreground">
+                Edit mode – click in the video to add a hotspot.
+              </p>
+            )}
+            
+            {/* Spacer when in preview mode */}
+            {isPreviewMode && <div />}
+            
+            {/* Segmented Toggle - Right */}
+            <div className="inline-flex items-center rounded-full bg-white border border-gray-200 p-1 shadow-sm min-w-[280px]">
+              <button
+                onClick={() => isPreviewMode && onTogglePreviewMode()}
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                  !isPreviewMode 
+                    ? "bg-primary text-white shadow-sm" 
+                    : "text-gray-700 hover:text-gray-900"
+                )}
+              >
+                Edit Hotspots
+              </button>
+              <button
+                onClick={() => !isPreviewMode && onTogglePreviewMode()}
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                  isPreviewMode 
+                    ? "bg-primary text-white shadow-sm" 
+                    : "text-gray-700 hover:text-gray-900"
+                )}
+              >
+                Preview
+              </button>
+            </div>
           </div>
         </div>
       )}
