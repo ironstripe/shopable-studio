@@ -210,8 +210,15 @@ const ProductPanel = ({
                   <Upload className="w-3.5 h-3.5 mr-1.5" />
                   Upload image
                 </label>
-                {thumbnailPreview && (
-                  <img src={thumbnailPreview} className="w-10 h-10 rounded object-cover border border-[#E0E0E0]" alt="Preview" />
+                {(thumbnailPreview || creatingProduct.thumbnail) && (
+                  <img 
+                    src={thumbnailPreview || creatingProduct.thumbnail} 
+                    className="w-10 h-10 rounded object-cover border border-[#E0E0E0]" 
+                    alt="Preview"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
                 )}
               </div>
               
@@ -331,8 +338,20 @@ const ProductPanel = ({
                 value={editingProduct.thumbnail || ""}
                 onChange={(e) => setEditingProduct({ ...editingProduct, thumbnail: e.target.value })}
                 placeholder="https://example.com/image.jpg"
-                className="h-9 text-[13px]"
+                className="h-9 text-[13px] bg-white border-[#E0E0E0] text-[#111827]"
               />
+              {editingProduct.thumbnail && (
+                <div className="mt-2">
+                  <img 
+                    src={editingProduct.thumbnail} 
+                    alt="Thumbnail preview" 
+                    className="w-16 h-16 rounded-md object-cover border border-[#E0E0E0]"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
