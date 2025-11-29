@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { X, AlertCircle } from "lucide-react";
+import { usePanelResize } from "@/hooks/use-panel-resize";
+import { ResizeHandle } from "@/components/ResizeHandle";
 
 interface LayoutBehaviorPanelProps {
   hotspot: Hotspot;
@@ -43,6 +45,12 @@ const LayoutBehaviorPanel = ({
   const [clickBehavior, setClickBehavior] = useState<ClickBehavior>(hotspot.clickBehavior);
   const [startTime, setStartTime] = useState(hotspot.timeStart.toFixed(1));
   const [duration, setDuration] = useState((hotspot.timeEnd - hotspot.timeStart).toFixed(1));
+
+  const { width, resizeHandleProps } = usePanelResize({
+    minWidth: 300,
+    maxWidth: 520,
+    defaultWidth: 360,
+  });
 
   // Validation errors
   const [errors, setErrors] = useState<{ start?: string; duration?: string }>({});
@@ -187,7 +195,8 @@ const LayoutBehaviorPanel = ({
 
   return (
     <div
-      className="w-[360px] bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-[#E1E4E8] overflow-hidden"
+      className="relative bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-[#E1E4E8] overflow-hidden"
+      style={{ width: `${width}px` }}
       onClick={(e) => e.stopPropagation()}
     >
       {/* Header */}
@@ -420,6 +429,7 @@ const LayoutBehaviorPanel = ({
           Save Settings
         </Button>
       </div>
+      <ResizeHandle {...resizeHandleProps} />
     </div>
   );
 };

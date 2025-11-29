@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Plus, Check, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePanelResize } from "@/hooks/use-panel-resize";
+import { ResizeHandle } from "@/components/ResizeHandle";
 
 interface ProductPanelProps {
   products: Record<string, Product>;
@@ -39,6 +41,12 @@ const ProductPanel = ({
   });
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
+
+  const { width, resizeHandleProps } = usePanelResize({
+    minWidth: 280,
+    maxWidth: 500,
+    defaultWidth: 340,
+  });
 
   const productList = Object.values(products);
   const filteredProducts = productList.filter((p) =>
@@ -98,7 +106,7 @@ const ProductPanel = ({
   // Empty State
   if (productList.length === 0) {
     return (
-      <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-5">
+      <div className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-5" style={{ width: `${width}px` }}>
         <div className="flex flex-col items-center justify-center py-6 text-center">
           <div className="w-12 h-12 rounded-full bg-[rgba(59,130,246,0.1)] flex items-center justify-center mb-3">
             <Plus className="w-6 h-6 text-[#3B82F6]" />
@@ -115,6 +123,7 @@ const ProductPanel = ({
             Create product
           </Button>
         </div>
+        <ResizeHandle {...resizeHandleProps} />
       </div>
     );
   }
@@ -122,7 +131,7 @@ const ProductPanel = ({
   // Create Mode
   if (viewMode === "create" || (viewMode === "list" && productList.length === 0)) {
     return (
-      <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] max-h-[var(--radix-popover-content-available-height,400px)] overflow-hidden flex flex-col">
+      <div className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] max-h-[var(--radix-popover-content-available-height,400px)] overflow-hidden flex flex-col" style={{ width: `${width}px` }}>
         <h3 className="text-[14px] font-semibold text-[#111827] p-5 pb-0 mb-4">
           Create product
         </h3>
@@ -252,6 +261,7 @@ const ProductPanel = ({
             Save product
           </Button>
         </div>
+        <ResizeHandle {...resizeHandleProps} />
       </div>
     );
   }
@@ -259,7 +269,7 @@ const ProductPanel = ({
   // Edit Mode
   if (viewMode === "edit" && editingProduct) {
     return (
-      <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] max-h-[var(--radix-popover-content-available-height,400px)] overflow-hidden flex flex-col">
+      <div className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] max-h-[var(--radix-popover-content-available-height,400px)] overflow-hidden flex flex-col" style={{ width: `${width}px` }}>
         <h3 className="text-[14px] font-semibold text-[#111827] p-5 pb-0 mb-4">
           Edit Product
         </h3>
@@ -343,13 +353,14 @@ const ProductPanel = ({
             Save changes
           </Button>
         </div>
+        <ResizeHandle {...resizeHandleProps} />
       </div>
     );
   }
 
   // List Mode (Default)
   return (
-    <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-4 max-h-[var(--radix-popover-content-available-height,400px)] flex flex-col">
+    <div className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-4 max-h-[var(--radix-popover-content-available-height,400px)] flex flex-col" style={{ width: `${width}px` }}>
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-[13px] font-semibold text-[#111827]">
@@ -434,6 +445,7 @@ const ProductPanel = ({
           ))}
         </div>
       </ScrollArea>
+      <ResizeHandle {...resizeHandleProps} />
     </div>
   );
 };
