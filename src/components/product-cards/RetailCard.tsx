@@ -10,14 +10,32 @@ interface RetailCardProps {
 const RetailCard = ({ product, variant, showShopButton }: RetailCardProps) => {
   const renderCompact = () => (
     <>
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <h3 className="text-[15px] font-semibold text-foreground leading-tight">
-          {product.title}
-        </h3>
-        <span className="text-[16px] font-bold text-primary whitespace-nowrap">
-          {product.price}
-        </span>
-      </div>
+      {product.thumbnail ? (
+        <div className="flex gap-3 mb-3">
+          <img
+            src={product.thumbnail}
+            alt={product.title}
+            className="w-12 h-12 rounded-lg object-cover flex-shrink-0 shadow-sm"
+          />
+          <div className="flex-1 min-w-0">
+            <h3 className="text-[15px] font-semibold text-foreground leading-tight mb-1">
+              {product.title}
+            </h3>
+            <span className="text-[16px] font-bold text-primary">
+              {product.price}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <h3 className="text-[15px] font-semibold text-foreground leading-tight">
+            {product.title}
+          </h3>
+          <span className="text-[16px] font-bold text-primary whitespace-nowrap">
+            {product.price}
+          </span>
+        </div>
+      )}
       {showShopButton && (
         <a
           href={product.link}
@@ -33,6 +51,13 @@ const RetailCard = ({ product, variant, showShopButton }: RetailCardProps) => {
 
   const renderSplit = () => (
     <>
+      {product.thumbnail && (
+        <img
+          src={product.thumbnail}
+          alt={product.title}
+          className="w-full h-20 rounded-lg object-cover mb-3 shadow-sm"
+        />
+      )}
       <div className="mb-3">
         <h3 className="text-[16px] font-semibold text-foreground mb-1">
           {product.title}
@@ -94,6 +119,13 @@ const RetailCard = ({ product, variant, showShopButton }: RetailCardProps) => {
 
   const renderPriceFocus = () => (
     <div className="text-center">
+      {product.thumbnail && (
+        <img
+          src={product.thumbnail}
+          alt={product.title}
+          className="w-16 h-16 rounded-lg object-cover mx-auto mb-3 shadow-sm"
+        />
+      )}
       <p className="text-[13px] text-muted-foreground mb-2">
         {product.title}
       </p>
