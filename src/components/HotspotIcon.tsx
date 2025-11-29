@@ -152,7 +152,7 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price 
           <span className="text-white font-bold text-sm">{countdown}</span>
         </div>
         {/* Right: CTA pill */}
-        <div className="bg-[#FF6A00] rounded-full px-3 py-1.5 shadow-[0_2px_8px_rgba(0,0,0,0.12)] hover:bg-[#E55A00] transition-colors duration-150">
+        <div className="flex items-center justify-center bg-[#FF6A00] rounded-full px-3 py-1.5 shadow-[0_2px_8px_rgba(0,0,0,0.12)] hover:bg-[#E55A00] transition-colors duration-150">
           <span className="text-white font-medium text-xs">{ctaLabel}</span>
         </div>
       </div>
