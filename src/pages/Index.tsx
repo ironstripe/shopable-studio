@@ -16,6 +16,7 @@ const Index = () => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [videoTitle, setVideoTitle] = useState<string>("Untitled Video");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [shouldAutoOpenProductPanel, setShouldAutoOpenProductPanel] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -250,6 +251,7 @@ const Index = () => {
             onCreateProduct={handleCreateProduct}
             onVideoRef={(ref) => (videoRef.current = ref)}
             onVideoLoad={handleVideoLoad}
+            shouldAutoOpenProductPanel={shouldAutoOpenProductPanel}
           />
         </div>
 
@@ -263,6 +265,9 @@ const Index = () => {
             onOpenProductPanel={(hotspot) => {
               setSelectedHotspot(hotspot);
               setActiveToolbarHotspotId(hotspot.id);
+              setShouldAutoOpenProductPanel(true);
+              // Reset after a brief moment to prevent re-opening
+              setTimeout(() => setShouldAutoOpenProductPanel(false), 100);
             }}
           />
         )}

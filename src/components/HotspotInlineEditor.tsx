@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Hotspot, Product } from "@/types/video";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ interface HotspotInlineEditorProps {
   onDeleteHotspot: () => void;
   onUpdateProduct: (product: Product) => void;
   onCreateProduct: (product: Omit<Product, "id">) => void;
+  autoOpenProductPanel?: boolean;
 }
 
 const HotspotInlineEditor = ({
@@ -23,9 +24,17 @@ const HotspotInlineEditor = ({
   onDeleteHotspot,
   onUpdateProduct,
   onCreateProduct,
+  autoOpenProductPanel,
 }: HotspotInlineEditorProps) => {
   const [productOpen, setProductOpen] = useState(false);
   const [layoutOpen, setLayoutOpen] = useState(false);
+
+  // Auto-open product panel when requested
+  useEffect(() => {
+    if (autoOpenProductPanel) {
+      setProductOpen(true);
+    }
+  }, [autoOpenProductPanel]);
 
   return (
     <div
