@@ -3,7 +3,7 @@ import { Hotspot, Product, VideoProject } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import HotspotSidebar from "@/components/HotspotSidebar";
 import { Button } from "@/components/ui/button";
-import { Download, ChevronDown } from "lucide-react";
+import { Download, ChevronDown, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import shopableLogo from "@/assets/shopable-logo.png";
@@ -201,7 +201,7 @@ const Index = () => {
                 className="flex items-center gap-1.5 text-[14px] font-medium text-[#111827] hover:text-[#374151] transition-colors group"
               >
                 {videoTitle}
-                <ChevronDown className="w-3.5 h-3.5 text-[#9CA3AF]" />
+                <Pencil className="w-3 h-3 text-[#9CA3AF] opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
             )}
           </div>
