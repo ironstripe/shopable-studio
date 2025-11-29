@@ -202,7 +202,7 @@ const LayoutBehaviorPanel = ({
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-5 max-h-[calc(100vh-200px)] overflow-y-auto">
+      <div className="p-4 space-y-5 max-h-[calc(var(--radix-popover-content-available-height,500px)-120px)] overflow-y-auto">
         
         {/* A) HOTSPOT TYPE Section */}
         <div className="space-y-3">
