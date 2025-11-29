@@ -13,6 +13,7 @@ const Index = () => {
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
   const [activeToolbarHotspotId, setActiveToolbarHotspotId] = useState<string | null>(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -71,6 +72,7 @@ const Index = () => {
     setHotspots([...hotspots, newHotspot]);
     setActiveToolbarHotspotId(newHotspot.id);
     setSelectedHotspot(null);
+    setIsEditorOpen(true);
     toast.success("Hotspot created! Click Edit to configure.");
   };
 
@@ -205,8 +207,8 @@ const Index = () => {
         />
       </main>
 
-      {/* Properties Sidebar - only show when video is uploaded */}
-      {videoSrc && (
+      {/* Properties Sidebar - only show when hotspots exist */}
+      {hotspots.length > 0 && isEditorOpen && (
         <PropertiesPanel
           hotspots={hotspots}
           selectedHotspot={selectedHotspot}
@@ -216,6 +218,7 @@ const Index = () => {
           onUpdateProducts={setProducts}
           onSelectFromList={handleSelectFromList}
           onClose={() => setSelectedHotspot(null)}
+          onClosePanel={() => setIsEditorOpen(false)}
         />
       )}
     </div>

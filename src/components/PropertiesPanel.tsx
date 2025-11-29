@@ -24,6 +24,7 @@ interface PropertiesPanelProps {
   onUpdateProducts: (products: Record<string, Product>) => void;
   onSelectFromList: (hotspot: Hotspot) => void;
   onClose: () => void;
+  onClosePanel: () => void;
 }
 
 const PropertiesPanel = ({
@@ -35,6 +36,7 @@ const PropertiesPanel = ({
   onUpdateProducts,
   onSelectFromList,
   onClose,
+  onClosePanel,
 }: PropertiesPanelProps) => {
   const duration = selectedHotspot ? selectedHotspot.timeEnd - selectedHotspot.timeStart : 0;
 
@@ -43,16 +45,14 @@ const PropertiesPanel = ({
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-border/50">
         <h2 className="text-lg font-semibold text-foreground">Editor</h2>
-        {selectedHotspot && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-8 w-8 p-0 hover:bg-white/10"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClosePanel}
+          className="h-8 w-8 p-0 hover:bg-white/10"
+        >
+          <X className="w-4 h-4" />
+        </Button>
       </div>
 
       {/* Hotspot List - Always visible */}
