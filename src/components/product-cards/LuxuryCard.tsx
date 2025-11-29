@@ -38,16 +38,22 @@ const LuxuryCard = ({ product, variant, showShopButton = true }: LuxuryCardProps
 
   const renderImageFocus = () => (
     <div className="flex flex-col space-y-4">
-      {/* Hero Thumbnail */}
-      {product.thumbnail && (
-        <div className="w-full">
+      {/* Hero Thumbnail - Always visible */}
+      <div className="w-full px-4 pt-4">
+        {product.thumbnail ? (
           <img
             src={product.thumbnail}
             alt={product.title}
             className="w-full h-[160px] object-cover rounded-[14px] shadow-[0_8px_24px_rgba(0,0,0,0.08)]"
           />
-        </div>
-      )}
+        ) : (
+          <div className="w-full h-[160px] rounded-[14px] bg-gradient-to-br from-[#f8f8f8] to-[#f0f0f0] flex items-center justify-center">
+            <div className="text-[#ccc] text-[11px] font-spectral tracking-wide">
+              No image
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Content Below Image */}
       <div className="flex flex-col space-y-3 px-4 pb-4">
