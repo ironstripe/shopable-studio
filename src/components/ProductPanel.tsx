@@ -438,7 +438,7 @@ const ProductPanel = ({
   // List Mode (Default)
   return (
     <div 
-      className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-4 flex flex-col" 
+      className="relative bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] p-5 flex flex-col" 
       style={{ 
         width: `${width}px`, 
         height: `${height}px`,
@@ -450,45 +450,44 @@ const ProductPanel = ({
         className="flex items-center justify-between mb-3"
         {...dragHandleProps}
       >
-        <h3 className="text-[13px] font-semibold text-[#111827]">
+        <h3 className="text-[15px] font-medium text-neutral-800">
           Select Product
         </h3>
-        <Button
+        <button
           onClick={() => setViewMode("create")}
-          size="sm"
-          className="h-7 px-2.5 text-[12px] bg-[#3B82F6] hover:bg-[#2563EB] text-white"
+          className="flex items-center gap-1 px-2 py-1 text-[13px] font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition-colors"
         >
-          <Plus className="w-3.5 h-3.5 mr-1" />
+          <Plus className="w-4 h-4" />
           New
-        </Button>
+        </button>
       </div>
 
       {/* Search Bar */}
       <div className="relative mb-3">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9CA3AF]" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search products..."
-          className="h-8 pl-8 text-[12px]"
+          className="h-10 pl-9 text-[14px] bg-[#F7F7F8] border border-neutral-200 rounded-xl shadow-sm placeholder:text-neutral-400 focus:border-neutral-300 focus:ring-1 focus:ring-neutral-200"
         />
       </div>
 
       {/* Product List */}
       <ScrollArea className="h-[240px] -mx-1 px-1">
-        <div className="space-y-1">
+        <div className="space-y-2">
           {filteredProducts.map((product) => (
             <div
               key={product.id}
               onClick={() => handleSelectProduct(product.id)}
               className={cn(
-                "group relative flex items-start gap-3 p-2.5 rounded-md cursor-pointer transition-all",
-                "hover:bg-[rgba(59,130,246,0.08)]",
-                selectedProductId === product.id && "bg-[rgba(59,130,246,0.12)] ring-1 ring-[#3B82F6]"
+                "group relative flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all",
+                "hover:bg-neutral-50",
+                selectedProductId === product.id && "bg-blue-50 ring-1 ring-blue-200"
               )}
             >
               {/* Thumbnail */}
-              <div className="flex-shrink-0 w-10 h-10 rounded bg-[rgba(0,0,0,0.04)] flex items-center justify-center overflow-hidden">
+              <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-neutral-100 flex items-center justify-center overflow-hidden">
                 {product.thumbnail ? (
                   <img src={product.thumbnail} alt={product.title} className="w-full h-full object-cover" />
                 ) : (
