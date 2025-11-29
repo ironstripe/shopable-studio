@@ -51,6 +51,7 @@ const VideoPlayer = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProductHotspot, setSelectedProductHotspot] = useState<Hotspot | null>(null);
   const [showShopButton, setShowShopButton] = useState(true);
   const [draggingHotspot, setDraggingHotspot] = useState<{
     id: string;
@@ -221,6 +222,7 @@ const VideoPlayer = ({
         case "no-action":
           videoRef.current?.pause();
           setSelectedProduct(product);
+          setSelectedProductHotspot(hotspot);
           setShowShopButton(false);
           break;
         
@@ -228,6 +230,7 @@ const VideoPlayer = ({
         default:
           videoRef.current?.pause();
           setSelectedProduct(product);
+          setSelectedProductHotspot(hotspot);
           setShowShopButton(true);
           break;
       }
@@ -370,12 +373,16 @@ const VideoPlayer = ({
           )}
         </div>
 
-        {selectedProduct && (
+        {selectedProduct && selectedProductHotspot && (
           <ProductCard
             product={selectedProduct}
             showShopButton={showShopButton}
+            cardStyle={selectedProductHotspot.cardStyle || "retail-compact"}
+            hotspotPosition={{ x: selectedProductHotspot.x, y: selectedProductHotspot.y }}
+            containerRef={containerRef}
             onClose={() => {
               setSelectedProduct(null);
+              setSelectedProductHotspot(null);
               setShowShopButton(true);
               videoRef.current?.play();
             }}

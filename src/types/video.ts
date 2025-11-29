@@ -31,6 +31,24 @@ export type HotspotStyle =
 
 export type ClickBehavior = "show-card" | "direct-link" | "no-action";
 
+// Product Card Family System (Extensible Architecture)
+export type CardFamily = "retail" | "luxury" | "editorial" | "minimal";
+
+// Retail Card variants (E-Commerce focused)
+export type RetailCardVariant = "retail-compact" | "retail-split" | "retail-media" | "retail-price-focus";
+
+// Luxury Card variants (Placeholder for future)
+export type LuxuryCardVariant = "luxury-elegant" | "luxury-minimal" | "luxury-ornate" | "luxury-modern";
+
+// Editorial Card variants (Placeholder for future)
+export type EditorialCardVariant = "editorial-magazine" | "editorial-cinema" | "editorial-art" | "editorial-story";
+
+// Minimal Card variants (Placeholder for future)
+export type MinimalCardVariant = "minimal-clean" | "minimal-dot" | "minimal-ghost" | "minimal-line";
+
+// Combined card style (family-variant)
+export type CardStyle = RetailCardVariant | LuxuryCardVariant | EditorialCardVariant | MinimalCardVariant;
+
 export interface Hotspot {
   id: string;
   timeStart: number;
@@ -42,6 +60,7 @@ export interface Hotspot {
   ctaLabel: string;
   scale: number;
   clickBehavior: ClickBehavior;
+  cardStyle?: CardStyle; // Optional, defaults based on hotspot family
 }
 
 export interface Product {

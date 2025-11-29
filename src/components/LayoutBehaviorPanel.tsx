@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Hotspot, HotspotStyle, HotspotType, HotspotVariant, ClickBehavior } from "@/types/video";
+import { Hotspot, HotspotStyle, HotspotType, HotspotVariant, ClickBehavior, CardStyle, RetailCardVariant } from "@/types/video";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -95,6 +95,7 @@ const LayoutBehaviorPanel = ({
   const [selectedVariant, setSelectedVariant] = useState<string>(getVariantFromStyle(migratedStyle));
   const [ctaLabel, setCtaLabel] = useState(hotspot.ctaLabel);
   const [clickBehavior, setClickBehavior] = useState<ClickBehavior>(hotspot.clickBehavior);
+  const [cardStyle, setCardStyle] = useState<CardStyle>(hotspot.cardStyle || "retail-compact");
   const [startTime, setStartTime] = useState(hotspot.timeStart.toFixed(1));
   const [duration, setDuration] = useState((hotspot.timeEnd - hotspot.timeStart).toFixed(1));
 
@@ -165,6 +166,7 @@ const LayoutBehaviorPanel = ({
       style: currentStyle,
       ctaLabel,
       clickBehavior,
+      cardStyle,
       timeStart: start,
       timeEnd: start + dur,
     });
@@ -859,6 +861,81 @@ const LayoutBehaviorPanel = ({
             </div>
           </RadioGroup>
         </div>
+
+        {/* 4.5) CARD STYLE Section - Only show when "show-card" is selected */}
+        {clickBehavior === "show-card" && (
+          <div className="space-y-3">
+            <div>
+              <Label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">
+                Product Card Style
+              </Label>
+              <div className="text-xs text-[#6B7280] mt-1">
+                Choose how product details are displayed
+              </div>
+            </div>
+            
+            {/* Card Family Selector - Currently only Retail is available */}
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* Retail Family - Active */}
+              <button
+                onClick={() => setCardStyle("retail-compact")}
+                className={`
+                  flex flex-col items-start gap-1.5 p-3 rounded-xl border-2 transition-all text-left
+                  ${cardStyle.startsWith("retail-") 
+                    ? 'border-[#3B82F6] bg-[#EFF6FF]' 
+                    : 'border-[#E1E4E8] bg-white hover:border-[#D1D5DB]'}
+                `}
+              >
+                <div className="text-xs font-semibold text-[#374151]">Retail</div>
+                <div className="text-[10px] text-[#6B7280] leading-tight">
+                  E-commerce focused cards
+                </div>
+              </button>
+              
+              {/* Future families - Coming soon */}
+              <button
+                disabled
+                className="flex flex-col items-start gap-1.5 p-3 rounded-xl border-2 border-[#E1E4E8] bg-[#F9FAFB] opacity-60 cursor-not-allowed text-left"
+              >
+                <div className="text-xs font-semibold text-[#9CA3AF]">Luxury</div>
+                <div className="text-[10px] text-[#9CA3AF] leading-tight">
+                  Coming soon
+                </div>
+              </button>
+            </div>
+
+            {/* Retail Variant Selector - Only show when Retail family is selected */}
+            {cardStyle.startsWith("retail-") && (
+              <div className="space-y-2 pt-2">
+                <Label className="text-xs text-[#6B7280]">Retail Card Variant</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: "retail-compact", label: "Compact", desc: "Title + Price inline" },
+                    { value: "retail-split", label: "Split", desc: "Two-row layout" },
+                    { value: "retail-media", label: "Media", desc: "With thumbnail" },
+                    { value: "retail-price-focus", label: "Price Focus", desc: "Large centered price" },
+                  ].map((variant) => (
+                    <button
+                      key={variant.value}
+                      onClick={() => setCardStyle(variant.value as RetailCardVariant)}
+                      className={`
+                        flex flex-col items-start gap-1 p-2.5 rounded-lg border transition-all text-left
+                        ${cardStyle === variant.value 
+                          ? 'border-[#3B82F6] bg-[#EFF6FF]' 
+                          : 'border-[#E1E4E8] bg-white hover:border-[#D1D5DB]'}
+                      `}
+                    >
+                      <div className="text-xs font-medium text-[#374151]">{variant.label}</div>
+                      <div className="text-[10px] text-[#6B7280] leading-tight">
+                        {variant.desc}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 5) TIMING Section */}
         <div className="space-y-3">
