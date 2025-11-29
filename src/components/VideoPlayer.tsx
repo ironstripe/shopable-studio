@@ -434,6 +434,12 @@ const VideoPlayer = ({
             videoDuration={videoRef.current.duration || 0}
             containerRef={containerRef}
             isPlaying={isPlaying}
+            isEditMode={!isPreviewMode}
+            onPositionUpdate={(x, y) => {
+              if (onUpdateVideoCTA) {
+                onUpdateVideoCTA({ ...videoCTA, position: { x, y } });
+              }
+            }}
           />
         )}
       </div>

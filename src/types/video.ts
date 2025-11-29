@@ -38,6 +38,7 @@ export interface VideoCTA {
   label: string;
   url: string;
   mode: VideoCTAMode;
+  position?: { x: number; y: number }; // Position as percentage (0-1), default bottom-right
 }
 
 // Product Card Family System (Extensible Architecture)

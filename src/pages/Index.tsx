@@ -23,6 +23,7 @@ const Index = () => {
     label: "Shop Now",
     url: "",
     mode: "off",
+    position: { x: 0.85, y: 0.85 }, // Default bottom-right position
   });
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
