@@ -51,7 +51,7 @@ const HotspotInlineEditor = ({
           <Button
             size="sm"
             variant="ghost"
-            className="h-8 w-8 p-0 hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]"
+            className="h-8 w-8 p-0 text-[#374151] hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]"
             title="Change Product"
           >
             <Tag className="w-4 h-4" />
@@ -90,7 +90,7 @@ const HotspotInlineEditor = ({
           <Button
             size="sm"
             variant="ghost"
-            className="h-8 w-8 p-0 hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]"
+            className="h-8 w-8 p-0 text-[#374151] hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]"
             title="Edit Link"
           >
             <Link2 className="w-4 h-4" />
@@ -143,7 +143,7 @@ const HotspotInlineEditor = ({
           <Button
             size="sm"
             variant="ghost"
-            className="h-8 w-8 p-0 hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]"
+            className="h-8 w-8 p-0 text-[#374151] hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]"
             title="Adjust Timing"
           >
             <Clock className="w-4 h-4" />
@@ -202,7 +202,7 @@ const HotspotInlineEditor = ({
           <Button
             size="sm"
             variant="ghost"
-            className="h-8 w-8 p-0 hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]"
+            className="h-8 w-8 p-0 text-[#374151] hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]"
             title="Edit CTA Label"
           >
             <MessageSquare className="w-4 h-4" />
@@ -236,7 +236,7 @@ const HotspotInlineEditor = ({
         size="sm"
         variant="ghost"
         onClick={onDeleteHotspot}
-        className="h-8 w-8 p-0 hover:bg-[rgba(239,68,68,0.1)] hover:text-[#EF4444]"
+        className="h-8 w-8 p-0 text-[#EF4444] hover:bg-[rgba(239,68,68,0.1)]"
         title="Delete Hotspot"
       >
         <Trash2 className="w-4 h-4" />
