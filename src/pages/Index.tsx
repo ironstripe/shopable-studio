@@ -196,6 +196,7 @@ const Index = () => {
           selectedHotspot={selectedHotspot}
           activeToolbarHotspotId={activeToolbarHotspotId}
           isPreviewMode={isPreviewMode}
+          isEditorOpen={isEditorOpen}
           onTogglePreviewMode={() => setIsPreviewMode(!isPreviewMode)}
           onAddHotspot={handleAddHotspot}
           onEditHotspot={setSelectedHotspot}
