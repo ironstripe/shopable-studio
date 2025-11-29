@@ -65,10 +65,21 @@ All colors MUST be HSL.
   }
 }
 
-@keyframes fade-in {
+@keyframes upload-enter {
   0% {
     opacity: 0;
-    transform: scale(0.95);
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes video-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
   }
   100% {
     opacity: 1;
@@ -80,8 +91,12 @@ All colors MUST be HSL.
   animation: pulse-scale 2s ease-in-out infinite;
 }
 
-.animate-fade-in {
-  animation: fade-in 0.5s ease-out;
+.animate-upload-enter {
+  animation: upload-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-video-enter {
+  animation: video-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hotspot-placement-cursor {
