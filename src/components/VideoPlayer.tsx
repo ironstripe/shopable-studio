@@ -254,27 +254,17 @@ const VideoPlayer = ({
     <div className="relative w-full max-w-[960px] mx-auto">
       {/* Mode Controls - Above Video */}
       {videoSrc && (
-        <div className="sticky top-20 z-40 -mx-6 px-6 py-3 bg-white/95 backdrop-blur-sm border-b border-border/50 mb-6">
-          <div className="flex items-center justify-between max-w-[960px] mx-auto">
-            {/* Helper Text - Left */}
-            {!isPreviewMode && (
-              <p className="text-sm text-muted-foreground">
-                Edit mode – click in the video to add a hotspot.
-              </p>
-            )}
-            
-            {/* Spacer when in preview mode */}
-            {isPreviewMode && <div />}
-            
-            {/* Segmented Toggle - Right */}
-            <div className="inline-flex items-center rounded-full bg-white border border-gray-200 p-1 shadow-sm min-w-[280px]">
+        <div className="sticky top-[76px] z-40 -mx-6 px-6 py-2 bg-white/95 backdrop-blur-sm mb-3">
+          <div className="flex flex-col items-center max-w-[960px] mx-auto">
+            {/* Segmented Toggle - Centered */}
+            <div className="inline-flex items-center rounded-lg bg-white border border-gray-300 p-0.5 shadow-sm">
               <button
                 onClick={() => isPreviewMode && onTogglePreviewMode()}
                 className={cn(
-                  "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                  "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200",
                   !isPreviewMode 
-                    ? "bg-primary text-white shadow-sm" 
-                    : "text-gray-700 hover:text-gray-900"
+                    ? "bg-[#3B82F6] text-white" 
+                    : "bg-white text-[#6B7280] hover:text-gray-900 border border-[#D1D5DB]"
                 )}
               >
                 Edit Hotspots
@@ -282,15 +272,23 @@ const VideoPlayer = ({
               <button
                 onClick={() => !isPreviewMode && onTogglePreviewMode()}
                 className={cn(
-                  "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                  "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200",
                   isPreviewMode 
-                    ? "bg-primary text-white shadow-sm" 
-                    : "text-gray-700 hover:text-gray-900"
+                    ? "bg-[#3B82F6] text-white" 
+                    : "bg-white text-[#6B7280] hover:text-gray-900 border border-[#D1D5DB]"
                 )}
               >
                 Preview
               </button>
             </div>
+            
+            {/* Helper Text - Below Toggle */}
+            {!isPreviewMode && (
+              <p className="text-[12px] text-[#6B7280] mt-2 mb-3">
+                ✎ Edit mode – click in the video to add a hotspot.
+              </p>
+            )}
+            {isPreviewMode && <div className="h-3" />}
           </div>
         </div>
       )}
@@ -299,8 +297,9 @@ const VideoPlayer = ({
         ref={containerRef}
         className={cn(
           "relative overflow-visible transition-all duration-300",
-          videoSrc && "bg-gradient-to-br from-[#101010] to-[#181818] rounded-[14px] shadow-2xl p-1",
-          videoSrc && !isPreviewMode && "ring-2 ring-primary ring-offset-2 ring-offset-white"
+          videoSrc && "bg-gradient-to-br from-[#101010] to-[#181818] rounded-[14px] p-1",
+          videoSrc && "shadow-[0_4px_16px_rgba(0,0,0,0.12)]",
+          videoSrc && !isPreviewMode && "ring-2 ring-[rgba(59,130,246,0.4)]"
         )}
       >
         {videoSrc ? (
