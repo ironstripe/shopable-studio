@@ -46,10 +46,13 @@ const LayoutBehaviorPanel = ({
   const [startTime, setStartTime] = useState(hotspot.timeStart.toFixed(1));
   const [duration, setDuration] = useState((hotspot.timeEnd - hotspot.timeStart).toFixed(1));
 
-  const { width, resizeHandleProps } = usePanelResize({
+  const { width, height, resizeHandleProps } = usePanelResize({
     minWidth: 300,
     maxWidth: 520,
+    minHeight: 300,
+    maxHeight: 650,
     defaultWidth: 360,
+    defaultHeight: 500,
   });
 
   // Validation errors
@@ -195,8 +198,8 @@ const LayoutBehaviorPanel = ({
 
   return (
     <div
-      className="relative bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-[#E1E4E8] overflow-hidden"
-      style={{ width: `${width}px` }}
+      className="relative bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-[#E1E4E8] overflow-hidden flex flex-col"
+      style={{ width: `${width}px`, height: `${height}px` }}
       onClick={(e) => e.stopPropagation()}
     >
       {/* Header */}
@@ -211,7 +214,7 @@ const LayoutBehaviorPanel = ({
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-5 max-h-[calc(var(--radix-popover-content-available-height,500px)-120px)] overflow-y-auto">
+      <div className="flex-1 p-4 space-y-5 overflow-y-auto">
         
         {/* A) HOTSPOT TYPE Section */}
         <div className="space-y-3">
