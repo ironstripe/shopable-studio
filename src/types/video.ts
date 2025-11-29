@@ -17,7 +17,7 @@ export type LuxuryLineVariant = "serif-whisper" | "gold-accent" | "glass-veil" |
 export type ECommerceLineVariant = "price-tag-compact" | "product-label-extended" | "cta-pill-focus" | "ecom-meta-strip";
 
 // Editorial Line specific variants
-export type EditorialLineVariant = "headline-tag" | "vertical-label" | "caption-box" | "editorial-marker";
+export type EditorialLineVariant = "headline-tag" | "vertical-label" | "caption-frame" | "dash-marker";
 
 // Combined style (type + variant for storage)
 export type HotspotStyle = 
@@ -27,7 +27,7 @@ export type HotspotStyle =
   | "minimal-dot-pure-line" | "minimal-dot-soft-glass" | "minimal-dot-editorial-slim" | "minimal-dot-micro-dot"
   | "luxury-line-serif-whisper" | "luxury-line-gold-accent" | "luxury-line-glass-veil" | "luxury-line-dot-reveal"
   | "ecommerce-line-price-tag-compact" | "ecommerce-line-product-label-extended" | "ecommerce-line-cta-pill-focus" | "ecommerce-line-ecom-meta-strip"
-  | "editorial-line-headline-tag" | "editorial-line-vertical-label" | "editorial-line-caption-box" | "editorial-line-editorial-marker";
+  | "editorial-line-headline-tag" | "editorial-line-vertical-label" | "editorial-line-caption-frame" | "editorial-line-dash-marker";
 
 export type ClickBehavior = "show-card" | "direct-link" | "no-action";
 

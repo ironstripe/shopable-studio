@@ -340,13 +340,16 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price 
   if (style === "editorial-line-headline-tag") {
     return (
       <div 
-        className="flex flex-col items-start gap-0.5 animate-fade-in"
-        style={{ ...baseStyle, animationDuration: '220ms', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}
+        className="flex flex-col items-start gap-0.5 animate-slide-up"
+        style={{ ...baseStyle, animationDuration: '220ms' }}
       >
-        <span className="font-playfair text-[14px] font-light text-white tracking-wide">
-          {ctaLabel}
-        </span>
-        <div className="w-full h-[0.5px] bg-white/80" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.4)' }} />
+        <div className="flex items-center gap-1.5">
+          <span className="font-playfair text-[14px] font-normal text-white tracking-wide" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>
+            {ctaLabel}
+          </span>
+          <span className="text-white/70 text-[12px]">→</span>
+        </div>
+        <div className="w-full h-[0.5px] bg-white/80" />
       </div>
     );
   }
@@ -355,46 +358,51 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price 
     const letters = ctaLabel.slice(0, 6).split(''); // Max 6 letters for vertical display
     return (
       <div 
-        className="flex items-center gap-2 animate-fade-in"
+        className="flex flex-col items-center gap-1 animate-slide-left"
         style={{ ...baseStyle, animationDuration: '220ms' }}
       >
-        <div className="flex flex-col items-center text-white font-playfair text-[14px] font-light tracking-wider leading-tight" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>
-          {letters.map((letter, i) => (
-            <span key={i}>{letter.toUpperCase()}</span>
-          ))}
+        <div className="flex items-center gap-2">
+          <div className="flex flex-col items-center text-white font-playfair text-[14px] font-light tracking-wider leading-tight" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>
+            {letters.map((letter, i) => (
+              <span key={i}>{letter.toUpperCase()}</span>
+            ))}
+          </div>
+          <div className="w-[0.5px] h-16 bg-white/70" />
         </div>
-        <div className="w-[0.5px] h-16 bg-white/70" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
+        <span className="text-white/60 text-[10px] font-light">View →</span>
       </div>
     );
   }
 
-  if (style === "editorial-line-caption-box") {
+  if (style === "editorial-line-caption-frame") {
     return (
       <div 
-        className="border-[0.75px] border-white/70 rounded px-3 py-1.5 animate-fade-in"
-        style={{ ...baseStyle, animationDuration: '220ms', backgroundColor: 'rgba(0,0,0,0.15)', backdropFilter: 'blur(4px)' }}
+        className="border border-white/70 rounded px-3 py-2 animate-micro-zoom"
+        style={{ ...baseStyle, animationDuration: '240ms', backgroundColor: 'rgba(0,0,0,0.1)', backdropFilter: 'blur(2px)' }}
       >
-        <span className="font-spectral text-[13px] font-light text-white tracking-wide" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-          {ctaLabel}
-        </span>
-        {price && (
-          <span className="text-white/80 text-[12px] font-light ml-2" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-            {price}
+        <div className="flex items-center gap-2">
+          <span className="font-spectral text-[13px] font-light text-white tracking-wide" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+            {ctaLabel}
           </span>
-        )}
+          {price && (
+            <span className="text-white/70 text-[12px] font-light">{price}</span>
+          )}
+          <span className="text-white/60 text-[11px]">→</span>
+        </div>
       </div>
     );
   }
 
-  if (style === "editorial-line-editorial-marker") {
+  if (style === "editorial-line-dash-marker") {
     return (
       <div 
-        className="animate-fade-in"
+        className="flex items-center gap-2 animate-slide-left"
         style={{ ...baseStyle, animationDuration: '220ms' }}
       >
         <span className="font-spectral text-[14px] font-light text-white tracking-wide" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>
           — {ctaLabel}
         </span>
+        <span className="text-white/50 text-[12px] font-light">More</span>
       </div>
     );
   }
