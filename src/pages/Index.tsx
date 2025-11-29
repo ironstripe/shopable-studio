@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Hotspot, Product, VideoProject } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
-import PropertiesPanel from "@/components/PropertiesPanel";
+import HotspotSidebar from "@/components/HotspotSidebar";
 import { Button } from "@/components/ui/button";
 import { Download, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
@@ -14,7 +14,6 @@ const Index = () => {
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
   const [activeToolbarHotspotId, setActiveToolbarHotspotId] = useState<string | null>(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  const [isEditorOpen, setIsEditorOpen] = useState(true);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Demo products
@@ -65,9 +64,8 @@ const Index = () => {
     };
     setHotspots([...hotspots, newHotspot]);
     setActiveToolbarHotspotId(newHotspot.id);
-    setSelectedHotspot(null);
-    setIsEditorOpen(true);
-    toast.success("Hotspot created! Click Edit to configure.");
+    setSelectedHotspot(newHotspot);
+    toast.success("Hotspot created!");
   };
 
   const handleHotspotSelect = (hotspotId: string) => {
@@ -188,42 +186,39 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-6 py-8 pt-[72px]">
-        <VideoPlayer
-          videoSrc={videoSrc}
-          hotspots={hotspots}
-          products={products}
-          selectedHotspot={selectedHotspot}
-          activeToolbarHotspotId={activeToolbarHotspotId}
-          isPreviewMode={isPreviewMode}
-          isEditorOpen={isEditorOpen}
-          onTogglePreviewMode={() => setIsPreviewMode(!isPreviewMode)}
-          onAddHotspot={handleAddHotspot}
-          onEditHotspot={setSelectedHotspot}
-          onDeleteHotspot={handleDeleteHotspot}
-          onHotspotSelect={handleHotspotSelect}
-          onUpdateHotspotPosition={handleUpdateHotspotPosition}
-          onUpdateHotspotScale={handleUpdateHotspotScale}
-          onVideoRef={(ref) => (videoRef.current = ref)}
-          onVideoLoad={handleVideoLoad}
-        />
-      </main>
+      {/* Main Content - Horizontal Flex Layout */}
+      <main className="flex w-full pt-[56px] min-h-screen">
+        {/* Video Area - Flexible */}
+        <div className="flex-1 min-w-0 flex justify-center items-start p-6">
+          <VideoPlayer
+            videoSrc={videoSrc}
+            hotspots={hotspots}
+            products={products}
+            selectedHotspot={selectedHotspot}
+            activeToolbarHotspotId={activeToolbarHotspotId}
+            isPreviewMode={isPreviewMode}
+            onTogglePreviewMode={() => setIsPreviewMode(!isPreviewMode)}
+            onAddHotspot={handleAddHotspot}
+            onUpdateHotspot={handleUpdateHotspot}
+            onDeleteHotspot={handleDeleteHotspot}
+            onHotspotSelect={handleHotspotSelect}
+            onUpdateHotspotPosition={handleUpdateHotspotPosition}
+            onUpdateHotspotScale={handleUpdateHotspotScale}
+            onVideoRef={(ref) => (videoRef.current = ref)}
+            onVideoLoad={handleVideoLoad}
+          />
+        </div>
 
-      {/* Properties Sidebar - only show when hotspots exist */}
-      {hotspots.length > 0 && isEditorOpen && (
-        <PropertiesPanel
-          hotspots={hotspots}
-          selectedHotspot={selectedHotspot}
-          products={products}
-          onUpdateHotspot={handleUpdateHotspot}
-          onDeleteHotspot={handleDeleteHotspot}
-          onUpdateProducts={setProducts}
-          onSelectFromList={handleSelectFromList}
-          onClose={() => setSelectedHotspot(null)}
-          onClosePanel={() => setIsEditorOpen(false)}
-        />
-      )}
+        {/* Sidebar - Fixed Width (only show when video is loaded) */}
+        {videoSrc && (
+          <HotspotSidebar
+            hotspots={hotspots}
+            products={products}
+            selectedHotspotId={selectedHotspot?.id || null}
+            onSelectHotspot={handleSelectFromList}
+          />
+        )}
+      </main>
     </div>
   );
 };
