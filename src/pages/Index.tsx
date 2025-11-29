@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Hotspot, Product, VideoProject } from "@/types/video";
+import { Hotspot, Product, VideoProject, VideoCTA } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import HotspotSidebar from "@/components/HotspotSidebar";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,12 @@ const Index = () => {
   const [videoTitle, setVideoTitle] = useState<string>("Untitled Video");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [shouldAutoOpenProductPanel, setShouldAutoOpenProductPanel] = useState(false);
+  const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
+  const [videoCTA, setVideoCTA] = useState<VideoCTA>({
+    label: "Shop Now",
+    url: "",
+    mode: "off",
+  });
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -122,6 +128,10 @@ const Index = () => {
     setSelectedHotspot(hotspot);
     setActiveToolbarHotspotId(hotspot.id);
     
+    // Highlight hotspot for 1 second
+    setHighlightedHotspotId(hotspot.id);
+    setTimeout(() => setHighlightedHotspotId(null), 1000);
+    
     if (videoRef.current) {
       const seekTime = Math.max(0, hotspot.timeStart - 0.5);
       videoRef.current.currentTime = seekTime;
@@ -192,6 +202,7 @@ const Index = () => {
           cardStyle: h.cardStyle,
         })),
       products,
+      videoCTA,
     };
 
     const blob = new Blob([JSON.stringify(project, null, 2)], {
@@ -289,6 +300,9 @@ const Index = () => {
             onVideoRef={(ref) => (videoRef.current = ref)}
             onVideoLoad={handleVideoLoad}
             shouldAutoOpenProductPanel={shouldAutoOpenProductPanel}
+            highlightedHotspotId={highlightedHotspotId}
+            videoCTA={videoCTA}
+            onUpdateVideoCTA={setVideoCTA}
           />
         </div>
 

@@ -125,6 +125,22 @@ All colors MUST be HSL.
   animation: fade-in 240ms ease-out forwards;
 }
 
+@keyframes hotspot-halo {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+.hotspot-highlight-halo {
+  animation: hotspot-halo 1s ease-out;
+}
+
 .hotspot-placement-cursor {
   cursor: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10' fill='%230E76FD' fill-opacity='0.8'/%3E%3Ccircle cx='12' cy='12' r='10' stroke='%23ffffff' stroke-width='2'/%3E%3C/svg%3E") 12 12, crosshair;
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Hotspot, HotspotStyle, HotspotType, HotspotVariant, ClickBehavior, CardStyle, RetailCardVariant, FineLineCardVariant, LuxuryCardVariant, ECommerceCardVariant, EditorialCardVariant } from "@/types/video";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,6 +110,17 @@ const LayoutBehaviorPanel = ({
   });
 
   const { offset, dragHandleProps } = usePanelDrag();
+
+  // ESC key handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   // Validation errors
   const [errors, setErrors] = useState<{ start?: string; duration?: string }>({});

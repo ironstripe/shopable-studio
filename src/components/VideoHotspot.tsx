@@ -1,6 +1,7 @@
 import { Hotspot } from "@/types/video";
 import HotspotIcon from "./HotspotIcon";
 import EmptyHotspotIndicator from "./EmptyHotspotIndicator";
+import { cn } from "@/lib/utils";
 
 interface VideoHotspotProps {
   hotspot: Hotspot;
@@ -15,9 +16,24 @@ interface VideoHotspotProps {
   price?: string;
   hotspotIndex?: number;
   hasProduct: boolean;
+  isHighlighted?: boolean;
 }
 
-const VideoHotspot = ({ hotspot, currentTime, isSelected, isDragging, isResizing, isEditMode, onClick, onDragStart, onResizeStart, price, hotspotIndex, hasProduct }: VideoHotspotProps) => {
+const VideoHotspot = ({ 
+  hotspot, 
+  currentTime, 
+  isSelected, 
+  isDragging, 
+  isResizing, 
+  isEditMode, 
+  onClick, 
+  onDragStart, 
+  onResizeStart, 
+  price, 
+  hotspotIndex, 
+  hasProduct,
+  isHighlighted = false,
+}: VideoHotspotProps) => {
   const countdown = Math.ceil(hotspot.timeEnd - currentTime);
   const isActive = currentTime >= hotspot.timeStart && currentTime <= hotspot.timeEnd;
 
@@ -25,19 +41,18 @@ const VideoHotspot = ({ hotspot, currentTime, isSelected, isDragging, isResizing
 
   return (
     <div
-      className={`absolute select-none ${
-        isDragging ? "" : "transition-all"
-      } ${
-        isSelected ? "hotspot-pulse scale-110" : "hotspot-pulse"
-      } ${
-        isDragging ? "cursor-grabbing opacity-80" : isEditMode ? "cursor-grab" : "cursor-pointer"
-      }`}
+      className={cn(
+        "absolute select-none pointer-events-auto",
+        isDragging ? "" : "transition-all",
+        isSelected ? "hotspot-pulse scale-110" : "hotspot-pulse",
+        isDragging ? "cursor-grabbing opacity-80" : isEditMode ? "cursor-grab" : "cursor-pointer",
+        isHighlighted && "hotspot-highlight-halo"
+      )}
       style={{
         left: `${hotspot.x * 100}%`,
         top: `${hotspot.y * 100}%`,
         transform: "translate(-50%, -50%)",
         zIndex: isDragging || isResizing ? 100 : 10,
-        pointerEvents: 'auto',
       }}
       onClick={onClick}
       onMouseDown={isEditMode ? onDragStart : undefined}
