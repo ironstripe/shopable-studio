@@ -156,7 +156,8 @@ const Index = () => {
           <Button
             onClick={handleExport}
             disabled={!videoSrc}
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            variant="outline"
+            className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50"
           >
             <Download className="w-4 h-4 mr-2" />
             Export Project
