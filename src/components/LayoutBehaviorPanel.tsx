@@ -38,14 +38,19 @@ const getTypeFromStyle = (style: HotspotStyle): HotspotType => {
   if (style.startsWith("icon-only")) return "icon-only";
   if (style.startsWith("icon-cta-pill")) return "icon-cta-pill";
   if (style.startsWith("badge-bubble")) return "badge-bubble";
+  if (style.startsWith("luxury-line")) return "luxury-line";
   return "minimal-dot";
 };
 
 // Helper to extract variant from combined style
-const getVariantFromStyle = (style: HotspotStyle): HotspotVariant => {
+const getVariantFromStyle = (style: HotspotStyle): string => {
+  if (style.startsWith("luxury-line-")) {
+    // Return the specific luxury variant name
+    return style.replace("luxury-line-", "");
+  }
   const parts = style.split("-");
   const variant = parts[parts.length - 1];
-  return variant as HotspotVariant;
+  return variant;
 };
 
 const LayoutBehaviorPanel = ({
@@ -58,7 +63,7 @@ const LayoutBehaviorPanel = ({
   const migratedStyle = migrateOldStyle(hotspot.style);
   
   const [selectedType, setSelectedType] = useState<HotspotType>(getTypeFromStyle(migratedStyle));
-  const [selectedVariant, setSelectedVariant] = useState<HotspotVariant>(getVariantFromStyle(migratedStyle));
+  const [selectedVariant, setSelectedVariant] = useState<string>(getVariantFromStyle(migratedStyle));
   const [ctaLabel, setCtaLabel] = useState(hotspot.ctaLabel);
   const [clickBehavior, setClickBehavior] = useState<ClickBehavior>(hotspot.clickBehavior);
   const [startTime, setStartTime] = useState(hotspot.timeStart.toFixed(1));
@@ -77,7 +82,7 @@ const LayoutBehaviorPanel = ({
   const [errors, setErrors] = useState<{ start?: string; duration?: string }>({});
 
   // Build full style string from type + variant
-  const getFullStyle = (type: HotspotType, variant: HotspotVariant): HotspotStyle => {
+  const getFullStyle = (type: HotspotType, variant: string): HotspotStyle => {
     return `${type}-${variant}` as HotspotStyle;
   };
 
@@ -85,8 +90,12 @@ const LayoutBehaviorPanel = ({
 
   const handleTypeChange = (type: HotspotType) => {
     setSelectedType(type);
-    // Auto-select "small" variant when switching families
-    setSelectedVariant("small");
+    // Auto-select appropriate default variant when switching families
+    if (type === "luxury-line") {
+      setSelectedVariant("serif-minimal");
+    } else {
+      setSelectedVariant("small");
+    }
   };
 
   const validateInputs = () => {
@@ -125,7 +134,7 @@ const LayoutBehaviorPanel = ({
     onClose();
   };
 
-  // Reduced to 2 hotspot families
+  // Hotspot families
   const styleFamilies = [
     {
       id: "badge-bubble" as HotspotType,
@@ -136,6 +145,11 @@ const LayoutBehaviorPanel = ({
       id: "minimal-dot" as HotspotType,
       label: "Fine Line",
       description: "Ultra-clean, subtle hotspots for premium / luxury brands.",
+    },
+    {
+      id: "luxury-line" as HotspotType,
+      label: "Luxury Line",
+      description: "Elegant, typography-focused hotspots for high-end luxury brands.",
     }
   ];
 
@@ -150,12 +164,22 @@ const LayoutBehaviorPanel = ({
         </div>
       );
     }
-    // minimal-dot (Fine Line)
+    if (family === "minimal-dot") {
+      return (
+        <div className="flex items-center gap-2 text-[#FF6A00]/80 text-base">
+          <span className="font-medium">3</span>
+          <span className="opacity-50">•</span>
+          <span>Shop</span>
+        </div>
+      );
+    }
+    // luxury-line
     return (
-      <div className="flex items-center gap-2 text-[#FF6A00]/80 text-base">
-        <span className="font-medium">3</span>
-        <span className="opacity-50">•</span>
-        <span>Shop</span>
+      <div className="flex flex-col items-start gap-0.5">
+        <span className="font-spectral text-sm font-light text-white tracking-wide">
+          1. Product Name
+        </span>
+        <div className="w-16 h-[1px] bg-[#E8DCC0]" />
       </div>
     );
   };
@@ -166,8 +190,74 @@ const LayoutBehaviorPanel = ({
     return family?.label || type;
   };
 
+  // Luxury Line specific variants
+  const luxuryLineVariants = [
+    { 
+      value: "serif-minimal", 
+      label: "Luxury Serif Minimal",
+      description: "Editorial style with thin underline"
+    },
+    { 
+      value: "gold-accent", 
+      label: "Luxury Gold Accent",
+      description: "Gold number and champagne underline"
+    },
+    { 
+      value: "floating-label", 
+      label: "Minimal Floating Label",
+      description: "Translucent background label"
+    },
+    { 
+      value: "ultra-dot", 
+      label: "Ultra Minimal Dot",
+      description: "Tiny dot with hover reveal"
+    }
+  ];
+
+  // Get preview for Luxury Line variants
+  const getLuxuryLineVariantPreview = (variant: string) => {
+    if (variant === "serif-minimal") {
+      return (
+        <div className="flex flex-col items-center gap-0.5">
+          <span className="font-spectral text-[10px] font-light text-white/90 tracking-wide">
+            1. Product
+          </span>
+          <div className="w-10 h-[1px] bg-white/60" />
+        </div>
+      );
+    }
+    
+    if (variant === "gold-accent") {
+      return (
+        <div className="flex flex-col items-center gap-0.5">
+          <div className="flex items-center gap-1">
+            <span className="font-spectral text-[10px] font-light text-[#E8DCC0]">1.</span>
+            <span className="font-spectral text-[10px] font-light text-white tracking-wide">Product</span>
+          </div>
+          <div className="w-10 h-[1px] bg-[#D4C7A1]" />
+        </div>
+      );
+    }
+    
+    if (variant === "floating-label") {
+      return (
+        <div className="bg-black/15 rounded px-2 py-1">
+          <span className="font-inter-thin text-[10px] font-extralight text-white">Product</span>
+        </div>
+      );
+    }
+    
+    // ultra-dot
+    return (
+      <div className="flex items-center gap-1.5">
+        <div className="w-[3px] h-[3px] rounded-full bg-white" />
+        <span className="font-inter-thin text-[9px] font-extralight text-white/60">Shop</span>
+      </div>
+    );
+  };
+
   // Unified variants with dynamic previews
-  const getVariantPreview = (family: HotspotType, variant: HotspotVariant) => {
+  const getVariantPreview = (family: HotspotType, variant: string) => {
     const baseScale = variant === "small" ? 0.9 : variant === "large" ? 1.15 : 1;
     const borderWeight = variant === "light" ? "border" : variant === "strong" ? "border-2" : "border-2";
     const shadowIntensity = variant === "light" ? "shadow-sm" : variant === "strong" ? "shadow-lg" : "shadow-md";
@@ -219,12 +309,15 @@ const LayoutBehaviorPanel = ({
     );
   };
 
-  const unifiedVariants: Array<{ value: HotspotVariant; label: string; description: string }> = [
+  const unifiedVariants: Array<{ value: string; label: string; description: string }> = [
     { value: "small", label: "Small", description: "Compact size (default)" },
     { value: "large", label: "Large", description: "Larger footprint for visibility" },
     { value: "light", label: "Light", description: "Thinner border, soft shadow" },
     { value: "strong", label: "Strong", description: "Higher contrast, stronger border" },
   ];
+
+  // Determine which variants to show based on selected family
+  const currentVariants = selectedType === "luxury-line" ? luxuryLineVariants : unifiedVariants;
 
   return (
     <div
@@ -300,7 +393,7 @@ const LayoutBehaviorPanel = ({
           </div>
         </div>
 
-        {/* 2) STYLE VARIANTS Section - Unified 2x2 Grid with dynamic label */}
+        {/* 2) STYLE VARIANTS Section - Conditional rendering */}
         <div className="space-y-3">
           <div>
             <Label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">
@@ -311,7 +404,7 @@ const LayoutBehaviorPanel = ({
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2.5">
-            {unifiedVariants.map((variant) => (
+            {currentVariants.map((variant) => (
               <button
                 key={variant.value}
                 onClick={() => setSelectedVariant(variant.value)}
@@ -323,7 +416,9 @@ const LayoutBehaviorPanel = ({
                 `}
               >
                 <div className="flex items-center justify-center h-9">
-                  {getVariantPreview(selectedType, variant.value)}
+                  {selectedType === "luxury-line" 
+                    ? getLuxuryLineVariantPreview(variant.value)
+                    : getVariantPreview(selectedType, variant.value)}
                 </div>
                 <div className="text-center">
                   <div className="text-xs font-semibold text-[#374151]">{variant.label}</div>

@@ -202,6 +202,63 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1 }: Hots
     );
   }
 
+  // Luxury Line variants
+  if (style === "luxury-line-serif-minimal") {
+    return (
+      <div 
+        className="flex flex-col items-start gap-0.5 animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '240ms' }}
+      >
+        <span className="font-spectral text-[13px] font-light text-white tracking-wide">
+          {countdown}. {ctaLabel}
+        </span>
+        <div className="w-full h-[1px] bg-white/60" />
+      </div>
+    );
+  }
+
+  if (style === "luxury-line-gold-accent") {
+    return (
+      <div 
+        className="flex flex-col items-start gap-0.5 animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '240ms' }}
+      >
+        <div className="flex items-center gap-1.5">
+          <span className="font-spectral text-[13px] font-light text-[#E8DCC0]">{countdown}.</span>
+          <span className="font-spectral text-[13px] font-light text-white tracking-wide">{ctaLabel}</span>
+        </div>
+        <div className="w-full h-[1px] bg-[#D4C7A1]" />
+      </div>
+    );
+  }
+
+  if (style === "luxury-line-floating-label") {
+    return (
+      <div 
+        className="bg-black/15 backdrop-blur-sm rounded px-2.5 py-1.5 animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '240ms' }}
+      >
+        <span className="font-inter-thin text-[12px] font-extralight text-white tracking-wide">
+          {ctaLabel}
+        </span>
+      </div>
+    );
+  }
+
+  if (style === "luxury-line-ultra-dot") {
+    return (
+      <div 
+        className="flex items-center gap-2 group animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '240ms' }}
+      >
+        <div className="w-[3px] h-[3px] rounded-full bg-white group-hover:opacity-30 transition-opacity duration-200" />
+        <span className="font-inter-thin text-[12px] font-extralight text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          {ctaLabel}
+        </span>
+      </div>
+    );
+  }
+
   return null;
 };
 

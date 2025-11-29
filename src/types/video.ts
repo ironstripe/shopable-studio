@@ -1,15 +1,19 @@
 // Top-level hotspot types
-export type HotspotType = "icon-only" | "icon-cta-pill" | "badge-bubble" | "minimal-dot";
+export type HotspotType = "icon-only" | "icon-cta-pill" | "badge-bubble" | "minimal-dot" | "luxury-line";
 
 // Unified variants (same for all types)
 export type HotspotVariant = "small" | "large" | "light" | "strong";
+
+// Luxury Line specific variants
+export type LuxuryLineVariant = "serif-minimal" | "gold-accent" | "floating-label" | "ultra-dot";
 
 // Combined style (type + variant for storage)
 export type HotspotStyle = 
   | "icon-only-small" | "icon-only-large" | "icon-only-light" | "icon-only-strong"
   | "icon-cta-pill-small" | "icon-cta-pill-large" | "icon-cta-pill-light" | "icon-cta-pill-strong"
   | "badge-bubble-small" | "badge-bubble-large" | "badge-bubble-light" | "badge-bubble-strong"
-  | "minimal-dot-small" | "minimal-dot-large" | "minimal-dot-light" | "minimal-dot-strong";
+  | "minimal-dot-small" | "minimal-dot-large" | "minimal-dot-light" | "minimal-dot-strong"
+  | "luxury-line-serif-minimal" | "luxury-line-gold-accent" | "luxury-line-floating-label" | "luxury-line-ultra-dot";
 
 export type ClickBehavior = "show-card" | "direct-link" | "no-action";
 
