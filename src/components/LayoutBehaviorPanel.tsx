@@ -39,6 +39,7 @@ const getTypeFromStyle = (style: HotspotStyle): HotspotType => {
   if (style.startsWith("icon-cta-pill")) return "icon-cta-pill";
   if (style.startsWith("badge-bubble")) return "badge-bubble";
   if (style.startsWith("luxury-line")) return "luxury-line";
+  if (style.startsWith("ecommerce-line")) return "ecommerce-line";
   return "minimal-dot";
 };
 
@@ -47,6 +48,10 @@ const getVariantFromStyle = (style: HotspotStyle): string => {
   if (style.startsWith("luxury-line-")) {
     // Return the specific luxury variant name
     return style.replace("luxury-line-", "");
+  }
+  if (style.startsWith("ecommerce-line-")) {
+    // Return the specific ecommerce variant name
+    return style.replace("ecommerce-line-", "");
   }
   const parts = style.split("-");
   const variant = parts[parts.length - 1];
@@ -93,6 +98,8 @@ const LayoutBehaviorPanel = ({
     // Auto-select appropriate default variant when switching families
     if (type === "luxury-line") {
       setSelectedVariant("serif-minimal");
+    } else if (type === "ecommerce-line") {
+      setSelectedVariant("price-tag-compact");
     } else {
       setSelectedVariant("small");
     }
@@ -150,6 +157,11 @@ const LayoutBehaviorPanel = ({
       id: "luxury-line" as HotspotType,
       label: "Luxury Line",
       description: "Elegant, typography-focused hotspots for high-end luxury brands.",
+    },
+    {
+      id: "ecommerce-line" as HotspotType,
+      label: "E-Commerce Line",
+      description: "Conversion-focused, clean hotspots for retail and product videos.",
     }
   ];
 
@@ -173,13 +185,23 @@ const LayoutBehaviorPanel = ({
         </div>
       );
     }
-    // luxury-line
+    if (family === "luxury-line") {
+      return (
+        <div className="bg-[#2A2A2A] rounded-lg px-3 py-2 flex flex-col items-start gap-0.5">
+          <span className="font-spectral text-sm font-light text-white tracking-wide">
+            1. Product Name
+          </span>
+          <div className="w-16 h-[1px] bg-[#E8DCC0]" />
+        </div>
+      );
+    }
+    // ecommerce-line
     return (
-      <div className="bg-[#2A2A2A] rounded-lg px-3 py-2 flex flex-col items-start gap-0.5">
-        <span className="font-spectral text-sm font-light text-white tracking-wide">
-          1. Product Name
-        </span>
-        <div className="w-16 h-[1px] bg-[#E8DCC0]" />
+      <div className="bg-white border border-[#E0E0E0] rounded-lg px-3 py-1.5 flex items-center gap-2 shadow-sm">
+        <span className="text-[#111111] text-sm font-medium">3</span>
+        <span className="text-[#6B7280] text-sm">·</span>
+        <span className="text-[#111111] text-sm font-medium">349.–</span>
+        <span className="text-[#3B82F6] text-sm">→</span>
       </div>
     );
   };
@@ -213,6 +235,78 @@ const LayoutBehaviorPanel = ({
       description: "Tiny dot with hover reveal"
     }
   ];
+
+  // E-Commerce Line specific variants
+  const ecommerceLineVariants = [
+    { 
+      value: "price-tag-compact", 
+      label: "Price Tag Compact",
+      description: "Number, price, and mini-CTA"
+    },
+    { 
+      value: "product-label-extended", 
+      label: "Product Label Extended",
+      description: "Two-line with name and price"
+    },
+    { 
+      value: "cta-pill-focus", 
+      label: "CTA Pill Focus",
+      description: "Circle hotspot + CTA pill"
+    },
+    { 
+      value: "ecom-meta-strip", 
+      label: "E-Com Meta Strip",
+      description: "Flat horizontal strip"
+    }
+  ];
+
+  // Get preview for E-Commerce Line variants
+  const getEcommerceLineVariantPreview = (variant: string) => {
+    if (variant === "price-tag-compact") {
+      return (
+        <div className="bg-white border border-[#E0E0E0] rounded-lg px-2 py-1 flex items-center gap-1.5">
+          <span className="text-[#111111] text-[10px] font-medium">3</span>
+          <span className="text-[#9CA3AF] text-[10px]">·</span>
+          <span className="text-[#111111] text-[10px] font-medium">349.–</span>
+          <span className="text-[#3B82F6] text-[10px]">→</span>
+        </div>
+      );
+    }
+    
+    if (variant === "product-label-extended") {
+      return (
+        <div className="bg-white border border-[#E0E0E0] rounded-lg px-2 py-1.5 flex flex-col items-start">
+          <span className="text-[#111111] text-[9px] font-medium leading-tight">Product</span>
+          <div className="flex items-center gap-1">
+            <span className="text-[#6B7280] text-[9px]">349.–</span>
+            <span className="text-[#6B7280] text-[9px]">·</span>
+            <span className="text-[#3B82F6] text-[9px] font-medium">Shop →</span>
+          </div>
+        </div>
+      );
+    }
+    
+    if (variant === "cta-pill-focus") {
+      return (
+        <div className="flex items-center gap-1.5">
+          <div className="w-5 h-5 rounded-full bg-[#F5F5F5] border border-[#E0E0E0] flex items-center justify-center">
+            <span className="text-[#111111] text-[8px] font-medium">3</span>
+          </div>
+          <div className="bg-[#3B82F6] rounded-full px-2 py-0.5">
+            <span className="text-white text-[9px] font-medium">Shop</span>
+          </div>
+        </div>
+      );
+    }
+    
+    // ecom-meta-strip
+    return (
+      <div className="bg-[#F5F5F5] border border-[#EAEAEA] rounded px-2 py-1 flex items-center justify-between gap-3">
+        <span className="text-[#111111] text-[9px] font-medium">Product</span>
+        <span className="text-[#6B7280] text-[9px]">349.–</span>
+      </div>
+    );
+  };
 
   // Get preview for Luxury Line variants
   const getLuxuryLineVariantPreview = (variant: string) => {
@@ -322,7 +416,10 @@ const LayoutBehaviorPanel = ({
   ];
 
   // Determine which variants to show based on selected family
-  const currentVariants = selectedType === "luxury-line" ? luxuryLineVariants : unifiedVariants;
+  const currentVariants = 
+    selectedType === "luxury-line" ? luxuryLineVariants : 
+    selectedType === "ecommerce-line" ? ecommerceLineVariants : 
+    unifiedVariants;
 
   return (
     <div
@@ -423,6 +520,8 @@ const LayoutBehaviorPanel = ({
                 <div className="flex items-center justify-center h-9">
                   {selectedType === "luxury-line" 
                     ? getLuxuryLineVariantPreview(variant.value)
+                    : selectedType === "ecommerce-line"
+                    ? getEcommerceLineVariantPreview(variant.value)
                     : getVariantPreview(selectedType, variant.value)}
                 </div>
                 <div className="text-center">
@@ -436,8 +535,8 @@ const LayoutBehaviorPanel = ({
           </div>
         </div>
 
-        {/* 3) CTA LABEL Section - Only for Badge bubble */}
-        {selectedType === "badge-bubble" && (
+        {/* 3) CTA LABEL Section - For Badge bubble and E-Commerce Line */}
+        {(selectedType === "badge-bubble" || selectedType === "ecommerce-line") && (
           <div className="space-y-2">
             <Label htmlFor="cta-input" className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">
               CTA Label
