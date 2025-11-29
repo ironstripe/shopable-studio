@@ -44,7 +44,7 @@ const HotspotSidebar = ({
   }, [selectedHotspotId]);
 
   return (
-    <div className="w-[320px] flex-shrink-0 bg-white border-l border-[rgba(0,0,0,0.06)] h-full flex flex-col">
+    <div className="flex-1 flex flex-col min-h-0">
       {/* Header */}
       <div className="px-5 py-4 border-b border-[rgba(0,0,0,0.06)]">
         <h2 className="text-sm font-semibold text-[#111827] uppercase tracking-wide">
