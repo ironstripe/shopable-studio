@@ -72,6 +72,11 @@ const Index = () => {
     setHotspots([...hotspots, newHotspot]);
     setActiveToolbarHotspotId(newHotspot.id);
     setSelectedHotspot(newHotspot);
+    
+    // Auto-open product picker for new hotspots
+    setShouldAutoOpenProductPanel(true);
+    setTimeout(() => setShouldAutoOpenProductPanel(false), 100);
+    
     toast.success("Hotspot created!");
   };
 
@@ -121,6 +126,23 @@ const Index = () => {
       const seekTime = Math.max(0, hotspot.timeStart - 0.5);
       videoRef.current.currentTime = seekTime;
     }
+  };
+
+  const handleOpenLayoutPanel = (hotspot: Hotspot) => {
+    if (!hotspot.productId) {
+      // Redirect to product picker if no product assigned
+      handleOpenProductPanel(hotspot);
+      return;
+    }
+    setSelectedHotspot(hotspot);
+    setActiveToolbarHotspotId(hotspot.id);
+  };
+
+  const handleOpenProductPanel = (hotspot: Hotspot) => {
+    setSelectedHotspot(hotspot);
+    setActiveToolbarHotspotId(hotspot.id);
+    setShouldAutoOpenProductPanel(true);
+    setTimeout(() => setShouldAutoOpenProductPanel(false), 100);
   };
 
   const handleUpdateProduct = (updatedProduct: Product) => {
@@ -265,13 +287,9 @@ const Index = () => {
             products={products}
             selectedHotspotId={selectedHotspot?.id || null}
             onSelectHotspot={handleSelectFromList}
-            onOpenProductPanel={(hotspot) => {
-              setSelectedHotspot(hotspot);
-              setActiveToolbarHotspotId(hotspot.id);
-              setShouldAutoOpenProductPanel(true);
-              // Reset after a brief moment to prevent re-opening
-              setTimeout(() => setShouldAutoOpenProductPanel(false), 100);
-            }}
+            onOpenProductPanel={handleOpenProductPanel}
+            onOpenLayoutPanel={handleOpenLayoutPanel}
+            onDeleteHotspot={handleDeleteHotspot}
           />
         )}
       </main>

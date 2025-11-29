@@ -1,7 +1,7 @@
 import { Hotspot, Product } from "@/types/video";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Plus, Tag } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 interface HotspotSidebarProps {
@@ -10,6 +10,8 @@ interface HotspotSidebarProps {
   selectedHotspotId: string | null;
   onSelectHotspot: (hotspot: Hotspot) => void;
   onOpenProductPanel?: (hotspot: Hotspot) => void;
+  onOpenLayoutPanel?: (hotspot: Hotspot) => void;
+  onDeleteHotspot?: (hotspotId: string) => void;
 }
 
 const HotspotSidebar = ({
@@ -18,9 +20,18 @@ const HotspotSidebar = ({
   selectedHotspotId,
   onSelectHotspot,
   onOpenProductPanel,
+  onOpenLayoutPanel,
+  onDeleteHotspot,
 }: HotspotSidebarProps) => {
   const sortedHotspots = [...hotspots].sort((a, b) => a.timeStart - b.timeStart);
-  const hotspotRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
+  const hotspotRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  
+  // Calculate hotspot numbers only for assigned hotspots
+  const assignedHotspots = sortedHotspots.filter(h => h.productId);
+  const getHotspotNumber = (hotspot: Hotspot) => {
+    if (!hotspot.productId) return null;
+    return assignedHotspots.findIndex(h => h.id === hotspot.id) + 1;
+  };
 
   // Auto-scroll to selected hotspot
   useEffect(() => {
@@ -53,31 +64,32 @@ const HotspotSidebar = ({
               </p>
             </div>
           ) : (
-            sortedHotspots.map((hotspot, index) => {
+            sortedHotspots.map((hotspot) => {
               const product = hotspot.productId ? products[hotspot.productId] : null;
               const isSelected = selectedHotspotId === hotspot.id;
               const isUnassigned = !hotspot.productId;
+              const hotspotNumber = getHotspotNumber(hotspot);
 
               return (
-                <button
+                <div
                   key={hotspot.id}
                   ref={(el) => (hotspotRefs.current[hotspot.id] = el)}
-                  onClick={() => {
-                    if (isUnassigned && onOpenProductPanel) {
-                      onOpenProductPanel(hotspot);
-                    } else {
-                      onSelectHotspot(hotspot);
-                    }
-                  }}
                   className={cn(
-                    "w-full text-left px-3 py-3 rounded-lg transition-all duration-150",
+                    "w-full px-3 py-3 rounded-lg transition-all duration-150",
                     isUnassigned
-                      ? "bg-[rgba(59,130,246,0.06)] border border-dashed border-[rgba(59,130,246,0.3)] hover:bg-[rgba(59,130,246,0.1)]"
-                      : "hover:bg-[rgba(0,0,0,0.02)]",
+                      ? "bg-[rgba(59,130,246,0.06)] border border-dashed border-[rgba(59,130,246,0.3)] hover:bg-[rgba(59,130,246,0.1)] cursor-pointer"
+                      : "hover:bg-[rgba(0,0,0,0.02)] cursor-pointer",
                     !isUnassigned && isSelected
                       ? "bg-[rgba(59,130,246,0.08)] border border-[rgba(59,130,246,0.3)]"
                       : !isUnassigned && "border border-transparent"
                   )}
+                  onClick={() => {
+                    if (isUnassigned && onOpenProductPanel) {
+                      onOpenProductPanel(hotspot);
+                    } else if (!isUnassigned && onOpenLayoutPanel) {
+                      onOpenLayoutPanel(hotspot);
+                    }
+                  }}
                 >
                   <div className="flex items-start gap-2.5">
                     {/* Icon/Bullet */}
@@ -87,29 +99,28 @@ const HotspotSidebar = ({
                       </div>
                     ) : (
                       <div
-                        className={cn(
-                          "w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0",
-                          isSelected ? "bg-[#3B82F6]" : "bg-[#D1D5DB]"
-                        )}
+                        className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 bg-[#3B82F6]"
                       />
                     )}
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-2 mb-1">
-                        <span className="text-[11px] font-semibold text-[#9CA3AF]">
-                          #{index + 1}
-                        </span>
+                        {hotspotNumber && (
+                          <span className="text-[11px] font-semibold text-[#9CA3AF]">
+                            #{hotspotNumber}
+                          </span>
+                        )}
                         <span className={cn(
                           "text-[13px] font-medium truncate",
                           isUnassigned ? "text-[#3B82F6]" : "text-[#111827]"
                         )}>
-                          {isUnassigned ? "New hotspot (no product assigned)" : product?.title || "Unknown Product"}
+                          {isUnassigned ? "New Hotspot – Assign Product" : product?.title || "Unknown Product"}
                         </span>
                       </div>
                       {isUnassigned ? (
                         <p className="text-[11px] text-[#6B7280] italic">
-                          Click to assign a product
+                          Click to choose a product
                         </p>
                       ) : (
                         <p className="text-[12px] text-[#6B7280]">
@@ -117,8 +128,38 @@ const HotspotSidebar = ({
                         </p>
                       )}
                     </div>
+
+                    {/* Action Icons */}
+                    <div className="flex items-center gap-1 ml-auto">
+                      {!isUnassigned && onOpenLayoutPanel && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenLayoutPanel(hotspot);
+                          }}
+                          className="w-6 h-6 flex items-center justify-center rounded hover:bg-[rgba(59,130,246,0.1)] text-[#6B7280] hover:text-[#3B82F6] transition-colors"
+                          title="Edit Layout & Behavior"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {onDeleteHotspot && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm(`Delete this hotspot?`)) {
+                              onDeleteHotspot(hotspot.id);
+                            }
+                          }}
+                          className="w-6 h-6 flex items-center justify-center rounded hover:bg-[rgba(239,68,68,0.1)] text-[#6B7280] hover:text-[#EF4444] transition-colors"
+                          title="Delete Hotspot"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </button>
+                </div>
               );
             })
           )}

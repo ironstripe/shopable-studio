@@ -36,6 +36,17 @@ const HotspotInlineEditor = ({
     }
   }, [autoOpenProductPanel]);
 
+  const hasProduct = !!hotspot.productId;
+
+  // Redirect to product picker if trying to open layout without product
+  const handleLayoutClick = () => {
+    if (!hasProduct) {
+      setProductOpen(true);
+      return;
+    }
+    setLayoutOpen(true);
+  };
+
   return (
     <div
       className="absolute flex gap-1 bg-white border border-[rgba(0,0,0,0.12)] rounded-lg shadow-lg p-1"
@@ -87,21 +98,23 @@ const HotspotInlineEditor = ({
         </PopoverContent>
       </Popover>
 
-      {/* Layout & Behavior */}
-      <Popover open={layoutOpen} onOpenChange={setLayoutOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            size="sm"
-            variant="ghost"
-            className={cn(
-              "h-8 w-8 p-0 hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]",
-              layoutOpen ? "bg-[rgba(59,130,246,0.12)] text-[#3B82F6]" : "text-[#374151]"
-            )}
-            title="Layout & Behavior"
-          >
-            <Settings className="w-4 h-4" />
-          </Button>
-        </PopoverTrigger>
+      {/* Layout & Behavior - Only show if product is assigned */}
+      {hasProduct && (
+        <Popover open={layoutOpen} onOpenChange={setLayoutOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleLayoutClick}
+              className={cn(
+                "h-8 w-8 p-0 hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]",
+                layoutOpen ? "bg-[rgba(59,130,246,0.12)] text-[#3B82F6]" : "text-[#374151]"
+              )}
+              title="Layout & Behavior"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+          </PopoverTrigger>
         <PopoverContent 
           className="w-auto p-0 border-0 shadow-none" 
           align="start" 
@@ -118,7 +131,8 @@ const HotspotInlineEditor = ({
             onClose={() => setLayoutOpen(false)}
           />
         </PopoverContent>
-      </Popover>
+        </Popover>
+      )}
 
       {/* Delete */}
       <div className="w-px h-6 bg-[rgba(0,0,0,0.08)] my-auto mx-0.5" />
