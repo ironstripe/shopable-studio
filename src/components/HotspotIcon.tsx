@@ -334,6 +334,69 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price 
     );
   }
 
+  // Editorial Line variants - typography-focused with cinematic motion
+  if (style === "editorial-line-headline-tag") {
+    return (
+      <div 
+        className="flex flex-col items-start gap-0.5 animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '220ms', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}
+      >
+        <span className="font-playfair text-[14px] font-light text-white tracking-wide">
+          {ctaLabel}
+        </span>
+        <div className="w-full h-[0.5px] bg-white/80" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.4)' }} />
+      </div>
+    );
+  }
+
+  if (style === "editorial-line-vertical-label") {
+    const letters = ctaLabel.slice(0, 6).split(''); // Max 6 letters for vertical display
+    return (
+      <div 
+        className="flex items-center gap-2 animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '220ms' }}
+      >
+        <div className="flex flex-col items-center text-white font-playfair text-[14px] font-light tracking-wider leading-tight" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>
+          {letters.map((letter, i) => (
+            <span key={i}>{letter.toUpperCase()}</span>
+          ))}
+        </div>
+        <div className="w-[0.5px] h-16 bg-white/70" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
+      </div>
+    );
+  }
+
+  if (style === "editorial-line-caption-box") {
+    return (
+      <div 
+        className="border-[0.75px] border-white/70 rounded px-3 py-1.5 animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '220ms', backgroundColor: 'rgba(0,0,0,0.15)', backdropFilter: 'blur(4px)' }}
+      >
+        <span className="font-spectral text-[13px] font-light text-white tracking-wide" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+          {ctaLabel}
+        </span>
+        {price && (
+          <span className="text-white/80 text-[12px] font-light ml-2" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+            {price}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  if (style === "editorial-line-editorial-marker") {
+    return (
+      <div 
+        className="animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '220ms' }}
+      >
+        <span className="font-spectral text-[14px] font-light text-white tracking-wide" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>
+          — {ctaLabel}
+        </span>
+      </div>
+    );
+  }
+
   return null;
 };
 
