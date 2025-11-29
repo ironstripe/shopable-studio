@@ -254,7 +254,7 @@ const VideoPlayer = ({
     <div className="relative w-full max-w-[960px] mx-auto">
       {/* Mode Controls - Above Video */}
       {videoSrc && (
-        <div className="flex items-center justify-between mb-4">
+        <div className="relative z-10 flex items-center justify-between mt-4 mb-6">
           {/* Helper Text - Left */}
           {!isPreviewMode && (
             <p className="text-sm text-muted-foreground">
@@ -266,7 +266,7 @@ const VideoPlayer = ({
           {isPreviewMode && <div />}
           
           {/* Segmented Toggle - Right */}
-          <div className="inline-flex items-center rounded-full bg-white border border-gray-200 p-1 shadow-sm">
+          <div className="inline-flex items-center rounded-full bg-white border border-gray-200 p-1 shadow-sm min-w-[280px]">
             <button
               onClick={() => isPreviewMode && onTogglePreviewMode()}
               className={cn(

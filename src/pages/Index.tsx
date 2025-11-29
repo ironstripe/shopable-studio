@@ -165,7 +165,7 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8 pt-20">
+      <main className="container mx-auto px-6 py-8 pt-24">
         <VideoPlayer
           videoSrc={videoSrc}
           hotspots={hotspots}
