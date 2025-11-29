@@ -298,7 +298,7 @@ const LayoutBehaviorPanel = ({
               value={ctaLabel}
               onChange={(e) => setCtaLabel(e.target.value)}
               placeholder="Kaufen / Zum Shop / Mehr Infos"
-              className="h-9 text-sm bg-white border-[#E1E4E8] focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="h-9 text-sm text-[#111827] bg-white border-[#E1E4E8] focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
             />
           </div>
         )}
@@ -365,7 +365,7 @@ const LayoutBehaviorPanel = ({
                   setStartTime(e.target.value);
                   setErrors({ ...errors, start: undefined });
                 }}
-                className={`h-9 text-sm bg-white border-[#E1E4E8] focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] ${
+                className={`h-9 text-sm text-[#111827] bg-white border-[#E1E4E8] focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] ${
                   errors.start ? 'border-[#EF4444]' : ''
                 }`}
               />
@@ -389,7 +389,7 @@ const LayoutBehaviorPanel = ({
                   setDuration(e.target.value);
                   setErrors({ ...errors, duration: undefined });
                 }}
-                className={`h-9 text-sm bg-white border-[#E1E4E8] focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] ${
+                className={`h-9 text-sm text-[#111827] bg-white border-[#E1E4E8] focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] ${
                   errors.duration ? 'border-[#EF4444]' : ''
                 }`}
               />
