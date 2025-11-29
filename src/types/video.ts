@@ -32,7 +32,7 @@ export type HotspotStyle =
 export type ClickBehavior = "show-card" | "direct-link" | "no-action";
 
 // Product Card Family System (Extensible Architecture)
-export type CardFamily = "retail" | "luxury" | "editorial" | "minimal";
+export type CardFamily = "retail" | "luxury" | "editorial" | "fineline" | "ecommerce";
 
 // Retail Card variants (E-Commerce focused, maps to badge-bubble hotspot family)
 export type RetailCardVariant = "retail-compact" | "retail-split" | "retail-media" | "retail-price-focus";
