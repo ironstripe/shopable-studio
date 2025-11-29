@@ -257,7 +257,7 @@ const VideoPlayer = ({
         {videoSrc && (
           <>
             {/* Fixed toggle bar below header */}
-            <div className="fixed top-[52px] left-0 right-0 z-40 px-6 pt-3 pb-2 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+            <div className="fixed top-[52px] left-0 right-0 z-50 px-6 pt-3 pb-2 bg-white/95 backdrop-blur-sm border-b border-gray-100">
               <div className="max-w-[960px] mx-auto flex flex-col items-center">
                 {/* Segmented Toggle - Centered */}
                 <div className="inline-flex items-center rounded-lg bg-white border border-gray-300 p-0.5 shadow-sm">
