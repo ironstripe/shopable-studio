@@ -3,8 +3,9 @@ import { Hotspot, Product, VideoProject } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import PropertiesPanel from "@/components/PropertiesPanel";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import shopableLogo from "@/assets/shopable-logo.png";
 
 const Index = () => {
@@ -150,23 +151,45 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
-        <div className="flex items-center justify-between px-6 py-2">
-          <img src={shopableLogo} alt="Shopable" className="w-[140px] h-auto" />
-          <Button
-            onClick={handleExport}
-            disabled={!videoSrc}
-            variant="outline"
-            className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export Project
-          </Button>
+      <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-white border-b border-[rgba(0,0,0,0.04)]">
+        <div className="flex items-center justify-between h-full px-6 lg:px-8">
+          
+          {/* LEFT: Logo (unchanged) + Project Name */}
+          <div className="flex items-center gap-3">
+            <img src={shopableLogo} alt="Shopable" className="w-[140px] h-auto" />
+            <div className="h-4 w-px bg-[rgba(0,0,0,0.08)]" />
+            <button className="flex items-center gap-1.5 text-[14px] font-medium text-[#111827] hover:text-[#374151] transition-colors">
+              Shopable Video Maker
+              <ChevronDown className="w-3.5 h-3.5 text-[#9CA3AF]" />
+            </button>
+          </div>
+
+          {/* CENTER: Reserved for status (empty for now) */}
+          <div className="hidden md:flex items-center justify-center flex-1" />
+
+          {/* RIGHT: Export button (chip-style) */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExport}
+              disabled={!videoSrc}
+              className={cn(
+                "inline-flex items-center h-8 px-4 text-[13px] font-medium rounded-full",
+                "bg-white border border-[rgba(0,0,0,0.08)] text-[#111827]",
+                "hover:bg-[rgba(59,130,246,0.06)] hover:border-[rgba(59,130,246,0.3)]",
+                "transition-all duration-150",
+                "disabled:opacity-40 disabled:cursor-not-allowed"
+              )}
+            >
+              <Download className="w-3.5 h-3.5 mr-1.5" />
+              Export
+            </button>
+          </div>
+
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8 pt-24">
+      <main className="container mx-auto px-6 py-8 pt-[72px]">
         <VideoPlayer
           videoSrc={videoSrc}
           hotspots={hotspots}
