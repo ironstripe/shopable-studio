@@ -56,7 +56,7 @@ const HotspotInlineEditor = ({
         <PopoverContent className="w-auto p-0 border-0 shadow-none" align="start" sideOffset={8}>
           <ProductPanel
             products={products}
-            selectedProductId={hotspot.productId}
+            selectedProductId={hotspot.productId || undefined}
             onSelectProduct={(productId) => {
               onUpdateHotspot({ ...hotspot, productId });
               setProductOpen(false);

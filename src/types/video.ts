@@ -22,7 +22,7 @@ export interface Hotspot {
   timeEnd: number;
   x: number;
   y: number;
-  productId: string;
+  productId: string | null; // Made nullable to support unassigned state
   style: HotspotStyle;
   ctaLabel: string;
   scale: number;
