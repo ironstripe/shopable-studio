@@ -1,4 +1,19 @@
-export type HotspotStyle = "icon-only" | "icon-cta-pill" | "badge-small" | "badge-large" | "minimal-dot";
+// Top-level hotspot types
+export type HotspotType = "icon-only" | "icon-cta-pill" | "badge-bubble" | "minimal-dot";
+
+// Variants per type
+export type IconOnlyVariant = "filled" | "outline" | "glow";
+export type IconCtaPillVariant = "standard" | "compact";
+export type BadgeBubbleVariant = "small" | "large" | "light-shadow" | "strong-shadow";
+export type MinimalDotVariant = "default" | "pulse";
+
+// Combined style (type + variant for storage)
+export type HotspotStyle = 
+  | "icon-only-filled" | "icon-only-outline" | "icon-only-glow"
+  | "icon-cta-pill-standard" | "icon-cta-pill-compact"
+  | "badge-bubble-small" | "badge-bubble-large" | "badge-bubble-light" | "badge-bubble-strong"
+  | "minimal-dot-default" | "minimal-dot-pulse";
+
 export type ClickBehavior = "show-card" | "direct-link" | "no-action";
 
 export interface Hotspot {
