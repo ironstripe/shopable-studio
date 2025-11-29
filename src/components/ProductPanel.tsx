@@ -119,11 +119,14 @@ const ProductPanel = ({
           height: `${height}px`,
           transform: `translate(${offset.x}px, ${offset.y}px)`,
         }}
+        onClick={(e) => e.stopPropagation()}
       >
+        {/* Drag handle at top */}
         <div 
-          className="flex flex-col items-center justify-center py-6 text-center"
+          className="h-8 -mx-5 px-5 mb-2 cursor-grab"
           {...dragHandleProps}
-        >
+        />
+        <div className="flex flex-col items-center justify-center py-6 text-center">
           <div className="w-12 h-12 rounded-full bg-[rgba(59,130,246,0.1)] flex items-center justify-center mb-3">
             <Plus className="w-6 h-6 text-[#3B82F6]" />
           </div>
@@ -152,19 +155,22 @@ const ProductPanel = ({
   if (viewMode === "create" || (viewMode === "list" && productList.length === 0)) {
     return (
       <div 
-        className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] overflow-hidden flex flex-col" 
+        className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex flex-col" 
         style={{ 
           width: `${width}px`, 
           height: `${height}px`,
           transform: `translate(${offset.x}px, ${offset.y}px)`,
         }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <h3 
-          className="text-[14px] font-semibold text-[#111827] p-5 pb-0 mb-4"
+        <div 
+          className="flex items-center py-3 px-5 mb-2"
           {...dragHandleProps}
         >
-          Create product
-        </h3>
+          <h3 className="text-[14px] font-semibold text-[#111827]">
+            Create product
+          </h3>
+        </div>
         
         <div className="flex-1 overflow-y-auto px-5 pb-2">
           <div className="space-y-3">
@@ -316,19 +322,22 @@ const ProductPanel = ({
   if (viewMode === "edit" && editingProduct) {
     return (
       <div 
-        className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] overflow-hidden flex flex-col" 
+        className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex flex-col" 
         style={{ 
           width: `${width}px`, 
           height: `${height}px`,
           transform: `translate(${offset.x}px, ${offset.y}px)`,
         }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <h3 
-          className="text-[14px] font-semibold text-[#111827] p-5 pb-0 mb-4"
+        <div 
+          className="flex items-center py-3 px-5 mb-2"
           {...dragHandleProps}
         >
-          Edit Product
-        </h3>
+          <h3 className="text-[14px] font-semibold text-[#111827]">
+            Edit Product
+          </h3>
+        </div>
         
         <div className="flex-1 overflow-y-auto px-5 pb-2">
           <div className="space-y-3">
