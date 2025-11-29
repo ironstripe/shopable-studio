@@ -113,7 +113,7 @@ const ProductPanel = ({
   if (productList.length === 0) {
     return (
       <div 
-        className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-5" 
+        className="relative bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex flex-col" 
         style={{ 
           width: `${width}px`, 
           height: `${height}px`,
@@ -121,22 +121,32 @@ const ProductPanel = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Drag handle at top */}
+        {/* Header - Drag Handle */}
         <div 
-          className="h-8 -mx-5 px-5 mb-2 cursor-grab"
+          className="px-5 py-3"
           {...dragHandleProps}
         />
-        <div className="flex flex-col items-center justify-center py-6 text-center">
+        
+        {/* Content - centered */}
+        <div className="flex-1 flex flex-col items-center justify-center px-5 pb-2 text-center">
           <div className="w-12 h-12 rounded-full bg-[rgba(59,130,246,0.1)] flex items-center justify-center mb-3">
             <Plus className="w-6 h-6 text-[#3B82F6]" />
           </div>
           <h4 className="text-[14px] font-medium text-[#111827] mb-1">No products yet</h4>
-          <p className="text-[12px] text-[#6B7280] mb-4">
+          <p className="text-[12px] text-[#6B7280]">
             Create your first product to connect it to this hotspot.
           </p>
+        </div>
+        
+        {/* Footer - Also Drag Handle */}
+        <div 
+          className="px-5 py-4 border-t border-[rgba(0,0,0,0.06)]"
+          {...dragHandleProps}
+        >
           <Button
             onClick={() => setViewMode("create")}
-            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white text-[13px] h-9 px-4"
+            onMouseDown={(e) => e.stopPropagation()}
+            className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white text-[13px] h-9 px-4"
           >
             <Plus className="w-4 h-4 mr-1.5" />
             Create product
@@ -542,6 +552,13 @@ const ProductPanel = ({
           ))}
         </div>
       </ScrollArea>
+      
+      {/* Footer - Drag Handle */}
+      <div 
+        className="h-3 -mx-5 px-5"
+        {...dragHandleProps}
+      />
+      
       <ResizeEdges 
         rightEdgeProps={rightEdgeProps}
         bottomEdgeProps={bottomEdgeProps}
