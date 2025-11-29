@@ -7,6 +7,9 @@ export type HotspotVariant = "small" | "large" | "light" | "strong";
 // Badge Bubble specific variants (style-based, not size-based)
 export type BadgeBubbleVariant = "classic" | "outline" | "ghost" | "accent-split";
 
+// Fine Line specific variants (style-based creative variants)
+export type FineLineVariant = "pure-line" | "soft-glass" | "editorial-slim" | "micro-dot";
+
 // Luxury Line specific variants
 export type LuxuryLineVariant = "serif-minimal" | "gold-accent" | "floating-label" | "ultra-dot";
 
@@ -21,7 +24,7 @@ export type HotspotStyle =
   | "icon-only-small" | "icon-only-large" | "icon-only-light" | "icon-only-strong"
   | "icon-cta-pill-small" | "icon-cta-pill-large" | "icon-cta-pill-light" | "icon-cta-pill-strong"
   | "badge-bubble-classic" | "badge-bubble-outline" | "badge-bubble-ghost" | "badge-bubble-accent-split"
-  | "minimal-dot-small" | "minimal-dot-large" | "minimal-dot-light" | "minimal-dot-strong"
+  | "minimal-dot-pure-line" | "minimal-dot-soft-glass" | "minimal-dot-editorial-slim" | "minimal-dot-micro-dot"
   | "luxury-line-serif-minimal" | "luxury-line-gold-accent" | "luxury-line-floating-label" | "luxury-line-ultra-dot"
   | "ecommerce-line-price-tag-compact" | "ecommerce-line-product-label-extended" | "ecommerce-line-cta-pill-focus" | "ecommerce-line-ecom-meta-strip"
   | "editorial-line-headline-tag" | "editorial-line-vertical-label" | "editorial-line-caption-box" | "editorial-line-editorial-marker";
