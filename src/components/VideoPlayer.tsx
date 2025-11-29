@@ -244,6 +244,12 @@ const VideoPlayer = ({
     (h) => currentTime >= h.timeStart && currentTime <= h.timeEnd
   );
 
+  // Debug logging
+  useEffect(() => {
+    console.log('[VideoPlayer] videoSrc changed:', videoSrc);
+    console.log('[VideoPlayer] isPreviewMode:', isPreviewMode);
+  }, [videoSrc, isPreviewMode]);
+
   return (
     <div className="relative w-full max-w-[960px] mx-auto">
       {/* Mode Controls - Above Video */}
@@ -262,7 +268,7 @@ const VideoPlayer = ({
           {/* Segmented Toggle - Right */}
           <div className="inline-flex items-center rounded-full bg-white border border-gray-200 p-1 shadow-sm">
             <button
-              onClick={() => !isPreviewMode ? null : onTogglePreviewMode()}
+              onClick={() => isPreviewMode && onTogglePreviewMode()}
               className={cn(
                 "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
                 !isPreviewMode 
@@ -273,7 +279,7 @@ const VideoPlayer = ({
               Edit Hotspots
             </button>
             <button
-              onClick={() => isPreviewMode ? null : onTogglePreviewMode()}
+              onClick={() => !isPreviewMode && onTogglePreviewMode()}
               className={cn(
                 "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
                 isPreviewMode 
