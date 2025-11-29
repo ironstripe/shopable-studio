@@ -161,43 +161,55 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1 }: Hots
     );
   }
 
-  // Minimal Dot (Fine Line) variants - text-based to match panel preview
+  // Minimal Dot (Fine Line) variants - text-based with semi-transparent dark backgrounds
   if (style === "minimal-dot-small") {
     return (
-      <div className="flex items-center gap-1.5 text-white opacity-80" style={{ ...glowStyle, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>
-        <span className="text-sm font-medium">{countdown}</span>
-        <span className="text-sm opacity-50">•</span>
-        <span className="text-xs">{ctaLabel}</span>
+      <div 
+        className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5"
+        style={{ ...glowStyle, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
+      >
+        <span className="text-white text-sm font-medium">{countdown}</span>
+        <span className="text-white/50 text-sm">•</span>
+        <span className="text-white text-xs">{ctaLabel}</span>
       </div>
     );
   }
 
   if (style === "minimal-dot-large") {
     return (
-      <div className="flex items-center gap-2 text-white opacity-100" style={{ ...glowStyle, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>
-        <span className="text-base font-medium">{countdown}</span>
-        <span className="text-base opacity-50">•</span>
-        <span className="text-sm">{ctaLabel}</span>
+      <div 
+        className="flex items-center gap-2 bg-black/35 backdrop-blur-sm rounded-full px-4 py-2"
+        style={{ ...glowStyle, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
+      >
+        <span className="text-white text-base font-medium">{countdown}</span>
+        <span className="text-white/50 text-base">•</span>
+        <span className="text-white text-sm">{ctaLabel}</span>
       </div>
     );
   }
 
   if (style === "minimal-dot-light") {
     return (
-      <div className="flex items-center gap-1.5 text-white opacity-60" style={{ ...glowStyle, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>
-        <span className="text-sm font-light">{countdown}</span>
-        <span className="text-sm opacity-50">•</span>
-        <span className="text-xs font-light">{ctaLabel}</span>
+      <div 
+        className="flex items-center gap-1.5 bg-black/20 backdrop-blur-sm rounded-full px-3 py-1.5"
+        style={{ ...glowStyle, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
+      >
+        <span className="text-white text-sm font-light">{countdown}</span>
+        <span className="text-white/50 text-sm">•</span>
+        <span className="text-white text-xs font-light">{ctaLabel}</span>
       </div>
     );
   }
 
   if (style === "minimal-dot-strong") {
     return (
-      <div className="flex items-center gap-1.5 text-white opacity-100" style={{ ...glowStyle, textShadow: '0 2px 4px rgba(0,0,0,0.7)' }}>
-        <span className="text-base font-semibold">{countdown}</span>
-        <span className="text-base opacity-50">•</span>
-        <span className="text-sm font-semibold">{ctaLabel}</span>
+      <div 
+        className="flex items-center gap-1.5 bg-black/45 rounded-full px-3 py-1.5"
+        style={{ ...glowStyle, textShadow: '0 2px 4px rgba(0,0,0,0.7)' }}
+      >
+        <span className="text-white text-base font-semibold">{countdown}</span>
+        <span className="text-white/50 text-base">•</span>
+        <span className="text-white text-sm font-semibold">{ctaLabel}</span>
       </div>
     );
   }

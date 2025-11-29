@@ -300,14 +300,15 @@ const LayoutBehaviorPanel = ({
       );
     }
 
-    // minimal-dot (Fine Line)
-    const opacity = variant === "light" ? "opacity-60" : variant === "strong" ? "opacity-100" : "opacity-80";
+    // minimal-dot (Fine Line) - with semi-transparent backgrounds
+    const bgOpacity = variant === "light" ? "bg-black/20" : variant === "strong" ? "bg-black/45" : variant === "large" ? "bg-black/35" : "bg-black/30";
+    const blur = variant === "strong" ? "" : "backdrop-blur-sm";
     return (
       <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2">
-        <div className={`flex items-center gap-1.5 text-white ${opacity}`} style={{ transform: `scale(${baseScale})` }}>
-          <span className="text-[11px] font-medium">3</span>
-          <span className="text-[11px] opacity-50">•</span>
-          <span className="text-[11px]">Shop</span>
+        <div className={`flex items-center gap-1.5 ${bgOpacity} ${blur} rounded-full px-2.5 py-1`} style={{ transform: `scale(${baseScale})` }}>
+          <span className="text-white text-[11px] font-medium">3</span>
+          <span className="text-white/50 text-[11px]">•</span>
+          <span className="text-white text-[11px]">Shop</span>
         </div>
       </div>
     );
