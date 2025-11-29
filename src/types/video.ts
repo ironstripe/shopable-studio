@@ -1,5 +1,5 @@
 // Top-level hotspot types
-export type HotspotType = "icon-only" | "icon-cta-pill" | "badge-bubble" | "minimal-dot" | "luxury-line" | "ecommerce-line";
+export type HotspotType = "icon-only" | "icon-cta-pill" | "badge-bubble" | "minimal-dot" | "luxury-line" | "ecommerce-line" | "editorial-line";
 
 // Unified variants (same for all types)
 export type HotspotVariant = "small" | "large" | "light" | "strong";
@@ -10,6 +10,9 @@ export type LuxuryLineVariant = "serif-minimal" | "gold-accent" | "floating-labe
 // E-Commerce Line specific variants
 export type ECommerceLineVariant = "price-tag-compact" | "product-label-extended" | "cta-pill-focus" | "ecom-meta-strip";
 
+// Editorial Line specific variants
+export type EditorialLineVariant = "headline-tag" | "vertical-label" | "caption-box" | "editorial-marker";
+
 // Combined style (type + variant for storage)
 export type HotspotStyle = 
   | "icon-only-small" | "icon-only-large" | "icon-only-light" | "icon-only-strong"
@@ -17,7 +20,8 @@ export type HotspotStyle =
   | "badge-bubble-small" | "badge-bubble-large" | "badge-bubble-light" | "badge-bubble-strong"
   | "minimal-dot-small" | "minimal-dot-large" | "minimal-dot-light" | "minimal-dot-strong"
   | "luxury-line-serif-minimal" | "luxury-line-gold-accent" | "luxury-line-floating-label" | "luxury-line-ultra-dot"
-  | "ecommerce-line-price-tag-compact" | "ecommerce-line-product-label-extended" | "ecommerce-line-cta-pill-focus" | "ecommerce-line-ecom-meta-strip";
+  | "ecommerce-line-price-tag-compact" | "ecommerce-line-product-label-extended" | "ecommerce-line-cta-pill-focus" | "ecommerce-line-ecom-meta-strip"
+  | "editorial-line-headline-tag" | "editorial-line-vertical-label" | "editorial-line-caption-box" | "editorial-line-editorial-marker";
 
 export type ClickBehavior = "show-card" | "direct-link" | "no-action";
 

@@ -40,6 +40,7 @@ const getTypeFromStyle = (style: HotspotStyle): HotspotType => {
   if (style.startsWith("badge-bubble")) return "badge-bubble";
   if (style.startsWith("luxury-line")) return "luxury-line";
   if (style.startsWith("ecommerce-line")) return "ecommerce-line";
+  if (style.startsWith("editorial-line")) return "editorial-line";
   return "minimal-dot";
 };
 
@@ -52,6 +53,10 @@ const getVariantFromStyle = (style: HotspotStyle): string => {
   if (style.startsWith("ecommerce-line-")) {
     // Return the specific ecommerce variant name
     return style.replace("ecommerce-line-", "");
+  }
+  if (style.startsWith("editorial-line-")) {
+    // Return the specific editorial variant name
+    return style.replace("editorial-line-", "");
   }
   const parts = style.split("-");
   const variant = parts[parts.length - 1];
@@ -100,6 +105,8 @@ const LayoutBehaviorPanel = ({
       setSelectedVariant("serif-minimal");
     } else if (type === "ecommerce-line") {
       setSelectedVariant("price-tag-compact");
+    } else if (type === "editorial-line") {
+      setSelectedVariant("headline-tag");
     } else {
       setSelectedVariant("small");
     }
@@ -162,6 +169,11 @@ const LayoutBehaviorPanel = ({
       id: "ecommerce-line" as HotspotType,
       label: "E-Commerce Line",
       description: "Conversion-focused, clean hotspots for retail and product videos.",
+    },
+    {
+      id: "editorial-line" as HotspotType,
+      label: "Editorial Line",
+      description: "Magazine-inspired, typographic hotspots with cinematic motion.",
     }
   ];
 
@@ -196,12 +208,23 @@ const LayoutBehaviorPanel = ({
       );
     }
     // ecommerce-line
+    if (family === "ecommerce-line") {
+      return (
+        <div className="bg-white border border-[#E0E0E0] rounded-lg px-3 py-1.5 flex items-center gap-2 shadow-sm">
+          <span className="text-[#111111] text-sm font-medium">3</span>
+          <span className="text-[#6B7280] text-sm">·</span>
+          <span className="text-[#111111] text-sm font-medium">349.–</span>
+          <span className="text-[#3B82F6] text-sm">→</span>
+        </div>
+      );
+    }
+    // editorial-line
     return (
-      <div className="bg-white border border-[#E0E0E0] rounded-lg px-3 py-1.5 flex items-center gap-2 shadow-sm">
-        <span className="text-[#111111] text-sm font-medium">3</span>
-        <span className="text-[#6B7280] text-sm">·</span>
-        <span className="text-[#111111] text-sm font-medium">349.–</span>
-        <span className="text-[#3B82F6] text-sm">→</span>
+      <div className="bg-[#1A1A1A] rounded-lg px-3 py-2 flex flex-col items-start gap-0.5">
+        <span className="font-playfair text-sm font-light text-white tracking-wide">
+          Product Name
+        </span>
+        <div className="w-16 h-[0.5px] bg-white/70" />
       </div>
     );
   };
@@ -257,6 +280,30 @@ const LayoutBehaviorPanel = ({
       value: "ecom-meta-strip", 
       label: "E-Com Meta Strip",
       description: "Flat horizontal strip"
+    }
+  ];
+
+  // Editorial Line specific variants
+  const editorialLineVariants = [
+    { 
+      value: "headline-tag", 
+      label: "Headline Tag",
+      description: "Horizontal label with thin underline"
+    },
+    { 
+      value: "vertical-label", 
+      label: "Vertical Label",
+      description: "Vertical lettering with artistic flair"
+    },
+    { 
+      value: "caption-box", 
+      label: "Caption Box",
+      description: "Magazine caption with minimal border"
+    },
+    { 
+      value: "editorial-marker", 
+      label: "Editorial Marker",
+      description: "Em-dash followed by product name"
     }
   ];
 
@@ -415,10 +462,56 @@ const LayoutBehaviorPanel = ({
     { value: "strong", label: "Strong", description: "Higher contrast, stronger border" },
   ];
 
+  // Get preview for Editorial Line variants
+  const getEditorialLineVariantPreview = (variant: string) => {
+    if (variant === "headline-tag") {
+      return (
+        <div className="bg-[#1A1A1A] rounded-lg px-2.5 py-2 flex flex-col items-center gap-0.5">
+          <span className="font-playfair text-[10px] font-light text-white tracking-wide">
+            Product
+          </span>
+          <div className="w-10 h-[0.5px] bg-white/70" />
+        </div>
+      );
+    }
+    
+    if (variant === "vertical-label") {
+      return (
+        <div className="bg-[#1A1A1A] rounded-lg px-2.5 py-2 flex items-center gap-1">
+          <div className="flex flex-col items-center text-[9px] font-playfair font-light text-white tracking-wider leading-tight">
+            <span>S</span>
+            <span>H</span>
+            <span>O</span>
+            <span>P</span>
+          </div>
+          <div className="w-[0.5px] h-6 bg-white/60" />
+        </div>
+      );
+    }
+    
+    if (variant === "caption-box") {
+      return (
+        <div className="bg-[#1A1A1A] rounded-lg px-2.5 py-2">
+          <div className="border border-white/60 rounded px-2 py-1">
+            <span className="font-spectral text-[9px] font-light text-white">Product</span>
+          </div>
+        </div>
+      );
+    }
+    
+    // editorial-marker
+    return (
+      <div className="bg-[#1A1A1A] rounded-lg px-2.5 py-2">
+        <span className="font-spectral text-[10px] font-light text-white tracking-wide">— Product</span>
+      </div>
+    );
+  };
+
   // Determine which variants to show based on selected family
   const currentVariants = 
     selectedType === "luxury-line" ? luxuryLineVariants : 
     selectedType === "ecommerce-line" ? ecommerceLineVariants : 
+    selectedType === "editorial-line" ? editorialLineVariants :
     unifiedVariants;
 
   return (
@@ -522,6 +615,8 @@ const LayoutBehaviorPanel = ({
                     ? getLuxuryLineVariantPreview(variant.value)
                     : selectedType === "ecommerce-line"
                     ? getEcommerceLineVariantPreview(variant.value)
+                    : selectedType === "editorial-line"
+                    ? getEditorialLineVariantPreview(variant.value)
                     : getVariantPreview(selectedType, variant.value)}
                 </div>
                 <div className="text-center">
@@ -535,8 +630,8 @@ const LayoutBehaviorPanel = ({
           </div>
         </div>
 
-        {/* 3) CTA LABEL Section - For Badge bubble and E-Commerce Line */}
-        {(selectedType === "badge-bubble" || selectedType === "ecommerce-line") && (
+        {/* 3) CTA LABEL Section - For Badge bubble, E-Commerce Line, and Editorial Line */}
+        {(selectedType === "badge-bubble" || selectedType === "ecommerce-line" || selectedType === "editorial-line") && (
           <div className="space-y-2">
             <Label htmlFor="cta-input" className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">
               CTA Label

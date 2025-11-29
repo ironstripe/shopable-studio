@@ -16,6 +16,7 @@ export default {
       fontFamily: {
         'spectral': ['Spectral', 'Georgia', 'serif'],
         'inter-thin': ['Inter', 'sans-serif'],
+        'playfair': ['Playfair Display', 'Georgia', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
