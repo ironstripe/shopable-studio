@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Plus, Check } from "lucide-react";
+import { Search, Plus, Check, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ProductPanelProps {
@@ -32,11 +32,13 @@ const ProductPanel = ({
   const [creatingProduct, setCreatingProduct] = useState({
     title: "",
     description: "",
-    price: "",
     link: "",
     ctaLabel: "Kaufen",
+    price: "",
     thumbnail: "",
   });
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
 
   const productList = Object.values(products);
   const filteredProducts = productList.filter((p) =>
@@ -61,6 +63,20 @@ const ProductPanel = ({
     }
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setThumbnailFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setThumbnailPreview(result);
+        setCreatingProduct({ ...creatingProduct, thumbnail: result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleCreateNew = () => {
     if (!creatingProduct.title || !creatingProduct.link) return;
     
@@ -68,11 +84,13 @@ const ProductPanel = ({
     setCreatingProduct({
       title: "",
       description: "",
-      price: "",
       link: "",
       ctaLabel: "Kaufen",
+      price: "",
       thumbnail: "",
     });
+    setThumbnailFile(null);
+    setThumbnailPreview("");
     setViewMode("list");
     onClose();
   };
@@ -85,13 +103,16 @@ const ProductPanel = ({
           <div className="w-12 h-12 rounded-full bg-[rgba(59,130,246,0.1)] flex items-center justify-center mb-3">
             <Plus className="w-6 h-6 text-[#3B82F6]" />
           </div>
-          <p className="text-[13px] text-[#6B7280] mb-4">No products yet.</p>
+          <h4 className="text-[14px] font-medium text-[#111827] mb-1">No products yet</h4>
+          <p className="text-[12px] text-[#6B7280] mb-4">
+            Create your first product to connect it to this hotspot.
+          </p>
           <Button
             onClick={() => setViewMode("create")}
             className="bg-[#3B82F6] hover:bg-[#2563EB] text-white text-[13px] h-9 px-4"
           >
             <Plus className="w-4 h-4 mr-1.5" />
-            Neues Produkt erstellen
+            Create product
           </Button>
         </div>
       </div>
@@ -103,18 +124,18 @@ const ProductPanel = ({
     return (
       <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] max-h-[var(--radix-popover-content-available-height,400px)] overflow-hidden flex flex-col">
         <h3 className="text-[14px] font-semibold text-[#111827] p-5 pb-0 mb-4">
-          Neues Produkt
+          Create product
         </h3>
         
         <div className="flex-1 overflow-y-auto px-5 pb-2">
           <div className="space-y-3">
             <div>
-              <Label className="text-[12px] text-[#6B7280] mb-1.5">Name *</Label>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Product name *</Label>
               <Input
                 value={creatingProduct.title}
                 onChange={(e) => setCreatingProduct({ ...creatingProduct, title: e.target.value })}
                 placeholder="Product name"
-                className="h-9 text-[13px]"
+                className="h-9 text-[13px] bg-white border-[#E0E0E0] text-[#111827]"
               />
             </div>
             
@@ -123,8 +144,8 @@ const ProductPanel = ({
               <textarea
                 value={creatingProduct.description}
                 onChange={(e) => setCreatingProduct({ ...creatingProduct, description: e.target.value })}
-                placeholder="Short product description..."
-                className="w-full h-16 px-3 py-2 text-[13px] rounded-md border border-input bg-background resize-none"
+                placeholder="Short description (optional)"
+                className="w-full h-16 px-3 py-2 text-[13px] text-[#111827] rounded-md border border-[#E0E0E0] bg-white resize-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] focus:outline-none"
               />
             </div>
             
@@ -133,18 +154,18 @@ const ProductPanel = ({
               <Input
                 value={creatingProduct.link}
                 onChange={(e) => setCreatingProduct({ ...creatingProduct, link: e.target.value })}
-                placeholder="https://..."
-                className="h-9 text-[13px]"
+                placeholder="https://…"
+                className="h-9 text-[13px] bg-white border-[#E0E0E0] text-[#111827]"
               />
             </div>
             
             <div>
-              <Label className="text-[12px] text-[#6B7280] mb-1.5">CTA Label</Label>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">CTA label</Label>
               <Input
                 value={creatingProduct.ctaLabel}
                 onChange={(e) => setCreatingProduct({ ...creatingProduct, ctaLabel: e.target.value })}
-                placeholder="Kaufen"
-                className="h-9 text-[13px]"
+                placeholder="CTA label (e.g. 'Kaufen', 'Shop now', 'More info')"
+                className="h-9 text-[13px] bg-white border-[#E0E0E0] text-[#111827]"
               />
             </div>
             
@@ -153,18 +174,50 @@ const ProductPanel = ({
               <Input
                 value={creatingProduct.price}
                 onChange={(e) => setCreatingProduct({ ...creatingProduct, price: e.target.value })}
-                placeholder="€99.–"
-                className="h-9 text-[13px]"
+                placeholder="e.g. 349.–"
+                className="h-9 text-[13px] bg-white border-[#E0E0E0] text-[#111827]"
               />
             </div>
             
             <div>
-              <Label className="text-[12px] text-[#6B7280] mb-1.5">Thumbnail URL</Label>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Thumbnail</Label>
+              
+              {/* Upload button */}
+              <div className="flex items-center gap-3 mb-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  id="thumbnail-upload"
+                />
+                <label
+                  htmlFor="thumbnail-upload"
+                  className="cursor-pointer inline-flex items-center px-3 py-2 text-[12px] font-medium rounded-md border border-[#E0E0E0] bg-white hover:bg-gray-50 text-[#111827]"
+                >
+                  <Upload className="w-3.5 h-3.5 mr-1.5" />
+                  Upload image
+                </label>
+                {thumbnailPreview && (
+                  <img src={thumbnailPreview} className="w-10 h-10 rounded object-cover border border-[#E0E0E0]" alt="Preview" />
+                )}
+              </div>
+              
+              {/* Or divider */}
+              <div className="flex items-center gap-2 text-[11px] text-[#9CA3AF] mb-2">
+                <span>or</span>
+              </div>
+              
+              {/* URL input */}
               <Input
                 value={creatingProduct.thumbnail}
-                onChange={(e) => setCreatingProduct({ ...creatingProduct, thumbnail: e.target.value })}
+                onChange={(e) => {
+                  setCreatingProduct({ ...creatingProduct, thumbnail: e.target.value });
+                  setThumbnailPreview("");
+                  setThumbnailFile(null);
+                }}
                 placeholder="https://example.com/image.jpg"
-                className="h-9 text-[13px]"
+                className="h-9 text-[13px] bg-white border-[#E0E0E0] text-[#111827]"
               />
             </div>
           </div>
@@ -177,11 +230,13 @@ const ProductPanel = ({
               setCreatingProduct({
                 title: "",
                 description: "",
-                price: "",
                 link: "",
                 ctaLabel: "Kaufen",
+                price: "",
                 thumbnail: "",
               });
+              setThumbnailFile(null);
+              setThumbnailPreview("");
             }}
             variant="outline"
             className="flex-1 h-9 text-[13px]"
@@ -194,7 +249,7 @@ const ProductPanel = ({
             className="flex-1 h-9 text-[13px] bg-[#3B82F6] hover:bg-[#2563EB] text-white"
           >
             <Check className="w-4 h-4 mr-1.5" />
-            Produkt speichern
+            Save product
           </Button>
         </div>
       </div>

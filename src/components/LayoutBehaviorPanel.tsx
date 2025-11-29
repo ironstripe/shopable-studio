@@ -244,13 +244,13 @@ const LayoutBehaviorPanel = ({
                 </label>
               </div>
 
-              {/* Minimal dot */}
+              {/* Fine Line */}
               <div className="flex items-start space-x-3 p-2.5 rounded-lg hover:bg-[#F7F8FA] transition-colors">
                 <RadioGroupItem value="minimal-dot" id="type-minimal" className="mt-0.5" />
                 <label htmlFor="type-minimal" className="flex-1 cursor-pointer">
-                  <div className="text-sm font-medium text-[#374151]">Minimal dot</div>
+                  <div className="text-sm font-medium text-[#374151]">Fine Line</div>
                   <div className="text-xs text-[#6B7280] mt-0.5">
-                    Sehr dezenter Punkt, nur visuelle Markierung.
+                    Ultra-clean, subtle hotspots for premium / luxury brands.
                   </div>
                 </label>
               </div>
