@@ -19,10 +19,45 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1 }: Hots
     : baseStyle;
 
   switch (style) {
-    case "smart-badge":
+    case "icon-only":
+      return (
+        <div className="flex items-center justify-center" style={glowStyle}>
+          {/* Small numbered dot */}
+          <div className="w-10 h-10 rounded-full bg-[#FF6A00] border-2 border-white shadow-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">{countdown}</span>
+          </div>
+        </div>
+      );
+
+    case "icon-cta-pill":
+      return (
+        <div className="flex items-center gap-2" style={glowStyle}>
+          {/* Dot + CTA capsule */}
+          <div className="w-9 h-9 rounded-full bg-[#FF6A00] border-2 border-white shadow-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">{countdown}</span>
+          </div>
+          <div className="bg-[#FF6A00] border-2 border-white rounded-full px-3 py-1.5 shadow-lg">
+            <span className="text-white font-medium text-xs">{ctaLabel}</span>
+          </div>
+        </div>
+      );
+
+    case "badge-small":
       return (
         <div className="flex flex-col items-center" style={glowStyle}>
-          {/* Smart Badge - Capsule with countdown • separator • CTA */}
+          {/* Compact smart badge */}
+          <div className="flex items-center gap-1.5 bg-[#FF6A00] border border-black rounded-full px-3 py-1.5 shadow-md">
+            <span className="text-white font-bold text-sm">{countdown}</span>
+            <span className="text-white/60 text-sm">•</span>
+            <span className="text-white font-medium text-xs">{ctaLabel}</span>
+          </div>
+        </div>
+      );
+
+    case "badge-large":
+      return (
+        <div className="flex flex-col items-center" style={glowStyle}>
+          {/* Full smart badge */}
           <div className="flex items-center gap-2 bg-[#FF6A00] border-2 border-black rounded-full px-4 py-2 shadow-lg">
             <span className="text-white font-bold text-lg">{countdown}</span>
             <span className="text-white/60 text-lg">•</span>
@@ -33,61 +68,12 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1 }: Hots
         </div>
       );
 
-    case "screen":
+    case "minimal-dot":
       return (
-        <div className="flex flex-col items-center" style={glowStyle}>
-          {/* Screen - Rectangle with countdown */}
-          <div className="relative bg-[#FF6A00] border-4 border-black rounded-2xl w-16 h-12 flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-xl">{countdown}</span>
-          </div>
-          {/* Stand */}
-          <div className="w-12 h-2 bg-black rounded-sm mt-1" />
-          {/* CTA below */}
-          <span className="text-white font-semibold text-xs mt-1">{ctaLabel}</span>
-        </div>
-      );
-
-    case "flash-circle":
-      return (
-        <div className="flex items-center gap-3" style={glowStyle}>
-          {/* Radial gradient circle with countdown */}
-          <div className="relative w-16 h-16 rounded-full border-2 border-black shadow-lg flex items-center justify-center" 
-               style={{ 
-                 background: "radial-gradient(circle, #FF9A3D 0%, #FF6A00 100%)" 
-               }}>
-            <span className="text-white font-bold text-xl">{countdown}</span>
-          </div>
-          {/* White capsule button with orange text */}
-          <div className="bg-white border-2 border-black rounded-full px-4 py-2 shadow-lg">
-            <span className="text-[#FF6A00] font-semibold text-sm">{ctaLabel}</span>
-          </div>
-        </div>
-      );
-
-    case "tag-bubble":
-      return (
-        <div className="flex items-center gap-2" style={glowStyle}>
-          {/* White circle with countdown in orange */}
-          <div className="w-12 h-12 rounded-full bg-white border-2 border-black flex items-center justify-center shadow-lg">
-            <span className="text-[#FF6A00] font-bold text-lg">{countdown}</span>
-          </div>
-          {/* Orange capsule tag with CTA */}
-          <div className="bg-[#FF6A00] border-2 border-black rounded-full px-4 py-2 shadow-lg">
-            <span className="text-white font-semibold text-sm">{ctaLabel}</span>
-          </div>
-        </div>
-      );
-
-    case "lux-dot":
-      return (
-        <div className="flex items-center gap-3" style={glowStyle}>
-          {/* Small orange dot with white ring and countdown */}
-          <div className="relative w-10 h-10 rounded-full border-2 border-white shadow-lg flex items-center justify-center bg-[#FF6A00]">
-            <span className="text-white font-bold text-sm">{countdown}</span>
-          </div>
-          {/* Semi-transparent black capsule with CTA */}
-          <div className="bg-black/70 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
-            <span className="text-white font-medium text-xs">{ctaLabel}</span>
+        <div className="flex items-center justify-center" style={glowStyle}>
+          {/* Ultra-minimal dot */}
+          <div className="w-8 h-8 rounded-full bg-[#FF6A00] border-2 border-white shadow-md flex items-center justify-center">
+            <span className="text-white font-bold text-[10px]">{countdown}</span>
           </div>
         </div>
       );
