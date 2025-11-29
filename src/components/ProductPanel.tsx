@@ -101,74 +101,76 @@ const ProductPanel = ({
   // Create Mode
   if (viewMode === "create" || (viewMode === "list" && productList.length === 0)) {
     return (
-      <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-5">
-        <h3 className="text-[14px] font-semibold text-[#111827] mb-4">
+      <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] max-h-[calc(100vh-140px)] overflow-hidden flex flex-col">
+        <h3 className="text-[14px] font-semibold text-[#111827] p-5 pb-0 mb-4">
           Neues Produkt
         </h3>
         
-        <div className="space-y-3">
-          <div>
-            <Label className="text-[12px] text-[#6B7280] mb-1.5">Name *</Label>
-            <Input
-              value={creatingProduct.title}
-              onChange={(e) => setCreatingProduct({ ...creatingProduct, title: e.target.value })}
-              placeholder="Product name"
-              className="h-9 text-[13px]"
-            />
-          </div>
-          
-          <div>
-            <Label className="text-[12px] text-[#6B7280] mb-1.5">Description</Label>
-            <textarea
-              value={creatingProduct.description}
-              onChange={(e) => setCreatingProduct({ ...creatingProduct, description: e.target.value })}
-              placeholder="Short product description..."
-              className="w-full h-16 px-3 py-2 text-[13px] rounded-md border border-input bg-background resize-none"
-            />
-          </div>
-          
-          <div>
-            <Label className="text-[12px] text-[#6B7280] mb-1.5">Product URL *</Label>
-            <Input
-              value={creatingProduct.link}
-              onChange={(e) => setCreatingProduct({ ...creatingProduct, link: e.target.value })}
-              placeholder="https://..."
-              className="h-9 text-[13px]"
-            />
-          </div>
-          
-          <div>
-            <Label className="text-[12px] text-[#6B7280] mb-1.5">CTA Label</Label>
-            <Input
-              value={creatingProduct.ctaLabel}
-              onChange={(e) => setCreatingProduct({ ...creatingProduct, ctaLabel: e.target.value })}
-              placeholder="Kaufen"
-              className="h-9 text-[13px]"
-            />
-          </div>
-          
-          <div>
-            <Label className="text-[12px] text-[#6B7280] mb-1.5">Price</Label>
-            <Input
-              value={creatingProduct.price}
-              onChange={(e) => setCreatingProduct({ ...creatingProduct, price: e.target.value })}
-              placeholder="€99.–"
-              className="h-9 text-[13px]"
-            />
-          </div>
-          
-          <div>
-            <Label className="text-[12px] text-[#6B7280] mb-1.5">Thumbnail URL</Label>
-            <Input
-              value={creatingProduct.thumbnail}
-              onChange={(e) => setCreatingProduct({ ...creatingProduct, thumbnail: e.target.value })}
-              placeholder="https://example.com/image.jpg"
-              className="h-9 text-[13px]"
-            />
+        <div className="flex-1 overflow-y-auto px-5 pb-2">
+          <div className="space-y-3">
+            <div>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Name *</Label>
+              <Input
+                value={creatingProduct.title}
+                onChange={(e) => setCreatingProduct({ ...creatingProduct, title: e.target.value })}
+                placeholder="Product name"
+                className="h-9 text-[13px]"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Description</Label>
+              <textarea
+                value={creatingProduct.description}
+                onChange={(e) => setCreatingProduct({ ...creatingProduct, description: e.target.value })}
+                placeholder="Short product description..."
+                className="w-full h-16 px-3 py-2 text-[13px] rounded-md border border-input bg-background resize-none"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Product URL *</Label>
+              <Input
+                value={creatingProduct.link}
+                onChange={(e) => setCreatingProduct({ ...creatingProduct, link: e.target.value })}
+                placeholder="https://..."
+                className="h-9 text-[13px]"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">CTA Label</Label>
+              <Input
+                value={creatingProduct.ctaLabel}
+                onChange={(e) => setCreatingProduct({ ...creatingProduct, ctaLabel: e.target.value })}
+                placeholder="Kaufen"
+                className="h-9 text-[13px]"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Price</Label>
+              <Input
+                value={creatingProduct.price}
+                onChange={(e) => setCreatingProduct({ ...creatingProduct, price: e.target.value })}
+                placeholder="€99.–"
+                className="h-9 text-[13px]"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Thumbnail URL</Label>
+              <Input
+                value={creatingProduct.thumbnail}
+                onChange={(e) => setCreatingProduct({ ...creatingProduct, thumbnail: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+                className="h-9 text-[13px]"
+              />
+            </div>
           </div>
         </div>
 
-        <div className="flex gap-2 mt-5 pt-4 border-t border-[rgba(0,0,0,0.06)]">
+        <div className="flex gap-2 p-5 pt-4 border-t border-[rgba(0,0,0,0.06)]">
           <Button
             onClick={() => {
               setViewMode("list");
@@ -202,70 +204,72 @@ const ProductPanel = ({
   // Edit Mode
   if (viewMode === "edit" && editingProduct) {
     return (
-      <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-5">
-        <h3 className="text-[14px] font-semibold text-[#111827] mb-4">
+      <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] max-h-[calc(100vh-140px)] overflow-hidden flex flex-col">
+        <h3 className="text-[14px] font-semibold text-[#111827] p-5 pb-0 mb-4">
           Edit Product
         </h3>
         
-        <div className="space-y-3">
-          <div>
-            <Label className="text-[12px] text-[#6B7280] mb-1.5">Name</Label>
-            <Input
-              value={editingProduct.title}
-              onChange={(e) => setEditingProduct({ ...editingProduct, title: e.target.value })}
-              className="h-9 text-[13px]"
-            />
-          </div>
-          
-          <div>
-            <Label className="text-[12px] text-[#6B7280] mb-1.5">Description</Label>
-            <textarea
-              value={editingProduct.description || ""}
-              onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
-              placeholder="Short product description..."
-              className="w-full h-16 px-3 py-2 text-[13px] rounded-md border border-input bg-background resize-none"
-            />
-          </div>
-          
-          <div>
-            <Label className="text-[12px] text-[#6B7280] mb-1.5">Product URL</Label>
-            <Input
-              value={editingProduct.link}
-              onChange={(e) => setEditingProduct({ ...editingProduct, link: e.target.value })}
-              className="h-9 text-[13px]"
-            />
-          </div>
-          
-          <div>
-            <Label className="text-[12px] text-[#6B7280] mb-1.5">CTA Label</Label>
-            <Input
-              value={editingProduct.ctaLabel || "Kaufen"}
-              onChange={(e) => setEditingProduct({ ...editingProduct, ctaLabel: e.target.value })}
-              className="h-9 text-[13px]"
-            />
-          </div>
-          
-          <div>
-            <Label className="text-[12px] text-[#6B7280] mb-1.5">Price</Label>
-            <Input
-              value={editingProduct.price}
-              onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })}
-              className="h-9 text-[13px]"
-            />
-          </div>
-          
-          <div>
-            <Label className="text-[12px] text-[#6B7280] mb-1.5">Thumbnail URL</Label>
-            <Input
-              value={editingProduct.thumbnail || ""}
-              onChange={(e) => setEditingProduct({ ...editingProduct, thumbnail: e.target.value })}
-              placeholder="https://example.com/image.jpg"
-              className="h-9 text-[13px]"
-            />
+        <div className="flex-1 overflow-y-auto px-5 pb-2">
+          <div className="space-y-3">
+            <div>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Name</Label>
+              <Input
+                value={editingProduct.title}
+                onChange={(e) => setEditingProduct({ ...editingProduct, title: e.target.value })}
+                className="h-9 text-[13px]"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Description</Label>
+              <textarea
+                value={editingProduct.description || ""}
+                onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                placeholder="Short product description..."
+                className="w-full h-16 px-3 py-2 text-[13px] rounded-md border border-input bg-background resize-none"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Product URL</Label>
+              <Input
+                value={editingProduct.link}
+                onChange={(e) => setEditingProduct({ ...editingProduct, link: e.target.value })}
+                className="h-9 text-[13px]"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">CTA Label</Label>
+              <Input
+                value={editingProduct.ctaLabel || "Kaufen"}
+                onChange={(e) => setEditingProduct({ ...editingProduct, ctaLabel: e.target.value })}
+                className="h-9 text-[13px]"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Price</Label>
+              <Input
+                value={editingProduct.price}
+                onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })}
+                className="h-9 text-[13px]"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Thumbnail URL</Label>
+              <Input
+                value={editingProduct.thumbnail || ""}
+                onChange={(e) => setEditingProduct({ ...editingProduct, thumbnail: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+                className="h-9 text-[13px]"
+              />
+            </div>
           </div>
         </div>
 
-        <div className="flex gap-2 mt-5 pt-4 border-t border-[rgba(0,0,0,0.06)]">
+        <div className="flex gap-2 p-5 pt-4 border-t border-[rgba(0,0,0,0.06)]">
           <Button
             onClick={() => {
               setViewMode("list");
@@ -290,7 +294,7 @@ const ProductPanel = ({
 
   // List Mode (Default)
   return (
-    <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-4">
+    <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-4 max-h-[calc(100vh-140px)] flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-[13px] font-semibold text-[#111827]">
