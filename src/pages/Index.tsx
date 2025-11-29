@@ -67,6 +67,7 @@ const Index = () => {
       ctaLabel: "Kaufen",
       scale: 1,
       clickBehavior: "show-card",
+      cardStyle: "retail-compact", // Default card style
     };
     setHotspots([...hotspots, newHotspot]);
     setActiveToolbarHotspotId(newHotspot.id);
@@ -154,6 +155,7 @@ const Index = () => {
           ctaLabel: h.ctaLabel,
           scale: h.scale,
           clickBehavior: h.clickBehavior,
+          cardStyle: h.cardStyle,
         })),
       products,
     };

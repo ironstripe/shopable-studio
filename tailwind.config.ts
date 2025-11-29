@@ -94,6 +94,14 @@ export default {
           "50%": { opacity: "1", transform: "scale(1.015)" },
           "100%": { opacity: "1", transform: "scale(1)" }
         },
+        "card-enter": {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" }
+        },
+        "card-exit": {
+          "0%": { opacity: "1", transform: "translateY(0)" },
+          "100%": { opacity: "0", transform: "translateY(4px)" }
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -101,6 +109,8 @@ export default {
         "slide-up": "slide-up 220ms ease-out",
         "slide-left": "slide-left 220ms ease-out",
         "micro-zoom": "micro-zoom 240ms ease-out",
+        "card-enter": "card-enter 180ms ease-out",
+        "card-exit": "card-exit 100ms ease-out",
       },
     },
   },
