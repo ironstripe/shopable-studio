@@ -3,7 +3,7 @@ import { Hotspot, Product, VideoProject } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import PropertiesPanel from "@/components/PropertiesPanel";
 import { Button } from "@/components/ui/button";
-import { Upload, Download, Eye, Pencil } from "lucide-react";
+import { Download } from "lucide-react";
 import { toast } from "sonner";
 import shopableLogo from "@/assets/shopable-logo.png";
 
@@ -14,7 +14,6 @@ const Index = () => {
   const [activeToolbarHotspotId, setActiveToolbarHotspotId] = useState<string | null>(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(true);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Demo products
@@ -39,15 +38,9 @@ const Index = () => {
     },
   });
 
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith("video/")) {
-      const url = URL.createObjectURL(file);
-      setVideoSrc(url);
-      toast.success("Video uploaded successfully");
-    } else {
-      toast.error("Please select a valid video file");
-    }
+  const handleVideoLoad = (src: string) => {
+    setVideoSrc(src);
+    toast.success("Video loaded successfully");
   };
 
   const handleAddHotspot = (x: number, y: number, time: number) => {
@@ -160,30 +153,14 @@ const Index = () => {
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
         <div className="flex items-center justify-between px-6 py-2">
           <img src={shopableLogo} alt="Shopable" className="w-[140px] h-auto" />
-          <div className="flex gap-3">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="video/*"
-              onChange={handleVideoUpload}
-              className="hidden"
-            />
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              className="bg-gray-100 text-gray-900 hover:bg-gray-200 border border-gray-300"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Video
-            </Button>
-            <Button
-              onClick={handleExport}
-              disabled={!videoSrc}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export Project
-            </Button>
-          </div>
+          <Button
+            onClick={handleExport}
+            disabled={!videoSrc}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export Project
+          </Button>
         </div>
       </header>
 
@@ -205,6 +182,7 @@ const Index = () => {
           onUpdateHotspotPosition={handleUpdateHotspotPosition}
           onUpdateHotspotScale={handleUpdateHotspotScale}
           onVideoRef={(ref) => (videoRef.current = ref)}
+          onVideoLoad={handleVideoLoad}
         />
       </main>
 

@@ -3,6 +3,7 @@ import { Hotspot, Product } from "@/types/video";
 import VideoHotspot from "./VideoHotspot";
 import ProductCard from "./ProductCard";
 import HotspotToolbar from "./HotspotToolbar";
+import VideoUploadZone from "./VideoUploadZone";
 import { Eye, Pencil } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -28,6 +29,7 @@ interface VideoPlayerProps {
   onUpdateHotspotPosition: (hotspotId: string, x: number, y: number) => void;
   onUpdateHotspotScale: (hotspotId: string, scale: number) => void;
   onVideoRef?: (ref: HTMLVideoElement | null) => void;
+  onVideoLoad: (src: string) => void;
 }
 
 const VideoPlayer = ({
@@ -46,6 +48,7 @@ const VideoPlayer = ({
   onUpdateHotspotPosition,
   onUpdateHotspotScale,
   onVideoRef,
+  onVideoLoad,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -285,12 +288,10 @@ const VideoPlayer = ({
             ref={videoRef}
             src={videoSrc}
             controls
-            className="w-full"
+            className="w-full animate-fade-in"
           />
         ) : (
-          <div className="w-full aspect-video flex items-center justify-center bg-secondary">
-            <p className="text-muted-foreground">Upload a video to get started</p>
-          </div>
+          <VideoUploadZone onVideoLoad={onVideoLoad} />
         )}
 
         {/* Click overlay for hotspot placement - covers video except controls (only in edit mode) */}
