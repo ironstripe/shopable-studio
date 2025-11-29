@@ -4,15 +4,7 @@ import VideoHotspot from "./VideoHotspot";
 import ProductCard from "./ProductCard";
 import HotspotToolbar from "./HotspotToolbar";
 import VideoUploadZone from "./VideoUploadZone";
-import { Eye, Pencil } from "lucide-react";
-import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 interface VideoPlayerProps {
   videoSrc: string | null;
@@ -254,37 +246,53 @@ const VideoPlayer = ({
 
   return (
     <div className="relative w-full max-w-[960px] mx-auto">
-      {/* Mode Toggle Icon - Fixed Position */}
+      {/* Mode Controls - Above Video */}
       {videoSrc && (
-        <div className="fixed top-24 right-8 z-50">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={onTogglePreviewMode}
-                  size="icon"
-                  variant={isPreviewMode ? "secondary" : "default"}
-                  className="rounded-full w-12 h-12 shadow-xl ring-2 ring-white"
-                >
-                  {isPreviewMode ? (
-                    <Eye className="w-5 h-5" />
-                  ) : (
-                    <Pencil className="w-5 h-5" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                <p>{isPreviewMode ? "Preview Mode" : "Hotspot Mode"}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        <div className="flex items-center justify-between mb-4">
+          {/* Helper Text - Left */}
+          {!isPreviewMode && (
+            <p className="text-sm text-muted-foreground">
+              Edit mode – click in the video to add a hotspot.
+            </p>
+          )}
+          
+          {/* Spacer when in preview mode */}
+          {isPreviewMode && <div />}
+          
+          {/* Segmented Toggle - Right */}
+          <div className="inline-flex items-center rounded-full bg-white border border-gray-200 p-1 shadow-sm">
+            <button
+              onClick={() => !isPreviewMode ? null : onTogglePreviewMode()}
+              className={cn(
+                "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                !isPreviewMode 
+                  ? "bg-primary text-white shadow-sm" 
+                  : "text-gray-700 hover:text-gray-900"
+              )}
+            >
+              Edit Hotspots
+            </button>
+            <button
+              onClick={() => isPreviewMode ? null : onTogglePreviewMode()}
+              className={cn(
+                "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                isPreviewMode 
+                  ? "bg-primary text-white shadow-sm" 
+                  : "text-gray-700 hover:text-gray-900"
+              )}
+            >
+              Preview
+            </button>
+          </div>
         </div>
       )}
+      
       <div
         ref={containerRef}
         className={cn(
-          "relative overflow-visible transition-all duration-500",
-          videoSrc && "bg-gradient-to-br from-[#101010] to-[#181818] rounded-[14px] shadow-2xl p-1"
+          "relative overflow-visible transition-all duration-300",
+          videoSrc && "bg-gradient-to-br from-[#101010] to-[#181818] rounded-[14px] shadow-2xl p-1",
+          videoSrc && !isPreviewMode && "ring-2 ring-primary ring-offset-2 ring-offset-white"
         )}
       >
         {videoSrc ? (
