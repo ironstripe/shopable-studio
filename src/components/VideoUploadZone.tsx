@@ -90,14 +90,14 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
   };
 
   return (
-    <div className="w-full aspect-video flex items-center justify-center p-8">
+    <div className="w-full aspect-video flex items-center justify-center p-8 animate-upload-enter">
       <div
         className={cn(
           "w-full h-full flex flex-col items-center justify-center",
-          "bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300",
-          "transition-all duration-300 cursor-pointer",
-          "hover:border-primary hover:bg-gray-100 hover:shadow-[0_0_20px_rgba(14,118,253,0.15)]",
-          isDragging && "border-primary bg-primary/5 shadow-[0_0_30px_rgba(14,118,253,0.25)] scale-[1.02]"
+          "bg-white rounded-3xl border-2 border-dashed border-gray-300",
+          "transition-all duration-300 cursor-pointer shadow-sm",
+          "hover:border-primary hover:bg-gray-50 hover:shadow-[0_4px_24px_rgba(14,118,253,0.12)]",
+          isDragging && "border-primary bg-primary/5 shadow-[0_8px_32px_rgba(14,118,253,0.2)] scale-[1.01]"
         )}
         onClick={handleClick}
         onDragOver={handleDragOver}
@@ -112,33 +112,33 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
           className="hidden"
         />
 
-        <div className="flex flex-col items-center gap-6 pointer-events-none">
+        <div className="flex flex-col items-center gap-8 pointer-events-none">
           <div className={cn(
-            "w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center",
-            "transition-all duration-300",
-            isDragging && "bg-primary/20 scale-110"
+            "w-24 h-24 rounded-full bg-primary/8 flex items-center justify-center",
+            "transition-all duration-300 shadow-sm",
+            isDragging && "bg-primary/15 scale-110 shadow-md"
           )}>
             <Plus className={cn(
-              "w-10 h-10 text-primary transition-transform duration-300",
+              "w-12 h-12 text-primary transition-transform duration-300",
               isDragging && "scale-125"
             )} />
           </div>
 
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl font-semibold text-gray-800">
+          <div className="text-center space-y-3">
+            <h2 className="text-3xl font-semibold text-gray-900 tracking-tight">
               Upload your video
             </h2>
-            <p className="text-gray-500 text-sm max-w-md">
+            <p className="text-gray-500 text-base max-w-md font-light">
               Drag & drop a file, paste a link, or browse your computer.
             </p>
           </div>
 
           {/* URL Input */}
           <div
-            className="pointer-events-auto mt-4"
+            className="pointer-events-auto mt-2"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-2 bg-white rounded-lg border border-gray-300 px-4 py-3 w-96 max-w-full hover:border-primary transition-colors">
+            <div className="flex items-center gap-3 bg-gray-50 rounded-xl border border-gray-200 px-4 py-3.5 w-[420px] max-w-full hover:border-primary hover:bg-white transition-all shadow-sm">
               <Link className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <input
                 type="text"
@@ -147,12 +147,12 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
                 onChange={(e) => setUrlInput(e.target.value)}
                 onPaste={handlePaste}
                 onKeyDown={handleKeyDown}
-                className="flex-1 text-sm outline-none bg-transparent text-gray-700 placeholder:text-gray-400"
+                className="flex-1 text-sm outline-none bg-transparent text-gray-800 placeholder:text-gray-400 font-light"
               />
               {urlInput && (
                 <button
                   onClick={handleUrlSubmit}
-                  className="text-xs font-medium text-primary hover:text-primary/80 transition-colors px-2 py-1 rounded hover:bg-primary/10"
+                  className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors px-3 py-1.5 rounded-lg hover:bg-primary/10"
                 >
                   Load
                 </button>

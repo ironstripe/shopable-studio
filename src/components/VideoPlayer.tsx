@@ -6,6 +6,7 @@ import HotspotToolbar from "./HotspotToolbar";
 import VideoUploadZone from "./VideoUploadZone";
 import { Eye, Pencil } from "lucide-react";
 import { Button } from "./ui/button";
+import { cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
@@ -281,14 +282,17 @@ const VideoPlayer = ({
       )}
       <div
         ref={containerRef}
-        className="relative bg-black rounded-lg overflow-visible"
+        className={cn(
+          "relative overflow-visible transition-all duration-500",
+          videoSrc && "bg-gradient-to-br from-[#101010] to-[#181818] rounded-[14px] shadow-2xl p-1"
+        )}
       >
         {videoSrc ? (
           <video
             ref={videoRef}
             src={videoSrc}
             controls
-            className="w-full animate-fade-in"
+            className="w-full rounded-[12px] animate-video-enter"
           />
         ) : (
           <VideoUploadZone onVideoLoad={onVideoLoad} />
