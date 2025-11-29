@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { Hotspot, Product, VideoProject, VideoCTA } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import HotspotSidebar from "@/components/HotspotSidebar";
+import VideoCTAPanel from "@/components/VideoCTAPanel";
 import { Button } from "@/components/ui/button";
 import { Download, ChevronDown, Pencil } from "lucide-react";
 import { toast } from "sonner";
@@ -308,15 +309,24 @@ const Index = () => {
 
         {/* Sidebar - Fixed Width (only show when video is loaded) */}
         {videoSrc && (
-          <HotspotSidebar
-            hotspots={hotspots}
-            products={products}
-            selectedHotspotId={selectedHotspot?.id || null}
-            onSelectHotspot={handleSelectFromList}
-            onOpenProductPanel={handleOpenProductPanel}
-            onOpenLayoutPanel={handleOpenLayoutPanel}
-            onDeleteHotspot={handleDeleteHotspot}
-          />
+          <div className="w-[320px] flex-shrink-0 bg-white border-l border-[rgba(0,0,0,0.04)] flex flex-col overflow-y-auto">
+            <HotspotSidebar
+              hotspots={hotspots}
+              products={products}
+              selectedHotspotId={selectedHotspot?.id || null}
+              onSelectHotspot={handleSelectFromList}
+              onOpenProductPanel={handleOpenProductPanel}
+              onOpenLayoutPanel={handleOpenLayoutPanel}
+              onDeleteHotspot={handleDeleteHotspot}
+            />
+            
+            <div className="mt-4 px-4 pb-4 border-t border-[rgba(0,0,0,0.06)]">
+              <VideoCTAPanel 
+                videoCTA={videoCTA}
+                onUpdateCTA={(cta) => setVideoCTA(cta)}
+              />
+            </div>
+          </div>
         )}
       </main>
     </div>
