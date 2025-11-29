@@ -1,5 +1,6 @@
 import { Hotspot } from "@/types/video";
 import HotspotIcon from "./HotspotIcon";
+import EmptyHotspotIndicator from "./EmptyHotspotIndicator";
 
 interface VideoHotspotProps {
   hotspot: Hotspot;
@@ -12,9 +13,11 @@ interface VideoHotspotProps {
   onDragStart: (e: React.MouseEvent) => void;
   onResizeStart: (e: React.MouseEvent) => void;
   price?: string;
+  hotspotIndex?: number;
+  hasProduct: boolean;
 }
 
-const VideoHotspot = ({ hotspot, currentTime, isSelected, isDragging, isResizing, isEditMode, onClick, onDragStart, onResizeStart, price }: VideoHotspotProps) => {
+const VideoHotspot = ({ hotspot, currentTime, isSelected, isDragging, isResizing, isEditMode, onClick, onDragStart, onResizeStart, price, hotspotIndex, hasProduct }: VideoHotspotProps) => {
   const countdown = Math.ceil(hotspot.timeEnd - currentTime);
   const isActive = currentTime >= hotspot.timeStart && currentTime <= hotspot.timeEnd;
 
@@ -39,14 +42,24 @@ const VideoHotspot = ({ hotspot, currentTime, isSelected, isDragging, isResizing
       onClick={onClick}
       onMouseDown={isEditMode ? onDragStart : undefined}
     >
-      <HotspotIcon
-        style={hotspot.style}
-        countdown={countdown}
-        ctaLabel={hotspot.ctaLabel}
-        isSelected={isSelected}
-        scale={hotspot.scale}
-        price={price}
-      />
+      {!hasProduct ? (
+        <EmptyHotspotIndicator
+          index={hotspotIndex || 0}
+          isSelected={isSelected}
+          isDragging={isDragging}
+          isResizing={isResizing}
+          scale={hotspot.scale}
+        />
+      ) : (
+        <HotspotIcon
+          style={hotspot.style}
+          countdown={countdown}
+          ctaLabel={hotspot.ctaLabel}
+          isSelected={isSelected}
+          scale={hotspot.scale}
+          price={price}
+        />
+      )}
       
       {/* Resize handle - only visible in edit mode when selected */}
       {isEditMode && isSelected && (

@@ -250,6 +250,18 @@ const VideoPlayer = ({
     return isInTimeRange;
   });
 
+  // Calculate hotspot index for empty indicators
+  const assignedHotspots = hotspots.filter(h => h.productId);
+  const unassignedHotspots = hotspots.filter(h => !h.productId);
+  
+  const getHotspotIndex = (hotspot: Hotspot) => {
+    if (hotspot.productId) {
+      return assignedHotspots.findIndex(h => h.id === hotspot.id) + 1;
+    } else {
+      return unassignedHotspots.findIndex(h => h.id === hotspot.id) + 1;
+    }
+  };
+
   // Debug logging
   useEffect(() => {
     console.log('[VideoPlayer] videoSrc changed:', videoSrc);
@@ -354,6 +366,8 @@ const VideoPlayer = ({
                       onDragStart={(e) => handleDragStart(hotspot, e)}
                       onResizeStart={(e) => handleResizeStart(hotspot, e)}
                       price={price}
+                      hotspotIndex={getHotspotIndex(hotspot)}
+                      hasProduct={!!hotspot.productId}
                     />
                     {!isPreviewMode && (selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id) && !draggingHotspot && (
                       <HotspotInlineEditor
