@@ -19,6 +19,7 @@ interface VideoPlayerProps {
   selectedHotspot: Hotspot | null;
   activeToolbarHotspotId: string | null;
   isPreviewMode: boolean;
+  isEditorOpen: boolean;
   onTogglePreviewMode: () => void;
   onAddHotspot: (x: number, y: number, time: number) => void;
   onEditHotspot: (hotspot: Hotspot) => void;
@@ -36,6 +37,7 @@ const VideoPlayer = ({
   selectedHotspot,
   activeToolbarHotspotId,
   isPreviewMode,
+  isEditorOpen,
   onTogglePreviewMode,
   onAddHotspot,
   onEditHotspot,
@@ -47,6 +49,7 @@ const VideoPlayer = ({
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const wasEditorOpenRef = useRef(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showShopButton, setShowShopButton] = useState(true);
@@ -89,6 +92,15 @@ const VideoPlayer = ({
     };
   }, [videoSrc]);
 
+  // Resume video when editor panel closes
+  useEffect(() => {
+    if (wasEditorOpenRef.current === true && isEditorOpen === false) {
+      videoRef.current?.play();
+    }
+    
+    wasEditorOpenRef.current = isEditorOpen;
+  }, [isEditorOpen]);
+
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!videoRef.current || !containerRef.current) return;
     
@@ -101,6 +113,7 @@ const VideoPlayer = ({
     const y = (e.clientY - rect.top) / rect.height;
 
     onAddHotspot(x, y, actualTime);
+    videoRef.current.pause();
   };
 
   const handleDragStart = (hotspot: Hotspot, e: React.MouseEvent) => {
