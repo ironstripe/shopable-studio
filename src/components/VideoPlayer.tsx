@@ -24,6 +24,7 @@ interface VideoPlayerProps {
   onCreateProduct: (product: Omit<Product, "id">) => void;
   onVideoRef?: (ref: HTMLVideoElement | null) => void;
   onVideoLoad: (src: string) => void;
+  shouldAutoOpenProductPanel?: boolean;
 }
 
 const VideoPlayer = ({
@@ -44,6 +45,7 @@ const VideoPlayer = ({
   onCreateProduct,
   onVideoRef,
   onVideoLoad,
+  shouldAutoOpenProductPanel,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -353,6 +355,7 @@ const VideoPlayer = ({
                       onDeleteHotspot={() => onDeleteHotspot(hotspot.id)}
                       onUpdateProduct={onUpdateProduct}
                       onCreateProduct={onCreateProduct}
+                      autoOpenProductPanel={shouldAutoOpenProductPanel && !hotspot.productId}
                     />
                   )}
                 </div>
