@@ -14,7 +14,7 @@ export type FineLineVariant = "pure-line" | "soft-glass" | "editorial-slim" | "m
 export type LuxuryLineVariant = "serif-whisper" | "gold-accent" | "glass-veil" | "dot-reveal";
 
 // E-Commerce Line specific variants
-export type ECommerceLineVariant = "price-tag-compact" | "product-label-extended" | "cta-pill-focus" | "ecom-meta-strip";
+export type ECommerceLineVariant = "compact-price-tag" | "label-strip" | "cta-pill-focus" | "product-card-lite";
 
 // Editorial Line specific variants
 export type EditorialLineVariant = "headline-tag" | "vertical-label" | "caption-frame" | "dash-marker";
@@ -26,7 +26,7 @@ export type HotspotStyle =
   | "badge-bubble-classic" | "badge-bubble-outline" | "badge-bubble-ghost" | "badge-bubble-accent-split"
   | "minimal-dot-pure-line" | "minimal-dot-soft-glass" | "minimal-dot-editorial-slim" | "minimal-dot-micro-dot"
   | "luxury-line-serif-whisper" | "luxury-line-gold-accent" | "luxury-line-glass-veil" | "luxury-line-dot-reveal"
-  | "ecommerce-line-price-tag-compact" | "ecommerce-line-product-label-extended" | "ecommerce-line-cta-pill-focus" | "ecommerce-line-ecom-meta-strip"
+  | "ecommerce-line-compact-price-tag" | "ecommerce-line-label-strip" | "ecommerce-line-cta-pill-focus" | "ecommerce-line-product-card-lite"
   | "editorial-line-headline-tag" | "editorial-line-vertical-label" | "editorial-line-caption-frame" | "editorial-line-dash-marker";
 
 export type ClickBehavior = "show-card" | "direct-link" | "no-action";

@@ -278,31 +278,30 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price 
   }
 
   // E-Commerce Line variants
-  if (style === "ecommerce-line-price-tag-compact") {
+  if (style === "ecommerce-line-compact-price-tag") {
     return (
       <div 
-        className="flex items-center gap-2 bg-white/95 backdrop-blur-sm border border-[#E0E0E0] rounded-lg px-3 py-1.5 shadow-sm animate-fade-in"
-        style={{ ...baseStyle, animationDuration: '200ms' }}
+        className="flex items-center gap-2 bg-white/95 backdrop-blur-sm border border-[#E0E0E0] rounded-lg px-3 py-1.5 animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '180ms' }}
       >
         <span className="text-[#111111] text-[13px] font-medium">{countdown}</span>
         <span className="text-[#9CA3AF] text-[13px]">·</span>
-        <span className="text-[#111111] text-[13px] font-medium">{ctaLabel}</span>
+        <span className="text-[#111111] text-[13px] font-medium">{price || "–.–"}</span>
         <span className="text-[#3B82F6] text-[13px]">→</span>
       </div>
     );
   }
 
-  if (style === "ecommerce-line-product-label-extended") {
+  if (style === "ecommerce-line-label-strip") {
     return (
       <div 
-        className="flex flex-col items-start bg-white/95 backdrop-blur-sm border border-[#E0E0E0] rounded-lg px-3 py-2 shadow-sm animate-fade-in"
-        style={{ ...baseStyle, animationDuration: '200ms' }}
+        className="flex items-center justify-between gap-4 bg-[#F5F5F5] rounded px-3 py-1.5 animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '180ms', minWidth: '120px' }}
       >
-        <span className="text-[#111111] text-[13px] font-medium leading-tight">{ctaLabel}</span>
-        <div className="flex items-center gap-1.5 mt-0.5">
+        <span className="text-[#111111] text-[13px] font-medium">{ctaLabel}</span>
+        <div className="flex items-center gap-2">
           <span className="text-[#6B7280] text-[12px]">{price || "–.–"}</span>
-          <span className="text-[#6B7280] text-[12px]">·</span>
-          <span className="text-[#3B82F6] text-[12px] font-medium">Shop →</span>
+          <span className="text-[#3B82F6] text-[11px] font-medium">Shop</span>
         </div>
       </div>
     );
@@ -312,26 +311,34 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price 
     return (
       <div 
         className="flex items-center gap-2 animate-fade-in"
-        style={{ ...baseStyle, animationDuration: '200ms' }}
+        style={{ ...baseStyle, animationDuration: '180ms' }}
       >
-        <div className="w-8 h-8 rounded-full bg-[#F5F5F5]/90 backdrop-blur-sm border border-[#E0E0E0] shadow-sm flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full bg-white/95 backdrop-blur-sm border border-[#E0E0E0] flex items-center justify-center">
           <span className="text-[#111111] text-[13px] font-medium">{countdown}</span>
         </div>
-        <div className="bg-[#3B82F6] hover:bg-[#2563EB] rounded-full px-3 py-1.5 shadow-sm transition-colors duration-150">
-          <span className="text-white text-[13px] font-medium">{ctaLabel}</span>
+        <div className="flex flex-col items-start">
+          <div className="bg-[#3B82F6] hover:bg-[#2563EB] rounded-full px-3 py-1.5 transition-colors duration-150">
+            <span className="text-white text-[13px] font-medium">{ctaLabel}</span>
+          </div>
+          {price && (
+            <span className="text-[#6B7280] text-[11px] mt-0.5 ml-1">{price}</span>
+          )}
         </div>
       </div>
     );
   }
 
-  if (style === "ecommerce-line-ecom-meta-strip") {
+  if (style === "ecommerce-line-product-card-lite") {
     return (
       <div 
-        className="flex items-center justify-between gap-4 bg-[#F5F5F5]/90 backdrop-blur-sm border border-[#EAEAEA] rounded px-3 py-1.5 shadow-sm animate-fade-in"
-        style={{ ...baseStyle, animationDuration: '200ms', minWidth: '120px' }}
+        className="flex flex-col items-start bg-white/95 backdrop-blur-sm border border-[#E0E0E0] rounded-lg px-3 py-2 animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '180ms', borderRadius: '8px' }}
       >
-        <span className="text-[#111111] text-[13px] font-medium">{ctaLabel}</span>
-        <span className="text-[#6B7280] text-[12px]">{price || "–.–"}</span>
+        <span className="text-[#111111] text-[13px] font-medium leading-tight">{ctaLabel}</span>
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-[#6B7280] text-[12px]">{price || "–.–"}</span>
+          <span className="text-[#3B82F6] text-[12px]">→</span>
+        </div>
       </div>
     );
   }

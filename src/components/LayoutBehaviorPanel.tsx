@@ -44,6 +44,10 @@ const migrateOldStyle = (style: string): HotspotStyle => {
     // Editorial Line old variants migration
     "editorial-line-caption-box": "editorial-line-caption-frame",
     "editorial-line-editorial-marker": "editorial-line-dash-marker",
+    // E-Commerce Line old variants migration
+    "ecommerce-line-price-tag-compact": "ecommerce-line-compact-price-tag",
+    "ecommerce-line-product-label-extended": "ecommerce-line-product-card-lite",
+    "ecommerce-line-ecom-meta-strip": "ecommerce-line-label-strip",
   };
   return (migrationMap[style] || style) as HotspotStyle;
 };
@@ -123,7 +127,7 @@ const LayoutBehaviorPanel = ({
     } else if (type === "luxury-line") {
       setSelectedVariant("serif-whisper");
     } else if (type === "ecommerce-line") {
-      setSelectedVariant("price-tag-compact");
+      setSelectedVariant("compact-price-tag");
     } else if (type === "editorial-line") {
       setSelectedVariant("headline-tag");
     } else {
@@ -231,7 +235,7 @@ const LayoutBehaviorPanel = ({
       return (
         <div className="bg-white border border-[#E0E0E0] rounded-lg px-3 py-1.5 flex items-center gap-2 shadow-sm">
           <span className="text-[#111111] text-sm font-medium">3</span>
-          <span className="text-[#6B7280] text-sm">·</span>
+          <span className="text-[#9CA3AF] text-sm">·</span>
           <span className="text-[#111111] text-sm font-medium">349.–</span>
           <span className="text-[#3B82F6] text-sm">→</span>
         </div>
@@ -329,24 +333,24 @@ const LayoutBehaviorPanel = ({
   // E-Commerce Line specific variants
   const ecommerceLineVariants = [
     { 
-      value: "price-tag-compact", 
-      label: "Price Tag Compact",
-      description: "Number, price, and mini-CTA"
+      value: "compact-price-tag", 
+      label: "Compact Price Tag",
+      description: "Number + price + arrow in clean tag"
     },
     { 
-      value: "product-label-extended", 
-      label: "Product Label Extended",
-      description: "Two-line with name and price"
+      value: "label-strip", 
+      label: "Label Strip",
+      description: "Flat horizontal strip, marketplace style"
     },
     { 
       value: "cta-pill-focus", 
       label: "CTA Pill Focus",
-      description: "Circle hotspot + CTA pill"
+      description: "Circle hotspot + prominent CTA pill"
     },
     { 
-      value: "ecom-meta-strip", 
-      label: "E-Com Meta Strip",
-      description: "Flat horizontal strip"
+      value: "product-card-lite", 
+      label: "Product Card Lite",
+      description: "Minimal product block with card styling"
     }
   ];
 
@@ -421,9 +425,9 @@ const LayoutBehaviorPanel = ({
 
   // Get preview for E-Commerce Line variants
   const getEcommerceLineVariantPreview = (variant: string) => {
-    if (variant === "price-tag-compact") {
+    if (variant === "compact-price-tag") {
       return (
-        <div className="bg-white border border-[#E0E0E0] rounded-lg px-2 py-1 flex items-center gap-1.5">
+        <div className="bg-white border border-[#E0E0E0] rounded-lg px-2.5 py-1 flex items-center gap-1.5 shadow-sm">
           <span className="text-[#111111] text-[10px] font-medium">3</span>
           <span className="text-[#9CA3AF] text-[10px]">·</span>
           <span className="text-[#111111] text-[10px] font-medium">349.–</span>
@@ -432,15 +436,11 @@ const LayoutBehaviorPanel = ({
       );
     }
     
-    if (variant === "product-label-extended") {
+    if (variant === "label-strip") {
       return (
-        <div className="bg-white border border-[#E0E0E0] rounded-lg px-2 py-1.5 flex flex-col items-start">
-          <span className="text-[#111111] text-[9px] font-medium leading-tight">Product</span>
-          <div className="flex items-center gap-1">
-            <span className="text-[#6B7280] text-[9px]">349.–</span>
-            <span className="text-[#6B7280] text-[9px]">·</span>
-            <span className="text-[#3B82F6] text-[9px] font-medium">Shop →</span>
-          </div>
+        <div className="bg-[#F5F5F5] rounded px-2.5 py-1 flex items-center justify-between gap-4 min-w-[80px]">
+          <span className="text-[#111111] text-[10px] font-medium">Product</span>
+          <span className="text-[#6B7280] text-[10px]">349.–</span>
         </div>
       );
     }
@@ -451,18 +451,21 @@ const LayoutBehaviorPanel = ({
           <div className="w-5 h-5 rounded-full bg-[#F5F5F5] border border-[#E0E0E0] flex items-center justify-center">
             <span className="text-[#111111] text-[8px] font-medium">3</span>
           </div>
-          <div className="bg-[#3B82F6] rounded-full px-2 py-0.5">
+          <div className="bg-[#3B82F6] rounded-full px-2.5 py-0.5">
             <span className="text-white text-[9px] font-medium">Shop</span>
           </div>
         </div>
       );
     }
     
-    // ecom-meta-strip
+    // product-card-lite
     return (
-      <div className="bg-[#F5F5F5] border border-[#EAEAEA] rounded px-2 py-1 flex items-center justify-between gap-3">
-        <span className="text-[#111111] text-[9px] font-medium">Product</span>
-        <span className="text-[#6B7280] text-[9px]">349.–</span>
+      <div className="bg-white border border-[#E0E0E0] rounded-lg px-2.5 py-1.5">
+        <span className="text-[#111111] text-[10px] font-medium">Product</span>
+        <div className="flex items-center gap-1 mt-0.5">
+          <span className="text-[#6B7280] text-[9px]">349.–</span>
+          <span className="text-[#3B82F6] text-[9px]">→</span>
+        </div>
       </div>
     );
   };
