@@ -444,10 +444,11 @@ const ProductPanel = ({
         height: `${height}px`,
         transform: `translate(${offset.x}px, ${offset.y}px)`,
       }}
+      onClick={(e) => e.stopPropagation()}
     >
       {/* Header - Drag Handle */}
       <div 
-        className="flex items-center justify-between mb-3"
+        className="flex items-center justify-between py-2 -mx-5 px-5 mb-2"
         {...dragHandleProps}
       >
         <h3 className="text-[15px] font-medium text-neutral-800">
@@ -455,6 +456,7 @@ const ProductPanel = ({
         </h3>
         <button
           onClick={() => setViewMode("create")}
+          onMouseDown={(e) => e.stopPropagation()}
           className="flex items-center gap-1 px-2 py-1 text-[13px] font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition-colors"
         >
           <Plus className="w-4 h-4" />
