@@ -64,12 +64,27 @@ const VideoHotspot = ({ hotspot, currentTime, isSelected, isDragging, isResizing
       {/* Resize handle - only visible in edit mode when selected */}
       {isEditMode && isSelected && (
         <div
-          className="absolute -bottom-2 -right-2 w-4 h-4 bg-[#0E76FD] border-2 border-white rounded-full cursor-se-resize shadow-md hover:scale-110 transition-transform"
+          className="absolute -bottom-2 -right-2 w-4 h-4 bg-white/85 border border-[#D0D0D0] rounded-full cursor-se-resize flex items-center justify-center transition-all hover:border-neutral-400 hover:shadow-sm"
           onMouseDown={(e) => {
             e.stopPropagation();
             onResizeStart(e);
           }}
-        />
+        >
+          {/* Diagonal resize icon */}
+          <svg 
+            width="10" 
+            height="10" 
+            viewBox="0 0 10 10" 
+            className="text-neutral-500"
+          >
+            <path 
+              d="M9 1L1 9M9 5L5 9" 
+              stroke="currentColor" 
+              strokeWidth="1.5" 
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
       )}
     </div>
   );
