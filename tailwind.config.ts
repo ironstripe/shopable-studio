@@ -102,6 +102,20 @@ export default {
           "0%": { opacity: "1", transform: "translateY(0)" },
           "100%": { opacity: "0", transform: "translateY(4px)" }
         },
+        "luxury-card-enter": {
+          "0%": { 
+            opacity: "0", 
+            transform: "translateY(6px) scale(0.98)" 
+          },
+          "100%": { 
+            opacity: "1", 
+            transform: "translateY(0) scale(1)" 
+          }
+        },
+        "luxury-card-exit": {
+          "0%": { opacity: "1", transform: "scale(1)" },
+          "100%": { opacity: "0", transform: "scale(0.98)" }
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -111,6 +125,8 @@ export default {
         "micro-zoom": "micro-zoom 240ms ease-out",
         "card-enter": "card-enter 180ms ease-out",
         "card-exit": "card-exit 100ms ease-out",
+        "luxury-card-enter": "luxury-card-enter 200ms ease-out",
+        "luxury-card-exit": "luxury-card-exit 120ms ease-out",
       },
     },
   },

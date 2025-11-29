@@ -4,6 +4,7 @@ import { Product, CardStyle } from "@/types/video";
 import { X } from "lucide-react";
 import { useSmartPosition } from "@/hooks/use-smart-position";
 import RetailCard from "./product-cards/RetailCard";
+import LuxuryCard from "./product-cards/LuxuryCard";
 
 interface ProductCardProps {
   product: Product;
@@ -35,15 +36,16 @@ const ProductCard = ({
   };
 
   const family = getCardFamily(cardStyle);
+  const isLuxuryFamily = family === "luxury";
 
-  // Smart positioning
+  // Smart positioning - luxury cards get more margin
   const position = useSmartPosition({
     hotspotX: hotspotPosition?.x || 0.5,
     hotspotY: hotspotPosition?.y || 0.5,
     cardWidth: cardDimensions.width,
     cardHeight: cardDimensions.height,
     containerRef: containerRef || { current: null },
-    margin: 12,
+    margin: isLuxuryFamily ? 18 : 12,
     isOpen,
   });
 
@@ -72,6 +74,13 @@ const ProductCard = ({
           />
         );
       case "luxury":
+        return (
+          <LuxuryCard
+            product={product}
+            variant={cardStyle as any}
+            showShopButton={showShopButton}
+          />
+        );
       case "editorial":
       case "minimal":
         // Placeholder for future families - fallback to retail compact
@@ -90,7 +99,11 @@ const ProductCard = ({
   const cardElement = (
     <div
       ref={cardRef}
-      className="fixed z-[9999] w-[320px] max-w-[320px] bg-card/95 backdrop-blur-sm border border-border rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.18)] animate-card-enter"
+      className={
+        isLuxuryFamily
+          ? "fixed z-[9999] w-[340px] max-w-[340px] bg-white/[0.94] backdrop-blur-md rounded-[20px] shadow-[0_16px_48px_rgba(0,0,0,0.12)] animate-luxury-card-enter"
+          : "fixed z-[9999] w-[320px] max-w-[320px] bg-card/95 backdrop-blur-sm border border-border rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.18)] animate-card-enter"
+      }
       style={{
         top: position.top !== undefined ? `${position.top}px` : undefined,
         left: position.left !== undefined ? `${position.left}px` : undefined,
@@ -101,14 +114,18 @@ const ProductCard = ({
       {/* Close Button */}
       <button
         onClick={onClose}
-        className="absolute top-3 right-3 w-7 h-7 rounded-full bg-muted/40 hover:bg-muted/60 flex items-center justify-center transition-colors"
+        className={
+          isLuxuryFamily
+            ? "absolute top-3 right-3 w-6 h-6 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center transition-colors"
+            : "absolute top-3 right-3 w-7 h-7 rounded-full bg-muted/40 hover:bg-muted/60 flex items-center justify-center transition-colors"
+        }
         aria-label="Close"
       >
-        <X className="w-3.5 h-3.5 text-foreground" />
+        <X className={isLuxuryFamily ? "w-3 h-3 text-[#1a1a1a]" : "w-3.5 h-3.5 text-foreground"} />
       </button>
 
       {/* Card Content */}
-      <div className="p-5 pt-4">
+      <div className={isLuxuryFamily ? "" : "p-5 pt-4"}>
         {renderCardContent()}
       </div>
     </div>
