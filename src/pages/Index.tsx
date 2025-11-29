@@ -60,10 +60,10 @@ const Index = () => {
       x,
       y,
       productId: productKeys[0],
-      style: "smart-badge",
+      style: "badge-small",
       ctaLabel: "Kaufen",
       scale: 1,
-      clickBehavior: "card-then-shop",
+      clickBehavior: "show-card",
     };
     setHotspots([...hotspots, newHotspot]);
     setActiveToolbarHotspotId(newHotspot.id);

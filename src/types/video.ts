@@ -1,5 +1,5 @@
-export type HotspotStyle = "smart-badge" | "screen" | "flash-circle" | "tag-bubble" | "lux-dot";
-export type ClickBehavior = "card-then-shop" | "direct-shop" | "card-only";
+export type HotspotStyle = "icon-only" | "icon-cta-pill" | "badge-small" | "badge-large" | "minimal-dot";
+export type ClickBehavior = "show-card" | "direct-link" | "no-action";
 
 export interface Hotspot {
   id: string;

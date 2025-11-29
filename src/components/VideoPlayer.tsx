@@ -211,17 +211,17 @@ const VideoPlayer = ({
       if (!product) return;
       
       switch (hotspot.clickBehavior) {
-        case "direct-shop":
+        case "direct-link":
           window.open(product.link, "_blank");
           break;
         
-        case "card-only":
+        case "no-action":
           videoRef.current?.pause();
           setSelectedProduct(product);
           setShowShopButton(false);
           break;
         
-        case "card-then-shop":
+        case "show-card":
         default:
           videoRef.current?.pause();
           setSelectedProduct(product);
