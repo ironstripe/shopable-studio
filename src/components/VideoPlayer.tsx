@@ -207,6 +207,7 @@ const VideoPlayer = ({
     }
     
     if (isPreviewMode) {
+      if (!hotspot.productId) return; // Skip if no product assigned
       const product = products[hotspot.productId];
       if (!product) return;
       
@@ -233,9 +234,16 @@ const VideoPlayer = ({
     }
   };
 
-  const activeHotspots = hotspots.filter(
-    (h) => currentTime >= h.timeStart && currentTime <= h.timeEnd
-  );
+  const activeHotspots = hotspots.filter((h) => {
+    const isInTimeRange = currentTime >= h.timeStart && currentTime <= h.timeEnd;
+    
+    // In preview mode, only show hotspots with assigned products
+    if (isPreviewMode && !h.productId) {
+      return false;
+    }
+    
+    return isInTimeRange;
+  });
 
   // Debug logging
   useEffect(() => {
