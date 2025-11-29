@@ -19,6 +19,9 @@ export interface Product {
   title: string;
   price: string;
   link: string;
+  description?: string;
+  thumbnail?: string;
+  ctaLabel?: string;
 }
 
 export interface VideoProject {

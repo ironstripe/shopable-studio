@@ -20,6 +20,8 @@ interface VideoPlayerProps {
   onHotspotSelect: (hotspotId: string) => void;
   onUpdateHotspotPosition: (hotspotId: string, x: number, y: number) => void;
   onUpdateHotspotScale: (hotspotId: string, scale: number) => void;
+  onUpdateProduct: (product: Product) => void;
+  onCreateProduct: (product: Omit<Product, "id">) => void;
   onVideoRef?: (ref: HTMLVideoElement | null) => void;
   onVideoLoad: (src: string) => void;
 }
@@ -38,6 +40,8 @@ const VideoPlayer = ({
   onHotspotSelect,
   onUpdateHotspotPosition,
   onUpdateHotspotScale,
+  onUpdateProduct,
+  onCreateProduct,
   onVideoRef,
   onVideoLoad,
 }: VideoPlayerProps) => {
@@ -339,6 +343,8 @@ const VideoPlayer = ({
                       products={products}
                       onUpdateHotspot={onUpdateHotspot}
                       onDeleteHotspot={() => onDeleteHotspot(hotspot.id)}
+                      onUpdateProduct={onUpdateProduct}
+                      onCreateProduct={onCreateProduct}
                     />
                   )}
                 </div>

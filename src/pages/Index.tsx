@@ -23,18 +23,21 @@ const Index = () => {
       title: "Bose QuietComfort Ultra",
       price: "349.–",
       link: "https://www.galaxus.ch/en/s1/product/bose-quietcomfort-ultra-over-ear-bluetooth-headphones-38839067",
+      description: "Premium noise-cancelling headphones with immersive audio",
     },
     sony_camera: {
       id: "sony_camera",
       title: "Sony Alpha 7 IV",
       price: "2499.–",
       link: "https://example.com/sony",
+      description: "Professional full-frame mirrorless camera",
     },
     apple_watch: {
       id: "apple_watch",
       title: "Apple Watch Series 9",
       price: "449.–",
       link: "https://example.com/apple-watch",
+      description: "Advanced health and fitness tracking",
     },
   });
 
@@ -114,6 +117,23 @@ const Index = () => {
       const seekTime = Math.max(0, hotspot.timeStart - 0.5);
       videoRef.current.currentTime = seekTime;
     }
+  };
+
+  const handleUpdateProduct = (updatedProduct: Product) => {
+    setProducts({
+      ...products,
+      [updatedProduct.id]: updatedProduct,
+    });
+    toast.success("Product updated");
+  };
+
+  const handleCreateProduct = (newProduct: Omit<Product, "id">) => {
+    const id = `product-${Date.now()}`;
+    setProducts({
+      ...products,
+      [id]: { ...newProduct, id },
+    });
+    toast.success("Product created");
   };
 
   const handleExport = () => {
@@ -204,6 +224,8 @@ const Index = () => {
             onHotspotSelect={handleHotspotSelect}
             onUpdateHotspotPosition={handleUpdateHotspotPosition}
             onUpdateHotspotScale={handleUpdateHotspotScale}
+            onUpdateProduct={handleUpdateProduct}
+            onCreateProduct={handleCreateProduct}
             onVideoRef={(ref) => (videoRef.current = ref)}
             onVideoLoad={handleVideoLoad}
           />
