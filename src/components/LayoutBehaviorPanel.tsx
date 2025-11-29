@@ -82,11 +82,11 @@ const LayoutBehaviorPanel = ({
   };
 
   const currentStyle = getFullStyle(selectedType, selectedVariant);
-  const needsCTA = selectedType === "icon-cta-pill" || selectedType === "badge-bubble";
 
   const handleTypeChange = (type: HotspotType) => {
     setSelectedType(type);
-    // Keep the same variant when changing type
+    // Auto-select "small" variant when switching families
+    setSelectedVariant("small");
   };
 
   const validateInputs = () => {
@@ -125,58 +125,46 @@ const LayoutBehaviorPanel = ({
     onClose();
   };
 
-  // Style families with visual previews
+  // Reduced to 2 hotspot families
   const styleFamilies = [
-    {
-      id: "icon-only" as HotspotType,
-      label: "Icon only",
-      description: "Clean numbered dot, minimal and unobtrusive.",
-      preview: (
-        <div className="w-8 h-8 rounded-full bg-[#FF6A00] border-2 border-white shadow-md flex items-center justify-center">
-          <span className="text-white text-xs font-bold">3</span>
-        </div>
-      )
-    },
-    {
-      id: "icon-cta-pill" as HotspotType,
-      label: "Icon + CTA pill",
-      description: "Circle with number and CTA pill, ideal for direct actions.",
-      preview: (
-        <div className="flex items-center gap-1.5">
-          <div className="w-6 h-6 rounded-full bg-[#FF6A00] border-2 border-white shadow-md flex items-center justify-center">
-            <span className="text-white text-[10px] font-bold">3</span>
-          </div>
-          <div className="bg-[#FF6A00] border border-white rounded-full px-2 py-0.5 shadow-sm">
-            <span className="text-white text-[9px] font-medium">Shop</span>
-          </div>
-        </div>
-      )
-    },
     {
       id: "badge-bubble" as HotspotType,
       label: "Badge bubble",
       description: "Broader bubble with number and CTA, good for prominent calls.",
-      preview: (
-        <div className="bg-[#FF6A00] border border-black rounded-full px-3 py-1 flex items-center gap-1.5 shadow-md">
-          <span className="text-white text-[10px] font-bold">3</span>
-          <span className="text-white/60 text-[10px]">•</span>
-          <span className="text-white text-[10px] font-medium">Shop</span>
-        </div>
-      )
     },
     {
       id: "minimal-dot" as HotspotType,
       label: "Fine Line",
       description: "Ultra-clean, subtle hotspots for premium / luxury brands.",
-      preview: (
-        <div className="flex items-center gap-1.5 text-[#FF6A00]/80">
-          <span className="text-[11px] font-medium">3</span>
-          <span className="text-[11px] opacity-50">•</span>
-          <span className="text-[11px]">Shop</span>
-        </div>
-      )
     }
   ];
+
+  // Render larger preview for family cards
+  const renderFamilyPreview = (family: HotspotType) => {
+    if (family === "badge-bubble") {
+      return (
+        <div className="bg-[#FF6A00] border-2 border-black rounded-full px-4 py-2 flex items-center gap-2 shadow-lg">
+          <span className="text-white text-sm font-bold">3</span>
+          <span className="text-white/60 text-sm">•</span>
+          <span className="text-white text-sm font-medium">Shop</span>
+        </div>
+      );
+    }
+    // minimal-dot (Fine Line)
+    return (
+      <div className="flex items-center gap-2 text-[#FF6A00]/80 text-base">
+        <span className="font-medium">3</span>
+        <span className="opacity-50">•</span>
+        <span>Shop</span>
+      </div>
+    );
+  };
+
+  // Get friendly family name for variant label
+  const getFamilyDisplayName = (type: HotspotType): string => {
+    const family = styleFamilies.find(f => f.id === type);
+    return family?.label || type;
+  };
 
   // Unified variants with dynamic previews
   const getVariantPreview = (family: HotspotType, variant: HotspotVariant) => {
@@ -245,55 +233,83 @@ const LayoutBehaviorPanel = ({
       onClick={(e) => e.stopPropagation()}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#E1E4E8]">
-        <h3 className="text-sm font-semibold text-[#111827]">Layout & Behavior</h3>
-        <button
-          onClick={onClose}
-          className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[#F7F8FA] transition-colors"
-        >
-          <X className="w-4 h-4 text-[#6B7280]" />
-        </button>
+      <div className="px-4 py-3 border-b border-[#E1E4E8]">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-sm font-semibold text-[#111827]">Layout & Behavior</h3>
+          <button
+            onClick={onClose}
+            className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[#F7F8FA] transition-colors"
+          >
+            <X className="w-4 h-4 text-[#6B7280]" />
+          </button>
+        </div>
+        <p className="text-xs text-[#6B7280]">
+          Step 1: Choose a hotspot family. Step 2: Pick a style.
+        </p>
       </div>
 
       {/* Content */}
       <div className="flex-1 p-4 space-y-5 overflow-y-auto">
         
-        {/* 1) STYLE Section - Visual Cards */}
+        {/* 1) HOTSPOT FAMILY Section - Large horizontal cards */}
         <div className="space-y-3">
           <Label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">
-            Style
+            Hotspot Family
           </Label>
-          <div className="grid grid-cols-2 gap-2.5">
-            {styleFamilies.map((family) => (
-              <button
-                key={family.id}
-                onClick={() => handleTypeChange(family.id)}
-                className={`
-                  flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all
-                  ${selectedType === family.id 
-                    ? 'border-[#3B82F6] bg-[#EFF6FF]' 
-                    : 'border-[#E1E4E8] bg-white hover:border-[#D1D5DB]'}
-                `}
-              >
-                <div className="flex items-center justify-center h-9">
-                  {family.preview}
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-semibold text-[#374151]">{family.label}</div>
-                  <div className="text-[10px] text-[#6B7280] mt-0.5 leading-tight">
-                    {family.description}
+          <div className="space-y-3">
+            {styleFamilies.map((family) => {
+              const isSelected = selectedType === family.id;
+              return (
+                <button
+                  key={family.id}
+                  onClick={() => handleTypeChange(family.id)}
+                  className={`
+                    relative w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left
+                    hover:border-[#3B82F6]/50 hover:bg-blue-50/30
+                    ${isSelected 
+                      ? 'border-[#3B82F6] bg-[#EFF6FF]' 
+                      : 'border-[#E1E4E8] bg-white'}
+                  `}
+                >
+                  {/* Checkmark indicator */}
+                  {isSelected && (
+                    <div className="absolute top-3 left-3 w-5 h-5 rounded-full bg-[#3B82F6] flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                  
+                  {/* Preview on left */}
+                  <div className="flex-shrink-0 ml-6">
+                    {renderFamilyPreview(family.id)}
                   </div>
-                </div>
-              </button>
-            ))}
+                  
+                  {/* Title and description on right */}
+                  <div className="flex-1">
+                    <div className="font-semibold text-[#111827] text-sm mb-1">
+                      {family.label}
+                    </div>
+                    <div className="text-xs text-[#6B7280] leading-snug">
+                      {family.description}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* 2) VARIANTS Section - Unified 2x2 Grid */}
+        {/* 2) STYLE VARIANTS Section - Unified 2x2 Grid with dynamic label */}
         <div className="space-y-3">
-          <Label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">
-            Variants
-          </Label>
+          <div>
+            <Label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">
+              Style Variants
+            </Label>
+            <div className="text-xs text-[#6B7280] mt-1">
+              {getFamilyDisplayName(selectedType)} styles
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-2.5">
             {unifiedVariants.map((variant) => (
               <button
@@ -320,8 +336,8 @@ const LayoutBehaviorPanel = ({
           </div>
         </div>
 
-        {/* 3) CTA LABEL Section - Conditional */}
-        {needsCTA && (
+        {/* 3) CTA LABEL Section - Only for Badge bubble */}
+        {selectedType === "badge-bubble" && (
           <div className="space-y-2">
             <Label htmlFor="cta-input" className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">
               CTA Label
