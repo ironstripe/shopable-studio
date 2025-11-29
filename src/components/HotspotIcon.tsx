@@ -113,49 +113,46 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price 
     );
   }
 
-  // Badge Bubble variants
-  if (style === "badge-bubble-small") {
+  // Badge Bubble variants - 4 creative styles
+  if (style === "badge-bubble-classic") {
     return (
-      <div className="flex flex-col items-center" style={glowStyle}>
-        <div className="flex items-center gap-1.5 bg-[#FF6A00] border border-black rounded-full px-3 py-1.5 shadow-md">
-          <span className="text-white font-bold text-sm">{countdown}</span>
-          <span className="text-white/60 text-sm">•</span>
-          <span className="text-white font-medium text-xs">{ctaLabel}</span>
-        </div>
+      <div className="flex items-center gap-1.5 bg-[#FF6A00] rounded-full px-3 py-1.5 shadow-[0_2px_8px_rgba(0,0,0,0.12)] animate-fade-in" style={{ ...glowStyle, animationDuration: '180ms' }}>
+        <span className="text-white font-medium text-sm">{countdown}</span>
+        <span className="text-white/60 text-sm">•</span>
+        <span className="text-white font-medium text-xs">{ctaLabel}</span>
       </div>
     );
   }
 
-  if (style === "badge-bubble-large") {
+  if (style === "badge-bubble-outline") {
     return (
-      <div className="flex flex-col items-center" style={glowStyle}>
-        <div className="flex items-center gap-2 bg-[#FF6A00] border-2 border-black rounded-full px-4 py-2 shadow-lg">
-          <span className="text-white font-bold text-base">{countdown}</span>
-          <span className="text-white/60 text-base">•</span>
-          <span className="text-white font-semibold text-sm">{ctaLabel}</span>
-        </div>
+      <div className="flex items-center gap-1.5 bg-transparent border-[1.5px] border-[#FF6A00] rounded-full px-3 py-1.5 animate-fade-in" style={{ ...glowStyle, animationDuration: '180ms' }}>
+        <span className="text-[#FF6A00] font-medium text-sm">{countdown}</span>
+        <span className="text-[#FF6A00]/60 text-sm">•</span>
+        <span className="text-[#FF6A00] font-medium text-xs">{ctaLabel}</span>
       </div>
     );
   }
 
-  if (style === "badge-bubble-light") {
+  if (style === "badge-bubble-ghost") {
     return (
-      <div className="flex flex-col items-center" style={glowStyle}>
-        <div className="flex items-center gap-1.5 bg-[#FF6A00] border border-black/40 rounded-full px-3 py-1.5 shadow-sm">
-          <span className="text-white font-bold text-sm">{countdown}</span>
-          <span className="text-white/60 text-sm">•</span>
-          <span className="text-white font-medium text-xs">{ctaLabel}</span>
-        </div>
+      <div className="flex items-center gap-1.5 bg-black/25 backdrop-blur-[6px] rounded-full px-3 py-1.5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] animate-fade-in" style={{ ...glowStyle, animationDuration: '180ms' }}>
+        <span className="text-white font-medium text-sm">{countdown}</span>
+        <span className="text-white/60 text-sm">•</span>
+        <span className="text-white font-medium text-xs">{ctaLabel}</span>
       </div>
     );
   }
 
-  if (style === "badge-bubble-strong") {
+  if (style === "badge-bubble-accent-split") {
     return (
-      <div className="flex flex-col items-center" style={glowStyle}>
-        <div className="flex items-center gap-1.5 bg-[#FF6A00] border-2 border-black rounded-full px-3 py-1.5 shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
+      <div className="flex items-center gap-2 animate-fade-in" style={{ ...glowStyle, animationDuration: '180ms' }}>
+        {/* Left: number circle */}
+        <div className="w-8 h-8 rounded-full bg-[#FF6A00] shadow-[0_2px_8px_rgba(0,0,0,0.12)] flex items-center justify-center">
           <span className="text-white font-bold text-sm">{countdown}</span>
-          <span className="text-white/60 text-sm">•</span>
+        </div>
+        {/* Right: CTA pill */}
+        <div className="bg-[#FF6A00] rounded-full px-3 py-1.5 shadow-[0_2px_8px_rgba(0,0,0,0.12)] hover:bg-[#E55A00] transition-colors duration-150">
           <span className="text-white font-medium text-xs">{ctaLabel}</span>
         </div>
       </div>

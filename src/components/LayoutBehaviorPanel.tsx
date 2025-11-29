@@ -23,10 +23,13 @@ const migrateOldStyle = (style: string): HotspotStyle => {
     "icon-only-glow": "icon-only-strong",
     "icon-cta-pill-standard": "icon-cta-pill-small",
     "icon-cta-pill-compact": "icon-cta-pill-light",
-    "badge-bubble-small": "badge-bubble-small",
-    "badge-bubble-large": "badge-bubble-large",
-    "badge-bubble-light-shadow": "badge-bubble-light",
-    "badge-bubble-strong-shadow": "badge-bubble-strong",
+    // Badge Bubble old variants migration
+    "badge-bubble-small": "badge-bubble-classic",
+    "badge-bubble-large": "badge-bubble-classic",
+    "badge-bubble-light": "badge-bubble-outline",
+    "badge-bubble-light-shadow": "badge-bubble-outline",
+    "badge-bubble-strong": "badge-bubble-classic",
+    "badge-bubble-strong-shadow": "badge-bubble-classic",
     "minimal-dot-default": "minimal-dot-small",
     "minimal-dot-pulse": "minimal-dot-strong",
   };
@@ -101,7 +104,9 @@ const LayoutBehaviorPanel = ({
   const handleTypeChange = (type: HotspotType) => {
     setSelectedType(type);
     // Auto-select appropriate default variant when switching families
-    if (type === "luxury-line") {
+    if (type === "badge-bubble") {
+      setSelectedVariant("classic");
+    } else if (type === "luxury-line") {
       setSelectedVariant("serif-minimal");
     } else if (type === "ecommerce-line") {
       setSelectedVariant("price-tag-compact");
@@ -235,6 +240,30 @@ const LayoutBehaviorPanel = ({
     return family?.label || type;
   };
 
+  // Badge Bubble specific variants
+  const badgeBubbleVariants = [
+    { 
+      value: "classic", 
+      label: "Classic Bubble",
+      description: "Solid filled, modern universal style"
+    },
+    { 
+      value: "outline", 
+      label: "Outline Bubble",
+      description: "Minimal outline, lightweight feel"
+    },
+    { 
+      value: "ghost", 
+      label: "Ghost Bubble",
+      description: "Semi-transparent with blur effect"
+    },
+    { 
+      value: "accent-split", 
+      label: "Accent Split",
+      description: "Two-part with prominent CTA"
+    }
+  ];
+
   // Luxury Line specific variants
   const luxuryLineVariants = [
     { 
@@ -306,6 +335,51 @@ const LayoutBehaviorPanel = ({
       description: "Em-dash followed by product name"
     }
   ];
+
+  // Get preview for Badge Bubble variants
+  const getBadgeBubbleVariantPreview = (variant: string) => {
+    if (variant === "classic") {
+      return (
+        <div className="flex items-center gap-1.5 bg-[#FF6A00] rounded-full px-3 py-1.5 shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
+          <span className="text-white font-medium text-[10px]">3</span>
+          <span className="text-white/60 text-[10px]">•</span>
+          <span className="text-white font-medium text-[9px]">Shop</span>
+        </div>
+      );
+    }
+    
+    if (variant === "outline") {
+      return (
+        <div className="flex items-center gap-1.5 bg-transparent border-[1.5px] border-[#FF6A00] rounded-full px-3 py-1.5">
+          <span className="text-[#FF6A00] font-medium text-[10px]">3</span>
+          <span className="text-[#FF6A00]/60 text-[10px]">•</span>
+          <span className="text-[#FF6A00] font-medium text-[9px]">Shop</span>
+        </div>
+      );
+    }
+    
+    if (variant === "ghost") {
+      return (
+        <div className="flex items-center gap-1.5 bg-black/25 backdrop-blur-[6px] rounded-full px-3 py-1.5 shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
+          <span className="text-white font-medium text-[10px]">3</span>
+          <span className="text-white/60 text-[10px]">•</span>
+          <span className="text-white font-medium text-[9px]">Shop</span>
+        </div>
+      );
+    }
+    
+    // accent-split
+    return (
+      <div className="flex items-center gap-1.5">
+        <div className="w-5 h-5 rounded-full bg-[#FF6A00] shadow-[0_2px_8px_rgba(0,0,0,0.12)] flex items-center justify-center">
+          <span className="text-white font-bold text-[9px]">3</span>
+        </div>
+        <div className="bg-[#FF6A00] rounded-full px-2 py-0.5 shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
+          <span className="text-white font-medium text-[8px]">Shop</span>
+        </div>
+      </div>
+    );
+  };
 
   // Get preview for E-Commerce Line variants
   const getEcommerceLineVariantPreview = (variant: string) => {
@@ -509,6 +583,7 @@ const LayoutBehaviorPanel = ({
 
   // Determine which variants to show based on selected family
   const currentVariants = 
+    selectedType === "badge-bubble" ? badgeBubbleVariants :
     selectedType === "luxury-line" ? luxuryLineVariants : 
     selectedType === "ecommerce-line" ? ecommerceLineVariants : 
     selectedType === "editorial-line" ? editorialLineVariants :
@@ -611,7 +686,9 @@ const LayoutBehaviorPanel = ({
                 `}
               >
                 <div className="flex items-center justify-center h-9">
-                  {selectedType === "luxury-line" 
+                  {selectedType === "badge-bubble"
+                    ? getBadgeBubbleVariantPreview(variant.value)
+                    : selectedType === "luxury-line" 
                     ? getLuxuryLineVariantPreview(variant.value)
                     : selectedType === "ecommerce-line"
                     ? getEcommerceLineVariantPreview(variant.value)
