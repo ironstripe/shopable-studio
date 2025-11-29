@@ -63,7 +63,7 @@ const Index = () => {
       x,
       y,
       productId: null, // No product assigned yet
-      style: "badge-bubble-small",
+      style: "badge-bubble-classic",
       ctaLabel: "Kaufen",
       scale: 1,
       clickBehavior: "show-card",

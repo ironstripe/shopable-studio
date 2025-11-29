@@ -4,6 +4,9 @@ export type HotspotType = "icon-only" | "icon-cta-pill" | "badge-bubble" | "mini
 // Unified variants (same for all types)
 export type HotspotVariant = "small" | "large" | "light" | "strong";
 
+// Badge Bubble specific variants (style-based, not size-based)
+export type BadgeBubbleVariant = "classic" | "outline" | "ghost" | "accent-split";
+
 // Luxury Line specific variants
 export type LuxuryLineVariant = "serif-minimal" | "gold-accent" | "floating-label" | "ultra-dot";
 
@@ -17,7 +20,7 @@ export type EditorialLineVariant = "headline-tag" | "vertical-label" | "caption-
 export type HotspotStyle = 
   | "icon-only-small" | "icon-only-large" | "icon-only-light" | "icon-only-strong"
   | "icon-cta-pill-small" | "icon-cta-pill-large" | "icon-cta-pill-light" | "icon-cta-pill-strong"
-  | "badge-bubble-small" | "badge-bubble-large" | "badge-bubble-light" | "badge-bubble-strong"
+  | "badge-bubble-classic" | "badge-bubble-outline" | "badge-bubble-ghost" | "badge-bubble-accent-split"
   | "minimal-dot-small" | "minimal-dot-large" | "minimal-dot-light" | "minimal-dot-strong"
   | "luxury-line-serif-minimal" | "luxury-line-gold-accent" | "luxury-line-floating-label" | "luxury-line-ultra-dot"
   | "ecommerce-line-price-tag-compact" | "ecommerce-line-product-label-extended" | "ecommerce-line-cta-pill-focus" | "ecommerce-line-ecom-meta-strip"
