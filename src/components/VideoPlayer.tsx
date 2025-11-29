@@ -255,52 +255,46 @@ const VideoPlayer = ({
       <div className="w-full max-w-[960px]">
         {/* Mode Controls - Sticky Bar Above Video */}
         {videoSrc && (
-          <>
-            {/* Fixed toggle bar below header */}
-            <div className="fixed top-[52px] left-0 right-0 z-50 px-6 pt-3 pb-2 bg-white/95 backdrop-blur-sm border-b border-gray-100">
-              <div className="max-w-[960px] mx-auto flex flex-col items-center">
-                {/* Segmented Toggle - Centered */}
-                <div className="inline-flex items-center rounded-lg bg-white border border-gray-300 p-0.5 shadow-sm">
-                  <button
-                    onClick={() => isPreviewMode && onTogglePreviewMode()}
-                    className={cn(
-                      "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200",
-                      !isPreviewMode 
-                        ? "bg-[#3B82F6] text-white" 
-                        : "bg-white text-[#6B7280] border border-[rgba(0,0,0,0.08)] hover:bg-[rgba(59,130,246,0.05)] hover:text-gray-700"
-                    )}
-                  >
-                    Edit Hotspots
-                  </button>
-                  <button
-                    onClick={() => !isPreviewMode && onTogglePreviewMode()}
-                    className={cn(
-                      "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200",
-                      isPreviewMode 
-                        ? "bg-[#3B82F6] text-white" 
-                        : "bg-white text-[#6B7280] border border-[rgba(0,0,0,0.08)] hover:bg-[rgba(59,130,246,0.05)] hover:text-gray-700"
-                    )}
-                  >
-                    Preview
-                  </button>
-                </div>
-                
-                {/* Helper Text - Below Toggle */}
-                {!isPreviewMode && (
-                  <p className="text-[12px] text-[#6B7280] mt-2.5 mb-0">
-                    ✎ Edit mode – click in the video to add a hotspot.
-                  </p>
-                )}
-                {isPreviewMode && <div className="h-3" />}
+          <div className="sticky top-[80px] z-40 px-6 pt-4 pb-2 bg-white/95 backdrop-blur-sm">
+            <div className="flex flex-col items-center max-w-[960px] mx-auto">
+              {/* Segmented Toggle - Centered */}
+              <div className="inline-flex items-center rounded-lg bg-white border border-gray-300 p-0.5 shadow-sm">
+                <button
+                  onClick={() => isPreviewMode && onTogglePreviewMode()}
+                  className={cn(
+                    "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200",
+                    !isPreviewMode 
+                      ? "bg-[#3B82F6] text-white" 
+                      : "bg-white text-[#6B7280] border border-[rgba(0,0,0,0.08)] hover:bg-[rgba(59,130,246,0.05)] hover:text-gray-700"
+                  )}
+                >
+                  Edit Hotspots
+                </button>
+                <button
+                  onClick={() => !isPreviewMode && onTogglePreviewMode()}
+                  className={cn(
+                    "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200",
+                    isPreviewMode 
+                      ? "bg-[#3B82F6] text-white" 
+                      : "bg-white text-[#6B7280] border border-[rgba(0,0,0,0.08)] hover:bg-[rgba(59,130,246,0.05)] hover:text-gray-700"
+                  )}
+                >
+                  Preview
+                </button>
               </div>
+              
+              {/* Helper Text - Below Toggle */}
+              {!isPreviewMode && (
+                <p className="text-[12px] text-[#6B7280] mt-2.5 mb-0">
+                  ✎ Edit mode – click in the video to add a hotspot.
+                </p>
+              )}
+              {isPreviewMode && <div className="h-3" />}
             </div>
-
-            {/* Spacer to account for fixed bar height */}
-            <div className={cn(!isPreviewMode ? "h-[72px]" : "h-[56px]")} />
-          </>
+          </div>
         )}
         
-      
+
         <div
           ref={containerRef}
           className={cn(
