@@ -688,6 +688,271 @@ const LayoutBehaviorPanel = ({
     selectedType === "editorial-line" ? editorialLineVariants :
     unifiedVariants;
 
+  // Product Card Preview Renderers - Unique visuals for each variant
+  const getRetailCardPreview = (variant: string) => {
+    if (variant === "retail-compact") {
+      return (
+        <div className="bg-white rounded-lg border border-[#E0E0E0] p-1.5 w-full shadow-sm">
+          <div className="flex gap-1.5 mb-1">
+            <div className="w-5 h-5 rounded bg-[#E5E7EB]" />
+            <div className="flex-1">
+              <div className="h-1.5 w-10 bg-[#374151] rounded-full mb-0.5" />
+              <div className="h-1.5 w-6 bg-[#3B82F6] rounded-full" />
+            </div>
+          </div>
+          <div className="h-3 w-full bg-[#3B82F6] rounded" />
+        </div>
+      );
+    }
+    if (variant === "retail-split") {
+      return (
+        <div className="bg-white rounded-lg border border-[#E0E0E0] p-1.5 w-full shadow-sm">
+          <div className="h-4 w-full bg-[#E5E7EB] rounded mb-1" />
+          <div className="h-1.5 w-12 bg-[#374151] rounded-full mb-1" />
+          <div className="h-[0.5px] w-full bg-[#E0E0E0] mb-1" />
+          <div className="flex items-center justify-between">
+            <div className="h-2 w-5 bg-[#3B82F6] rounded-full" />
+            <div className="h-2.5 w-8 bg-[#3B82F6] rounded" />
+          </div>
+        </div>
+      );
+    }
+    if (variant === "retail-media") {
+      return (
+        <div className="bg-white rounded-lg border border-[#E0E0E0] p-1.5 w-full shadow-sm">
+          <div className="flex gap-1.5">
+            <div className="w-8 h-8 rounded bg-[#E5E7EB]" />
+            <div className="flex-1 flex flex-col justify-between">
+              <div className="h-1.5 w-8 bg-[#374151] rounded-full" />
+              <div className="h-1.5 w-5 bg-[#3B82F6] rounded-full" />
+              <div className="h-2 w-10 bg-[#3B82F6] rounded self-start" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="bg-white rounded-lg border border-[#E0E0E0] p-1.5 w-full shadow-sm text-center">
+        <div className="w-5 h-5 rounded bg-[#E5E7EB] mx-auto mb-1" />
+        <div className="h-1 w-10 bg-[#9CA3AF] rounded-full mx-auto mb-1" />
+        <div className="h-3 w-8 bg-[#3B82F6] rounded-full mx-auto mb-1" />
+        <div className="h-2 w-12 bg-[#3B82F6] rounded mx-auto" />
+      </div>
+    );
+  };
+
+  const getFineLineCardPreview = (variant: string) => {
+    if (variant === "fineline-text-underline") {
+      return (
+        <div className="bg-[#2A2A2A] rounded-lg p-2 w-full text-center">
+          <div className="h-1.5 w-12 bg-white/90 rounded-full mx-auto mb-1" />
+          <div className="h-[0.5px] w-8 bg-white/60 mx-auto mb-1" />
+          <div className="h-1 w-6 bg-white/50 rounded-full mx-auto" />
+        </div>
+      );
+    }
+    if (variant === "fineline-text-baseline") {
+      return (
+        <div className="bg-[#2A2A2A] rounded-lg p-2 w-full">
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="h-1.5 w-10 bg-white/90 rounded-full" />
+            <div className="h-1.5 w-5 bg-white/60 rounded-full" />
+          </div>
+          <div className="flex items-center gap-0.5 justify-end">
+            <div className="h-1 w-4 bg-white/50 rounded-full" />
+            <div className="text-white/50 text-[6px]">→</div>
+          </div>
+        </div>
+      );
+    }
+    if (variant === "fineline-subtle-caption") {
+      return (
+        <div className="bg-[#2A2A2A] rounded-lg p-2 w-full text-center">
+          <div className="h-1 w-14 bg-white/90 rounded-full mx-auto mb-1" />
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <div className="flex-1 border-b border-dotted border-white/30" />
+            <div className="h-1 w-4 bg-white/60 rounded-full" />
+            <div className="flex-1 border-b border-dotted border-white/30" />
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="bg-[#2A2A2A] rounded-lg p-2 w-full">
+        <div className="flex gap-1.5">
+          <div className="w-5 h-5 rounded bg-white/20" />
+          <div className="flex-1">
+            <div className="h-1.5 w-8 bg-white/90 rounded-full mb-0.5" />
+            <div className="h-1 w-4 bg-white/50 rounded-full" />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const getLuxuryCardPreview = (variant: string) => {
+    if (variant === "luxury-minimal") {
+      return (
+        <div className="bg-white/95 rounded-lg p-2 w-full text-center shadow-sm">
+          <div className="h-1.5 w-12 bg-[#1a1a1a] rounded-full mx-auto mb-1.5" />
+          <div className="h-1 w-5 bg-[#666] rounded-full mx-auto mb-1.5" />
+          <div className="h-2 w-14 border border-[#ccc] rounded-full mx-auto" />
+        </div>
+      );
+    }
+    if (variant === "luxury-image-focus") {
+      return (
+        <div className="bg-white/95 rounded-lg overflow-hidden w-full shadow-sm">
+          <div className="h-6 w-full bg-gradient-to-br from-[#f0f0f0] to-[#e5e5e5]" />
+          <div className="p-1.5">
+            <div className="h-1.5 w-10 bg-[#1a1a1a] rounded-full mb-1" />
+            <div className="h-1 w-5 bg-[#666] rounded-full" />
+          </div>
+        </div>
+      );
+    }
+    if (variant === "luxury-split") {
+      return (
+        <div className="bg-white/95 rounded-lg p-2 w-full shadow-sm">
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <div className="h-1.5 w-10 bg-[#1a1a1a] rounded-full mb-1" />
+              <div className="h-[0.5px] w-full bg-[#e0e0e0]" />
+            </div>
+            <div className="flex flex-col items-end">
+              <div className="h-2 w-6 bg-[#1a1a1a] rounded-full mb-1" />
+              <div className="h-1.5 w-8 border border-[#ccc] rounded-full" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="bg-white/95 rounded-lg p-2 w-full text-center shadow-sm">
+        <div className="h-1 w-10 bg-[#999] rounded-full mx-auto mb-1" />
+        <div className="flex items-center justify-center gap-1 mb-1">
+          <div className="w-3 h-[0.5px] bg-[#ccc]" />
+          <div className="h-3 w-7 bg-[#1a1a1a] rounded-full" />
+          <div className="w-3 h-[0.5px] bg-[#ccc]" />
+        </div>
+        <div className="h-1 w-8 bg-[#666] rounded-full mx-auto" />
+      </div>
+    );
+  };
+
+  const getEcommerceCardPreview = (variant: string) => {
+    if (variant === "ecommerce-grid") {
+      return (
+        <div className="bg-white rounded-lg border border-[#E0E0E0] overflow-hidden w-full shadow-sm">
+          <div className="h-7 w-full bg-[#F5F5F5]" />
+          <div className="p-1.5">
+            <div className="h-1.5 w-10 bg-[#111] rounded-full mb-1" />
+            <div className="h-2 w-6 bg-[#F97316] rounded-full mb-1" />
+            <div className="h-2.5 w-full bg-[#3B82F6] rounded" />
+          </div>
+        </div>
+      );
+    }
+    if (variant === "ecommerce-badge") {
+      return (
+        <div className="bg-white rounded-lg border border-[#E0E0E0] p-2 w-full shadow-sm">
+          <div className="flex gap-1.5 mb-1.5">
+            <div className="h-4 w-6 bg-[#3B82F6] rounded flex items-center justify-center">
+              <span className="text-white text-[6px] font-bold">$349</span>
+            </div>
+            <div className="flex-1">
+              <div className="h-1.5 w-10 bg-[#111] rounded-full" />
+            </div>
+          </div>
+          <div className="h-2 w-8 bg-[#3B82F6] rounded" />
+        </div>
+      );
+    }
+    if (variant === "ecommerce-retail-promo") {
+      return (
+        <div className="bg-white rounded-lg border border-[#E0E0E0] overflow-hidden w-full shadow-sm">
+          <div className="h-2 w-full bg-gradient-to-r from-[#F97316] to-[#FB923C] flex items-center justify-center">
+            <span className="text-white text-[5px] font-bold">SALE -20%</span>
+          </div>
+          <div className="h-5 w-full bg-[#F5F5F5]" />
+          <div className="p-1.5">
+            <div className="h-1.5 w-10 bg-[#111] rounded-full mb-1" />
+            <div className="flex gap-1 mb-1">
+              <div className="h-1 w-4 bg-[#9CA3AF] rounded-full line-through" />
+              <div className="h-1.5 w-5 bg-[#F97316] rounded-full" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="bg-white rounded-lg border border-[#E0E0E0] p-2 w-full shadow-sm">
+        <div className="flex items-center mb-1.5">
+          <div className="h-4 w-8 bg-[#3B82F6] rounded-l flex items-center justify-center">
+            <span className="text-white text-[7px] font-bold">$349</span>
+          </div>
+          <div className="w-0 h-0 border-t-[8px] border-b-[8px] border-l-[6px] border-t-transparent border-b-transparent border-l-[#3B82F6]" />
+        </div>
+        <div className="h-1.5 w-10 bg-[#111] rounded-full mb-1" />
+        <div className="text-[#3B82F6] text-[8px]">→</div>
+      </div>
+    );
+  };
+
+  const getEditorialCardPreview = (variant: string) => {
+    if (variant === "editorial-article") {
+      return (
+        <div className="bg-[#1A1A1A] rounded-lg p-2 w-full">
+          <div className="h-[0.5px] w-full bg-white/50 mb-1.5" />
+          <div className="h-2 w-12 bg-white/90 rounded-full mb-1" />
+          <div className="h-1 w-full bg-white/40 rounded-full mb-1" />
+          <div className="h-[0.5px] w-full bg-white/50 mb-1" />
+          <div className="flex items-center gap-0.5 justify-end">
+            <div className="h-1 w-6 bg-white/60 rounded-full" />
+            <div className="text-white/60 text-[6px]">→</div>
+          </div>
+        </div>
+      );
+    }
+    if (variant === "editorial-caption") {
+      return (
+        <div className="bg-[#1A1A1A] rounded-lg overflow-hidden w-full">
+          <div className="h-6 w-full bg-[#333]" />
+          <div className="p-1.5">
+            <div className="h-1.5 w-10 bg-white/90 rounded-full mb-1" />
+            <div className="flex items-center gap-1">
+              <div className="h-1 w-4 bg-white/50 rounded-full" />
+              <span className="text-white/40 text-[5px]">·</span>
+              <div className="text-white/50 text-[6px]">→</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    if (variant === "editorial-quote") {
+      return (
+        <div className="bg-[#1A1A1A] rounded-lg p-2 w-full">
+          <div className="text-white/30 text-[14px] leading-none">"</div>
+          <div className="h-1.5 w-14 bg-white/90 rounded-full ml-2 mb-1" />
+          <div className="text-white/30 text-[14px] leading-none text-right">"</div>
+          <div className="h-1 w-5 bg-white/60 rounded-full ml-auto" />
+        </div>
+      );
+    }
+    return (
+      <div className="bg-[#1A1A1A] rounded-lg p-2 w-full">
+        <div className="flex items-center justify-between mb-2">
+          <div className="h-1.5 w-10 bg-white/90 rounded-full" />
+          <div className="h-1.5 w-5 bg-white/60 rounded-full" />
+        </div>
+        <div className="flex items-center gap-0.5 justify-end">
+          <div className="h-1 w-4 bg-white/50 rounded-full" />
+          <div className="text-white/50 text-[6px]">→</div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div
       className="relative bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-[#E1E4E8] overflow-hidden flex flex-col"
@@ -842,10 +1107,7 @@ const LayoutBehaviorPanel = ({
                 `}
               >
                 <div className="h-12 flex items-center justify-center w-full">
-                  <div className="bg-white rounded-lg border border-[#E0E0E0] px-2 py-1.5 text-center shadow-sm w-full">
-                    <div className="text-[9px] font-medium text-[#111111]">Product</div>
-                    <div className="text-[8px] text-[#6B7280]">$349</div>
-                  </div>
+                  {getRetailCardPreview(variant.value)}
                 </div>
                 <div className="text-center">
                   <div className="text-xs font-semibold text-[#374151]">{variant.label}</div>
@@ -872,10 +1134,7 @@ const LayoutBehaviorPanel = ({
                 `}
               >
                 <div className="h-12 flex items-center justify-center w-full">
-                  <div className="bg-[#2A2A2A] rounded-lg px-2 py-1.5 text-center w-full">
-                    <div className="text-[9px] font-light text-white">Product Name</div>
-                    <div className="w-12 h-[0.5px] bg-white/50 mx-auto mt-1" />
-                  </div>
+                  {getFineLineCardPreview(variant.value)}
                 </div>
                 <div className="text-center">
                   <div className="text-xs font-semibold text-[#374151]">{variant.label}</div>
@@ -902,10 +1161,7 @@ const LayoutBehaviorPanel = ({
                 `}
               >
                 <div className="h-12 flex items-center justify-center w-full">
-                  <div className="bg-[#1A1A1A] rounded-lg px-2 py-1.5 text-center w-full">
-                    <div className="text-[9px] font-spectral text-[#F7F5EF]">Product Name</div>
-                    <div className="text-[8px] font-spectral text-[#D6C29A]">$349</div>
-                  </div>
+                  {getLuxuryCardPreview(variant.value)}
                 </div>
                 <div className="text-center">
                   <div className="text-xs font-semibold text-[#374151]">{variant.label}</div>
@@ -932,10 +1188,7 @@ const LayoutBehaviorPanel = ({
                 `}
               >
                 <div className="h-12 flex items-center justify-center w-full">
-                  <div className="bg-white rounded-lg border border-[#E0E0E0] px-2 py-1.5 text-center shadow-sm w-full">
-                    <div className="text-[9px] font-medium text-[#111111]">Product</div>
-                    <div className="text-[10px] font-bold text-[#3B82F6]">$349</div>
-                  </div>
+                  {getEcommerceCardPreview(variant.value)}
                 </div>
                 <div className="text-center">
                   <div className="text-xs font-semibold text-[#374151]">{variant.label}</div>
@@ -962,10 +1215,7 @@ const LayoutBehaviorPanel = ({
                 `}
               >
                 <div className="h-12 flex items-center justify-center w-full">
-                  <div className="bg-[#1A1A1A] rounded-lg px-2 py-1.5 text-center w-full">
-                    <div className="text-[9px] font-playfair text-white">Product Name</div>
-                    <div className="w-8 h-[0.5px] bg-white/70 mx-auto mt-1" />
-                  </div>
+                  {getEditorialCardPreview(variant.value)}
                 </div>
                 <div className="text-center">
                   <div className="text-xs font-semibold text-[#374151]">{variant.label}</div>
