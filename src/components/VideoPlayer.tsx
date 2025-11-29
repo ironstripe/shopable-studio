@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { Hotspot, Product } from "@/types/video";
 import VideoHotspot from "./VideoHotspot";
 import ProductCard from "./ProductCard";
-import HotspotToolbar from "./HotspotToolbar";
+import HotspotInlineEditor from "./HotspotInlineEditor";
 import VideoUploadZone from "./VideoUploadZone";
 import { cn } from "@/lib/utils";
 
@@ -13,10 +13,9 @@ interface VideoPlayerProps {
   selectedHotspot: Hotspot | null;
   activeToolbarHotspotId: string | null;
   isPreviewMode: boolean;
-  isEditorOpen: boolean;
   onTogglePreviewMode: () => void;
   onAddHotspot: (x: number, y: number, time: number) => void;
-  onEditHotspot: (hotspot: Hotspot) => void;
+  onUpdateHotspot: (hotspot: Hotspot) => void;
   onDeleteHotspot: (hotspotId: string) => void;
   onHotspotSelect: (hotspotId: string) => void;
   onUpdateHotspotPosition: (hotspotId: string, x: number, y: number) => void;
@@ -32,10 +31,9 @@ const VideoPlayer = ({
   selectedHotspot,
   activeToolbarHotspotId,
   isPreviewMode,
-  isEditorOpen,
   onTogglePreviewMode,
   onAddHotspot,
-  onEditHotspot,
+  onUpdateHotspot,
   onDeleteHotspot,
   onHotspotSelect,
   onUpdateHotspotPosition,
@@ -45,7 +43,6 @@ const VideoPlayer = ({
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const wasEditorOpenRef = useRef(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showShopButton, setShowShopButton] = useState(true);
@@ -88,14 +85,6 @@ const VideoPlayer = ({
     };
   }, [videoSrc]);
 
-  // Resume video when editor panel closes
-  useEffect(() => {
-    if (wasEditorOpenRef.current === true && isEditorOpen === false) {
-      videoRef.current?.play();
-    }
-    
-    wasEditorOpenRef.current = isEditorOpen;
-  }, [isEditorOpen]);
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!videoRef.current || !containerRef.current) return;
@@ -251,125 +240,124 @@ const VideoPlayer = ({
   }, [videoSrc, isPreviewMode]);
 
   return (
-    <div className="relative w-full flex justify-center">
-      <div className="w-full max-w-[960px]">
-        {/* Mode Controls - Sticky Bar Above Video */}
-        {videoSrc && (
-          <div className="sticky top-[56px] z-40 px-6 pt-4 pb-2 bg-white/95 backdrop-blur-sm">
-            <div className="flex flex-col items-center max-w-[960px] mx-auto">
-              {/* Segmented Toggle - Centered */}
-              <div className="inline-flex items-center rounded-lg bg-white border border-gray-300 p-0.5 shadow-sm">
-                <button
-                  onClick={() => isPreviewMode && onTogglePreviewMode()}
-                  className={cn(
-                    "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200",
-                    !isPreviewMode 
-                      ? "bg-[#3B82F6] text-white" 
-                      : "bg-white text-[#6B7280] border border-[rgba(0,0,0,0.08)] hover:bg-[rgba(59,130,246,0.05)] hover:text-gray-700"
-                  )}
-                >
-                  Edit Hotspots
-                </button>
-                <button
-                  onClick={() => !isPreviewMode && onTogglePreviewMode()}
-                  className={cn(
-                    "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200",
-                    isPreviewMode 
-                      ? "bg-[#3B82F6] text-white" 
-                      : "bg-white text-[#6B7280] border border-[rgba(0,0,0,0.08)] hover:bg-[rgba(59,130,246,0.05)] hover:text-gray-700"
-                  )}
-                >
-                  Preview
-                </button>
-              </div>
-              
-              {/* Helper Text - Below Toggle */}
-              {!isPreviewMode && (
-                <p className="text-[12px] text-[#6B7280] mt-2.5 mb-0">
-                  ✎ Edit mode – click in the video to add a hotspot.
-                </p>
+    <div className="w-full max-w-[960px] mx-auto">
+      {/* Mode Controls - Above Video */}
+      {videoSrc && (
+        <div className="flex flex-col items-center mb-6">
+          {/* Segmented Toggle */}
+          <div className="inline-flex items-center rounded-lg bg-white border border-[rgba(0,0,0,0.12)] p-0.5 shadow-sm">
+            <button
+              onClick={() => isPreviewMode && onTogglePreviewMode()}
+              className={cn(
+                "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-150",
+                !isPreviewMode
+                  ? "bg-[#3B82F6] text-white shadow-sm"
+                  : "bg-transparent text-[#6B7280] hover:bg-[rgba(59,130,246,0.05)]"
               )}
-              {isPreviewMode && <div className="h-3" />}
-            </div>
+            >
+              Edit Hotspots
+            </button>
+            <button
+              onClick={() => !isPreviewMode && onTogglePreviewMode()}
+              className={cn(
+                "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-150",
+                isPreviewMode
+                  ? "bg-[#3B82F6] text-white shadow-sm"
+                  : "bg-transparent text-[#6B7280] hover:bg-[rgba(59,130,246,0.05)]"
+              )}
+            >
+              Preview
+            </button>
           </div>
-        )}
-        
 
+          {/* Helper Text */}
+          {!isPreviewMode && (
+            <p className="text-[12px] text-[#6B7280] mt-3 text-center">
+              ✎ Edit mode – click in the video to add a hotspot.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Video Container */}
+      <div className="relative w-full">
         <div
           ref={containerRef}
           className={cn(
-            "relative overflow-visible transition-all duration-300",
+            "relative w-full overflow-visible transition-all duration-200",
             videoSrc && "bg-gradient-to-br from-[#101010] to-[#181818] rounded-[14px] p-1",
             videoSrc && "shadow-[0_4px_16px_rgba(0,0,0,0.12)]",
             videoSrc && !isPreviewMode && "ring-2 ring-[rgba(59,130,246,0.4)]"
           )}
         >
-        {videoSrc ? (
-          <video
-            ref={videoRef}
-            src={videoSrc}
-            controls
-            className="w-full rounded-[12px] animate-video-enter"
-          />
-        ) : (
-          <VideoUploadZone onVideoLoad={onVideoLoad} />
-        )}
+          {videoSrc ? (
+            <video
+              ref={videoRef}
+              src={videoSrc}
+              controls
+              className="w-full max-w-full h-auto rounded-[12px] animate-video-enter"
+              style={{ display: "block" }}
+            />
+          ) : (
+            <VideoUploadZone onVideoLoad={onVideoLoad} />
+          )}
 
-        {/* Click overlay for hotspot placement - covers video except controls (only in edit mode) */}
-        {videoSrc && !isPreviewMode && (
-          <div 
-            className="absolute inset-0 bottom-[50px] hotspot-placement-cursor z-[5]"
-            onClick={handleOverlayClick}
-          />
-        )}
+          {/* Click overlay for hotspot placement - covers video except controls (only in edit mode) */}
+          {videoSrc && !isPreviewMode && (
+            <div
+              className="absolute inset-0 bottom-[50px] hotspot-placement-cursor z-[5]"
+              onClick={handleOverlayClick}
+            />
+          )}
 
-        {/* Hotspots overlay - absolutely positioned over video */}
-        {videoSrc && (
-          <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 10 }}>
-            {activeHotspots.map((hotspot) => (
-              <div 
-                key={hotspot.id} 
-                className="pointer-events-auto"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleHotspotClick(hotspot, e);
-                }}
-              >
-                <VideoHotspot
-                  hotspot={hotspot}
-                  currentTime={currentTime}
-                  isSelected={selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id}
-                  isDragging={draggingHotspot?.id === hotspot.id}
-                  isResizing={resizingHotspot?.id === hotspot.id}
-                  isEditMode={!isPreviewMode}
-                  onClick={(e) => handleHotspotClick(hotspot, e)}
-                  onDragStart={(e) => handleDragStart(hotspot, e)}
-                  onResizeStart={(e) => handleResizeStart(hotspot, e)}
-                />
-                {!isPreviewMode && activeToolbarHotspotId === hotspot.id && !draggingHotspot && (
-                  <HotspotToolbar
+          {/* Hotspots overlay - absolutely positioned over video */}
+          {videoSrc && (
+            <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 10 }}>
+              {activeHotspots.map((hotspot) => (
+                <div
+                  key={hotspot.id}
+                  className="pointer-events-auto"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleHotspotClick(hotspot, e);
+                  }}
+                >
+                  <VideoHotspot
                     hotspot={hotspot}
-                    onEdit={() => onEditHotspot(hotspot)}
-                    onDelete={() => onDeleteHotspot(hotspot.id)}
+                    currentTime={currentTime}
+                    isSelected={selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id}
+                    isDragging={draggingHotspot?.id === hotspot.id}
+                    isResizing={resizingHotspot?.id === hotspot.id}
+                    isEditMode={!isPreviewMode}
+                    onClick={(e) => handleHotspotClick(hotspot, e)}
+                    onDragStart={(e) => handleDragStart(hotspot, e)}
+                    onResizeStart={(e) => handleResizeStart(hotspot, e)}
                   />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                  {!isPreviewMode && (selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id) && !draggingHotspot && (
+                    <HotspotInlineEditor
+                      hotspot={hotspot}
+                      products={products}
+                      onUpdateHotspot={onUpdateHotspot}
+                      onDeleteHotspot={() => onDeleteHotspot(hotspot.id)}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-      {selectedProduct && (
-        <ProductCard
-          product={selectedProduct}
-          showShopButton={showShopButton}
-          onClose={() => {
-            setSelectedProduct(null);
-            setShowShopButton(true);
-            videoRef.current?.play();
-          }}
-        />
-      )}
+        {selectedProduct && (
+          <ProductCard
+            product={selectedProduct}
+            showShopButton={showShopButton}
+            onClose={() => {
+              setSelectedProduct(null);
+              setShowShopButton(true);
+              videoRef.current?.play();
+            }}
+          />
+        )}
       </div>
     </div>
   );
