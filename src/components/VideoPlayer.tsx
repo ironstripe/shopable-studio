@@ -254,7 +254,7 @@ const VideoPlayer = ({
     <div className="relative w-full max-w-[960px] mx-auto">
       {/* Mode Controls - Above Video */}
       {videoSrc && (
-        <div className="sticky top-[76px] z-40 -mx-6 px-6 py-2 bg-white/95 backdrop-blur-sm mb-3">
+        <div className="sticky top-[88px] z-40 -mx-6 px-6 py-4 bg-white/95 backdrop-blur-sm mb-3">
           <div className="flex flex-col items-center max-w-[960px] mx-auto">
             {/* Segmented Toggle - Centered */}
             <div className="inline-flex items-center rounded-lg bg-white border border-gray-300 p-0.5 shadow-sm">
