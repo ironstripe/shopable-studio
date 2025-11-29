@@ -274,6 +274,65 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1 }: Hots
     );
   }
 
+  // E-Commerce Line variants
+  if (style === "ecommerce-line-price-tag-compact") {
+    return (
+      <div 
+        className="flex items-center gap-2 bg-white/95 backdrop-blur-sm border border-[#E0E0E0] rounded-lg px-3 py-1.5 shadow-sm animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '200ms' }}
+      >
+        <span className="text-[#111111] text-[13px] font-medium">{countdown}</span>
+        <span className="text-[#9CA3AF] text-[13px]">·</span>
+        <span className="text-[#111111] text-[13px] font-medium">{ctaLabel}</span>
+        <span className="text-[#3B82F6] text-[13px]">→</span>
+      </div>
+    );
+  }
+
+  if (style === "ecommerce-line-product-label-extended") {
+    return (
+      <div 
+        className="flex flex-col items-start bg-white/95 backdrop-blur-sm border border-[#E0E0E0] rounded-lg px-3 py-2 shadow-sm animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '200ms' }}
+      >
+        <span className="text-[#111111] text-[13px] font-medium leading-tight">{ctaLabel}</span>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="text-[#6B7280] text-[12px]">349.–</span>
+          <span className="text-[#6B7280] text-[12px]">·</span>
+          <span className="text-[#3B82F6] text-[12px] font-medium">Shop →</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "ecommerce-line-cta-pill-focus") {
+    return (
+      <div 
+        className="flex items-center gap-2 animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '200ms' }}
+      >
+        <div className="w-8 h-8 rounded-full bg-[#F5F5F5]/90 backdrop-blur-sm border border-[#E0E0E0] shadow-sm flex items-center justify-center">
+          <span className="text-[#111111] text-[13px] font-medium">{countdown}</span>
+        </div>
+        <div className="bg-[#3B82F6] hover:bg-[#2563EB] rounded-full px-3 py-1.5 shadow-sm transition-colors duration-150">
+          <span className="text-white text-[13px] font-medium">{ctaLabel}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "ecommerce-line-ecom-meta-strip") {
+    return (
+      <div 
+        className="flex items-center justify-between gap-4 bg-[#F5F5F5]/90 backdrop-blur-sm border border-[#EAEAEA] rounded px-3 py-1.5 shadow-sm animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '200ms', minWidth: '120px' }}
+      >
+        <span className="text-[#111111] text-[13px] font-medium">{ctaLabel}</span>
+        <span className="text-[#6B7280] text-[12px]">349.–</span>
+      </div>
+    );
+  }
+
   return null;
 };
 
