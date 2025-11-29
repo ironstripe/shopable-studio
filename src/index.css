@@ -65,6 +65,15 @@ All colors MUST be HSL.
   }
 }
 
+@keyframes icon-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
 @keyframes upload-enter {
   0% {
     opacity: 0;
@@ -87,8 +96,23 @@ All colors MUST be HSL.
   }
 }
 
+@keyframes url-input-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .hotspot-pulse {
   animation: pulse-scale 2s ease-in-out infinite;
+}
+
+.animate-icon-pulse {
+  animation: icon-pulse 2.8s ease-out infinite;
 }
 
 .animate-upload-enter {
@@ -97,6 +121,10 @@ All colors MUST be HSL.
 
 .animate-video-enter {
   animation: video-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-url-input-enter {
+  animation: url-input-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hotspot-placement-cursor {
