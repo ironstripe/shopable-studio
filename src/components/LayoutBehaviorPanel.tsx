@@ -1360,12 +1360,16 @@ const LayoutBehaviorPanel = ({
 
       </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-[#E1E4E8]">
+      {/* Footer - Also a Drag Handle */}
+      <div 
+        className="flex items-center justify-end gap-2 px-4 py-3 border-t border-[#E1E4E8]"
+        {...dragHandleProps}
+      >
         <Button
           variant="ghost"
           size="sm"
           onClick={onClose}
+          onMouseDown={(e) => e.stopPropagation()}
           className="text-[#6B7280] hover:text-[#374151]"
         >
           Cancel
@@ -1373,6 +1377,7 @@ const LayoutBehaviorPanel = ({
         <Button
           size="sm"
           onClick={handleSave}
+          onMouseDown={(e) => e.stopPropagation()}
           className="bg-[#0E76FD] hover:bg-[#0E76FD]/90 text-white"
         >
           Save
