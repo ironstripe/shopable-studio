@@ -74,7 +74,7 @@ const HotspotInlineEditor = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-auto p-0 border-0 shadow-none" 
+          className="w-auto p-0 border-0 shadow-none bg-transparent" 
           align="start" 
           sideOffset={8}
           side="bottom"
@@ -116,7 +116,7 @@ const HotspotInlineEditor = ({
             </Button>
           </PopoverTrigger>
         <PopoverContent 
-          className="w-auto p-0 border-0 shadow-none" 
+          className="w-auto p-0 border-0 shadow-none bg-transparent" 
           align="start" 
           sideOffset={8}
           side="bottom"
