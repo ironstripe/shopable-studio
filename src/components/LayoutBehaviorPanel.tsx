@@ -175,7 +175,7 @@ const LayoutBehaviorPanel = ({
     }
     // luxury-line
     return (
-      <div className="flex flex-col items-start gap-0.5">
+      <div className="bg-[#2A2A2A] rounded-lg px-3 py-2 flex flex-col items-start gap-0.5">
         <span className="font-spectral text-sm font-light text-white tracking-wide">
           1. Product Name
         </span>
@@ -218,7 +218,7 @@ const LayoutBehaviorPanel = ({
   const getLuxuryLineVariantPreview = (variant: string) => {
     if (variant === "serif-minimal") {
       return (
-        <div className="flex flex-col items-center gap-0.5">
+        <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2 flex flex-col items-center gap-0.5">
           <span className="font-spectral text-[10px] font-light text-white/90 tracking-wide">
             1. Product
           </span>
@@ -229,7 +229,7 @@ const LayoutBehaviorPanel = ({
     
     if (variant === "gold-accent") {
       return (
-        <div className="flex flex-col items-center gap-0.5">
+        <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2 flex flex-col items-center gap-0.5">
           <div className="flex items-center gap-1">
             <span className="font-spectral text-[10px] font-light text-[#E8DCC0]">1.</span>
             <span className="font-spectral text-[10px] font-light text-white tracking-wide">Product</span>
@@ -241,15 +241,17 @@ const LayoutBehaviorPanel = ({
     
     if (variant === "floating-label") {
       return (
-        <div className="bg-black/15 rounded px-2 py-1">
-          <span className="font-inter-thin text-[10px] font-extralight text-white">Product</span>
+        <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2">
+          <div className="bg-black/40 rounded px-2 py-1">
+            <span className="font-inter-thin text-[10px] font-extralight text-white">Product</span>
+          </div>
         </div>
       );
     }
     
     // ultra-dot
     return (
-      <div className="flex items-center gap-1.5">
+      <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2 flex items-center justify-center gap-1.5">
         <div className="w-[3px] h-[3px] rounded-full bg-white" />
         <span className="font-inter-thin text-[9px] font-extralight text-white/60">Shop</span>
       </div>
@@ -301,10 +303,12 @@ const LayoutBehaviorPanel = ({
     // minimal-dot (Fine Line)
     const opacity = variant === "light" ? "opacity-60" : variant === "strong" ? "opacity-100" : "opacity-80";
     return (
-      <div className={`flex items-center gap-1.5 text-[#FF6A00] ${opacity}`} style={{ transform: `scale(${baseScale})` }}>
-        <span className="text-[11px] font-medium">3</span>
-        <span className="text-[11px] opacity-50">•</span>
-        <span className="text-[11px]">Shop</span>
+      <div className="bg-[#2A2A2A] rounded-lg px-2.5 py-2">
+        <div className={`flex items-center gap-1.5 text-white ${opacity}`} style={{ transform: `scale(${baseScale})` }}>
+          <span className="text-[11px] font-medium">3</span>
+          <span className="text-[11px] opacity-50">•</span>
+          <span className="text-[11px]">Shop</span>
+        </div>
       </div>
     );
   };

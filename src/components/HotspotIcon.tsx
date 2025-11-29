@@ -161,43 +161,43 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1 }: Hots
     );
   }
 
-  // Minimal Dot (Fine Line) variants
+  // Minimal Dot (Fine Line) variants - text-based to match panel preview
   if (style === "minimal-dot-small") {
     return (
-      <div className="flex items-center justify-center" style={glowStyle}>
-        <div className="w-7 h-7 rounded-full bg-[#FF6A00] border-2 border-white shadow-md flex items-center justify-center">
-          <span className="text-white font-bold text-[10px]">{countdown}</span>
-        </div>
+      <div className="flex items-center gap-1.5 text-white opacity-80" style={{ ...glowStyle, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>
+        <span className="text-sm font-medium">{countdown}</span>
+        <span className="text-sm opacity-50">•</span>
+        <span className="text-xs">{ctaLabel}</span>
       </div>
     );
   }
 
   if (style === "minimal-dot-large") {
     return (
-      <div className="flex items-center justify-center" style={glowStyle}>
-        <div className="w-10 h-10 rounded-full bg-[#FF6A00] border-2 border-white shadow-lg flex items-center justify-center">
-          <span className="text-white font-bold text-sm">{countdown}</span>
-        </div>
+      <div className="flex items-center gap-2 text-white opacity-100" style={{ ...glowStyle, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>
+        <span className="text-base font-medium">{countdown}</span>
+        <span className="text-base opacity-50">•</span>
+        <span className="text-sm">{ctaLabel}</span>
       </div>
     );
   }
 
   if (style === "minimal-dot-light") {
     return (
-      <div className="flex items-center justify-center" style={glowStyle}>
-        <div className="w-7 h-7 rounded-full bg-[#FF6A00]/60 border border-white shadow-sm flex items-center justify-center">
-          <span className="text-white font-bold text-[10px]">{countdown}</span>
-        </div>
+      <div className="flex items-center gap-1.5 text-white opacity-60" style={{ ...glowStyle, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>
+        <span className="text-sm font-light">{countdown}</span>
+        <span className="text-sm opacity-50">•</span>
+        <span className="text-xs font-light">{ctaLabel}</span>
       </div>
     );
   }
 
   if (style === "minimal-dot-strong") {
     return (
-      <div className="flex items-center justify-center" style={glowStyle}>
-        <div className="w-8 h-8 rounded-full bg-[#FF6A00] border-2 border-white shadow-lg flex items-center justify-center animate-pulse">
-          <span className="text-white font-bold text-xs">{countdown}</span>
-        </div>
+      <div className="flex items-center gap-1.5 text-white opacity-100" style={{ ...glowStyle, textShadow: '0 2px 4px rgba(0,0,0,0.7)' }}>
+        <span className="text-base font-semibold">{countdown}</span>
+        <span className="text-base opacity-50">•</span>
+        <span className="text-sm font-semibold">{ctaLabel}</span>
       </div>
     );
   }
@@ -207,12 +207,12 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1 }: Hots
     return (
       <div 
         className="flex flex-col items-start gap-0.5 animate-fade-in"
-        style={{ ...baseStyle, animationDuration: '240ms' }}
+        style={{ ...baseStyle, animationDuration: '240ms', textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
       >
         <span className="font-spectral text-[13px] font-light text-white tracking-wide">
           {countdown}. {ctaLabel}
         </span>
-        <div className="w-full h-[1px] bg-white/60" />
+        <div className="w-full h-[1px] bg-white/60" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
       </div>
     );
   }
@@ -221,13 +221,13 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1 }: Hots
     return (
       <div 
         className="flex flex-col items-start gap-0.5 animate-fade-in"
-        style={{ ...baseStyle, animationDuration: '240ms' }}
+        style={{ ...baseStyle, animationDuration: '240ms', textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
       >
         <div className="flex items-center gap-1.5">
           <span className="font-spectral text-[13px] font-light text-[#E8DCC0]">{countdown}.</span>
           <span className="font-spectral text-[13px] font-light text-white tracking-wide">{ctaLabel}</span>
         </div>
-        <div className="w-full h-[1px] bg-[#D4C7A1]" />
+        <div className="w-full h-[1px] bg-[#D4C7A1]" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }} />
       </div>
     );
   }
@@ -235,7 +235,7 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1 }: Hots
   if (style === "luxury-line-floating-label") {
     return (
       <div 
-        className="bg-black/15 backdrop-blur-sm rounded px-2.5 py-1.5 animate-fade-in"
+        className="bg-black/40 backdrop-blur-sm rounded px-2.5 py-1.5 animate-fade-in"
         style={{ ...baseStyle, animationDuration: '240ms' }}
       >
         <span className="font-inter-thin text-[12px] font-extralight text-white tracking-wide">
@@ -251,8 +251,11 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1 }: Hots
         className="flex items-center gap-2 group animate-fade-in"
         style={{ ...baseStyle, animationDuration: '240ms' }}
       >
-        <div className="w-[3px] h-[3px] rounded-full bg-white group-hover:opacity-30 transition-opacity duration-200" />
-        <span className="font-inter-thin text-[12px] font-extralight text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="w-[3px] h-[3px] rounded-full bg-white group-hover:opacity-30 transition-opacity duration-200" style={{ boxShadow: '0 0 4px rgba(255,255,255,0.6)' }} />
+        <span 
+          className="font-inter-thin text-[12px] font-extralight text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
+        >
           {ctaLabel}
         </span>
       </div>
