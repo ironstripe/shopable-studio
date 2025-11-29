@@ -41,6 +41,9 @@ const migrateOldStyle = (style: string): HotspotStyle => {
     "luxury-line-serif-minimal": "luxury-line-serif-whisper",
     "luxury-line-floating-label": "luxury-line-glass-veil",
     "luxury-line-ultra-dot": "luxury-line-dot-reveal",
+    // Editorial Line old variants migration
+    "editorial-line-caption-box": "editorial-line-caption-frame",
+    "editorial-line-editorial-marker": "editorial-line-dash-marker",
   };
   return (migrationMap[style] || style) as HotspotStyle;
 };
@@ -352,7 +355,7 @@ const LayoutBehaviorPanel = ({
     { 
       value: "headline-tag", 
       label: "Headline Tag",
-      description: "Horizontal label with thin underline"
+      description: "Bold serif with thin underline and arrow"
     },
     { 
       value: "vertical-label", 
@@ -360,13 +363,13 @@ const LayoutBehaviorPanel = ({
       description: "Vertical lettering with artistic flair"
     },
     { 
-      value: "caption-box", 
-      label: "Caption Box",
-      description: "Magazine caption with minimal border"
+      value: "caption-frame", 
+      label: "Caption Frame",
+      description: "Thin rectangular frame with padding"
     },
     { 
-      value: "editorial-marker", 
-      label: "Editorial Marker",
+      value: "dash-marker", 
+      label: "Dash Marker",
       description: "Em-dash followed by product name"
     }
   ];
@@ -621,43 +624,46 @@ const LayoutBehaviorPanel = ({
   const getEditorialLineVariantPreview = (variant: string) => {
     if (variant === "headline-tag") {
       return (
-        <div className="bg-[#1A1A1A] rounded-lg px-2.5 py-2 flex flex-col items-center gap-0.5">
-          <span className="font-playfair text-[10px] font-light text-white tracking-wide">
-            Product
-          </span>
-          <div className="w-10 h-[0.5px] bg-white/70" />
+        <div className="bg-[#1A1A1A] rounded-lg px-2.5 py-2 flex flex-col items-start gap-0.5">
+          <div className="flex items-center gap-1">
+            <span className="font-playfair text-[11px] font-normal text-white tracking-wide">
+              Product
+            </span>
+            <span className="text-white/60 text-[10px]">→</span>
+          </div>
+          <div className="w-10 h-[0.5px] bg-white/80" />
         </div>
       );
     }
     
     if (variant === "vertical-label") {
       return (
-        <div className="bg-[#1A1A1A] rounded-lg px-2.5 py-2 flex items-center gap-1">
+        <div className="bg-[#1A1A1A] rounded-lg px-2.5 py-2 flex flex-col items-center gap-1">
           <div className="flex flex-col items-center text-[9px] font-playfair font-light text-white tracking-wider leading-tight">
-            <span>S</span>
-            <span>H</span>
-            <span>O</span>
-            <span>P</span>
+            <span>S</span><span>H</span><span>O</span><span>P</span>
           </div>
-          <div className="w-[0.5px] h-6 bg-white/60" />
+          <div className="w-4 h-[0.5px] bg-white/70" />
+          <span className="text-[8px] text-white/60">View →</span>
         </div>
       );
     }
     
-    if (variant === "caption-box") {
+    if (variant === "caption-frame") {
       return (
-        <div className="bg-[#1A1A1A] rounded-lg px-2.5 py-2">
-          <div className="border border-white/60 rounded px-2 py-1">
+        <div className="bg-[#1A1A1A] rounded-lg px-2 py-1.5">
+          <div className="border border-white/70 rounded px-2.5 py-1.5">
             <span className="font-spectral text-[9px] font-light text-white">Product</span>
+            <span className="text-white/60 text-[8px] ml-1">349.–</span>
           </div>
         </div>
       );
     }
     
-    // editorial-marker
+    // dash-marker
     return (
-      <div className="bg-[#1A1A1A] rounded-lg px-2.5 py-2">
+      <div className="bg-[#1A1A1A] rounded-lg px-2.5 py-2 flex items-center gap-1.5">
         <span className="font-spectral text-[10px] font-light text-white tracking-wide">— Product</span>
+        <span className="text-white/50 text-[9px]">More</span>
       </div>
     );
   };
