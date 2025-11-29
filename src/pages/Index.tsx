@@ -4,7 +4,17 @@ import VideoPlayer from "@/components/VideoPlayer";
 import HotspotSidebar from "@/components/HotspotSidebar";
 import VideoCTAPanel from "@/components/VideoCTAPanel";
 import { Button } from "@/components/ui/button";
-import { Download, ChevronDown, Pencil } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Download, ChevronDown, Pencil, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import shopableLogo from "@/assets/shopable-logo.png";
@@ -19,6 +29,7 @@ const Index = () => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [shouldAutoOpenProductPanel, setShouldAutoOpenProductPanel] = useState(false);
   const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
+  const [showReplaceVideoDialog, setShowReplaceVideoDialog] = useState(false);
   const [videoCTA, setVideoCTA] = useState<VideoCTA>({
     label: "Shop Now",
     url: "",
@@ -187,6 +198,41 @@ const Index = () => {
     return id;
   };
 
+  const handleReplaceVideo = () => {
+    // Clear video source - triggers upload zone display
+    setVideoSrc(null);
+    
+    // Clear all hotspots
+    setHotspots([]);
+    
+    // Clear selection states
+    setSelectedHotspot(null);
+    setActiveToolbarHotspotId(null);
+    setHighlightedHotspotId(null);
+    
+    // Reset video CTA to defaults
+    setVideoCTA({
+      label: "Shop Now",
+      url: "",
+      mode: "off",
+      position: { x: 0.85, y: 0.85 },
+    });
+    
+    // Reset title to default
+    setVideoTitle("Untitled Video");
+    
+    // Ensure edit mode
+    setIsPreviewMode(false);
+    
+    // Reset auto-open product panel flag
+    setShouldAutoOpenProductPanel(false);
+    
+    // Close the dialog
+    setShowReplaceVideoDialog(false);
+    
+    toast.success("Video removed. Upload a new video to continue.");
+  };
+
   const handleExport = () => {
     const project: VideoProject = {
       videoSrc: videoSrc || "",
@@ -258,8 +304,22 @@ const Index = () => {
           {/* CENTER: Reserved for status (empty for now) */}
           <div className="hidden md:flex items-center justify-center flex-1" />
 
-          {/* RIGHT: Export button (chip-style) */}
+          {/* RIGHT: Change Video + Export buttons */}
           <div className="flex items-center gap-2">
+            {videoSrc && (
+              <button
+                onClick={() => setShowReplaceVideoDialog(true)}
+                className={cn(
+                  "inline-flex items-center h-8 px-3 text-[13px] font-medium rounded-full",
+                  "bg-transparent border border-transparent text-[#6B7280]",
+                  "hover:bg-[rgba(0,0,0,0.04)] hover:text-[#374151]",
+                  "transition-all duration-150"
+                )}
+              >
+                <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                Change video
+              </button>
+            )}
             <button
               onClick={handleExport}
               disabled={!videoSrc}
@@ -330,6 +390,28 @@ const Index = () => {
           </div>
         )}
       </main>
+
+      {/* Replace Video Confirmation Dialog */}
+      <AlertDialog open={showReplaceVideoDialog} onOpenChange={setShowReplaceVideoDialog}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Replace current video?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Replacing the video will remove all hotspots and their timings for this video. 
+              Your products will stay available in the product library.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleReplaceVideo}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Replace video
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
