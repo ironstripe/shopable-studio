@@ -62,7 +62,13 @@ const HotspotInlineEditor = ({
             <Tag className="w-4 h-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 border-0 shadow-none" align="start" sideOffset={8}>
+        <PopoverContent 
+          className="w-auto p-0 border-0 shadow-none" 
+          align="start" 
+          sideOffset={8}
+          side="bottom"
+          collisionPadding={{ top: 70, left: 16, right: 16, bottom: 16 }}
+        >
           <ProductPanel
             products={products}
             selectedProductId={hotspot.productId || undefined}
@@ -96,7 +102,13 @@ const HotspotInlineEditor = ({
             <Settings className="w-4 h-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 border-0 shadow-none" align="start" sideOffset={8}>
+        <PopoverContent 
+          className="w-auto p-0 border-0 shadow-none" 
+          align="start" 
+          sideOffset={8}
+          side="bottom"
+          collisionPadding={{ top: 70, left: 16, right: 16, bottom: 16 }}
+        >
           <LayoutBehaviorPanel
             hotspot={hotspot}
             onUpdateHotspot={(updated) => {
