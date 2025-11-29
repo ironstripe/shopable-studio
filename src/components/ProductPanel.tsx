@@ -8,7 +8,7 @@ import { Search, Plus, Check, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePanelResize } from "@/hooks/use-panel-resize";
 import { usePanelDrag } from "@/hooks/use-panel-drag";
-import { ResizeHandle } from "@/components/ResizeHandle";
+import { ResizeEdges } from "@/components/ResizeEdges";
 
 interface ProductPanelProps {
   products: Record<string, Product>;
@@ -43,7 +43,7 @@ const ProductPanel = ({
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
 
-  const { width, height, resizeHandleProps } = usePanelResize({
+  const { width, height, rightEdgeProps, bottomEdgeProps, cornerProps } = usePanelResize({
     minWidth: 280,
     maxWidth: 500,
     minHeight: 250,
@@ -139,7 +139,11 @@ const ProductPanel = ({
             Create product
           </Button>
         </div>
-        <ResizeHandle {...resizeHandleProps} />
+        <ResizeEdges 
+          rightEdgeProps={rightEdgeProps}
+          bottomEdgeProps={bottomEdgeProps}
+          cornerProps={cornerProps}
+        />
       </div>
     );
   }
@@ -299,7 +303,11 @@ const ProductPanel = ({
             Save product
           </Button>
         </div>
-        <ResizeHandle {...resizeHandleProps} />
+        <ResizeEdges 
+          rightEdgeProps={rightEdgeProps}
+          bottomEdgeProps={bottomEdgeProps}
+          cornerProps={cornerProps}
+        />
       </div>
     );
   }
@@ -418,7 +426,11 @@ const ProductPanel = ({
             Save changes
           </Button>
         </div>
-        <ResizeHandle {...resizeHandleProps} />
+        <ResizeEdges 
+          rightEdgeProps={rightEdgeProps}
+          bottomEdgeProps={bottomEdgeProps}
+          cornerProps={cornerProps}
+        />
       </div>
     );
   }
@@ -520,7 +532,11 @@ const ProductPanel = ({
           ))}
         </div>
       </ScrollArea>
-      <ResizeHandle {...resizeHandleProps} />
+      <ResizeEdges 
+        rightEdgeProps={rightEdgeProps}
+        bottomEdgeProps={bottomEdgeProps}
+        cornerProps={cornerProps}
+      />
     </div>
   );
 };

@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { X, AlertCircle } from "lucide-react";
 import { usePanelResize } from "@/hooks/use-panel-resize";
 import { usePanelDrag } from "@/hooks/use-panel-drag";
-import { ResizeHandle } from "@/components/ResizeHandle";
+import { ResizeEdges } from "@/components/ResizeEdges";
 
 interface LayoutBehaviorPanelProps {
   hotspot: Hotspot;
@@ -100,7 +100,7 @@ const LayoutBehaviorPanel = ({
   const [startTime, setStartTime] = useState(hotspot.timeStart.toFixed(1));
   const [duration, setDuration] = useState((hotspot.timeEnd - hotspot.timeStart).toFixed(1));
 
-  const { width, height, resizeHandleProps } = usePanelResize({
+  const { width, height, rightEdgeProps, bottomEdgeProps, cornerProps } = usePanelResize({
     minWidth: 300,
     maxWidth: 520,
     minHeight: 300,
@@ -1384,8 +1384,12 @@ const LayoutBehaviorPanel = ({
         </Button>
       </div>
 
-      {/* Resize Handle */}
-      <ResizeHandle {...resizeHandleProps} />
+      {/* Resize Edges */}
+      <ResizeEdges 
+        rightEdgeProps={rightEdgeProps}
+        bottomEdgeProps={bottomEdgeProps}
+        cornerProps={cornerProps}
+      />
     </div>
   );
 };
