@@ -75,9 +75,18 @@ const VideoCTA = ({ videoCTA, currentTime, videoDuration, containerRef, isPlayin
     };
   }, [containerRef, videoCTA.position]);
 
+  const normalizeUrl = (url: string): string => {
+    if (!url) return url;
+    // If URL doesn't start with http:// or https://, add https://
+    if (!/^https?:\/\//i.test(url)) {
+      return `https://${url}`;
+    }
+    return url;
+  };
+
   const handleClick = () => {
     if (videoCTA.url && !isEditMode) {
-      window.open(videoCTA.url, "_blank");
+      window.open(normalizeUrl(videoCTA.url), "_blank");
     }
   };
 

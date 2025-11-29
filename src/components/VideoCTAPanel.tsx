@@ -39,9 +39,12 @@ const VideoCTAPanel = ({ videoCTA, onUpdateCTA }: VideoCTAPanelProps) => {
           <Input
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://..."
+            placeholder="www.example.com or https://..."
             className="h-9 text-[13px] bg-white border-[#E0E0E0] text-[#111827]"
           />
+          <p className="text-[11px] text-[#9CA3AF] mt-1">
+            Protocol (https://) will be added automatically if not provided
+          </p>
         </div>
 
         <div>
