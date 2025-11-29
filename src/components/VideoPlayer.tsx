@@ -242,12 +242,16 @@ const VideoPlayer = ({
   const activeHotspots = hotspots.filter((h) => {
     const isInTimeRange = currentTime >= h.timeStart && currentTime <= h.timeEnd;
     
+    // Always show selected hotspot or hotspot with active toolbar (for editing)
+    const isSelectedOrActive = selectedHotspot?.id === h.id || activeToolbarHotspotId === h.id;
+    
     // In preview mode, only show hotspots with assigned products
     if (isPreviewMode && !h.productId) {
       return false;
     }
     
-    return isInTimeRange;
+    // Show if in time range OR if selected/active (in edit mode)
+    return isInTimeRange || (!isPreviewMode && isSelectedOrActive);
   });
 
   // Calculate hotspot index for empty indicators
