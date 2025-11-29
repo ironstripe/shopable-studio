@@ -13,12 +13,15 @@ import {
 } from "@/components/ui/select";
 import { Tag, Link2, Clock, MessageSquare, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ProductPanel from "./ProductPanel";
 
 interface HotspotInlineEditorProps {
   hotspot: Hotspot;
   products: Record<string, Product>;
   onUpdateHotspot: (hotspot: Hotspot) => void;
   onDeleteHotspot: () => void;
+  onUpdateProduct: (product: Product) => void;
+  onCreateProduct: (product: Omit<Product, "id">) => void;
 }
 
 const HotspotInlineEditor = ({
@@ -26,6 +29,8 @@ const HotspotInlineEditor = ({
   products,
   onUpdateHotspot,
   onDeleteHotspot,
+  onUpdateProduct,
+  onCreateProduct,
 }: HotspotInlineEditorProps) => {
   const [productOpen, setProductOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
@@ -51,36 +56,31 @@ const HotspotInlineEditor = ({
           <Button
             size="sm"
             variant="ghost"
-            className="h-8 w-8 p-0 text-[#374151] hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]"
+            className={cn(
+              "h-8 w-8 p-0 hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]",
+              productOpen ? "bg-[rgba(59,130,246,0.12)] text-[#3B82F6]" : "text-[#374151]"
+            )}
             title="Change Product"
           >
             <Tag className="w-4 h-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-64 p-3" align="start">
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold text-[#6B7280] uppercase">
-              Product
-            </Label>
-            <Select
-              value={hotspot.productId}
-              onValueChange={(value) => {
-                onUpdateHotspot({ ...hotspot, productId: value });
-                setProductOpen(false);
-              }}
-            >
-              <SelectTrigger className="h-9 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(products).map((product) => (
-                  <SelectItem key={product.id} value={product.id}>
-                    {product.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <PopoverContent className="w-auto p-0 border-0 shadow-none" align="start" sideOffset={8}>
+          <ProductPanel
+            products={products}
+            selectedProductId={hotspot.productId}
+            onSelectProduct={(productId) => {
+              onUpdateHotspot({ ...hotspot, productId });
+              setProductOpen(false);
+            }}
+            onUpdateProduct={onUpdateProduct}
+            onCreateProduct={(newProduct) => {
+              const id = `product-${Date.now()}`;
+              onCreateProduct(newProduct);
+              onUpdateHotspot({ ...hotspot, productId: id });
+            }}
+            onClose={() => setProductOpen(false)}
+          />
         </PopoverContent>
       </Popover>
 
