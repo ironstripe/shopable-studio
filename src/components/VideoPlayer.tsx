@@ -256,7 +256,7 @@ const VideoPlayer = ({
         {/* Mode Controls - Fixed Bar Above Video */}
         {videoSrc && (
           <>
-            <div className="fixed top-[57px] left-0 right-0 z-40 px-6 pt-6 pb-2 bg-white/95 backdrop-blur-sm">
+            <div className="fixed top-[65px] left-0 right-0 z-40 px-6 pt-4 pb-2 bg-white/95 backdrop-blur-sm">
               <div className="flex flex-col items-center max-w-[960px] mx-auto">
                 {/* Segmented Toggle - Centered */}
                 <div className="inline-flex items-center rounded-lg bg-white border border-gray-300 p-0.5 shadow-sm">
@@ -295,7 +295,7 @@ const VideoPlayer = ({
             </div>
             
             {/* Spacer to account for fixed bar */}
-            <div className={cn(!isPreviewMode ? "h-24" : "h-20")} />
+            <div className={cn(!isPreviewMode ? "h-[100px]" : "h-[85px]")} />
           </>
         )}
       
