@@ -193,7 +193,7 @@ const LayoutBehaviorPanel = ({
   const renderFamilyPreview = (family: HotspotType) => {
     if (family === "badge-bubble") {
       return (
-        <div className="bg-[#FF6A00] border-2 border-black rounded-full px-4 py-2 flex items-center gap-2 shadow-lg">
+        <div className="bg-[#FF6A00] rounded-full px-4 py-2 flex items-center gap-2 shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
           <span className="text-white text-sm font-bold">3</span>
           <span className="text-white/60 text-sm">•</span>
           <span className="text-white text-sm font-medium">Shop</span>
@@ -202,10 +202,10 @@ const LayoutBehaviorPanel = ({
     }
     if (family === "minimal-dot") {
       return (
-        <div className="flex items-center gap-2 text-[#FF6A00]/80 text-base">
-          <span className="font-medium">3</span>
-          <span className="opacity-50">•</span>
-          <span>Shop</span>
+        <div className="flex items-center gap-2 border border-white/70 rounded px-3 py-1.5 bg-[#2A2A2A]">
+          <span className="text-white text-sm font-light">3</span>
+          <div className="w-[0.5px] h-4 bg-white/50" />
+          <span className="text-white text-xs font-light tracking-wide">Shop</span>
         </div>
       );
     }
