@@ -34,20 +34,23 @@ export type ClickBehavior = "show-card" | "direct-link" | "no-action";
 // Product Card Family System (Extensible Architecture)
 export type CardFamily = "retail" | "luxury" | "editorial" | "minimal";
 
-// Retail Card variants (E-Commerce focused)
+// Retail Card variants (E-Commerce focused, maps to badge-bubble hotspot family)
 export type RetailCardVariant = "retail-compact" | "retail-split" | "retail-media" | "retail-price-focus";
 
-// Luxury Card variants (Placeholder for future)
-export type LuxuryCardVariant = "luxury-elegant" | "luxury-minimal" | "luxury-ornate" | "luxury-modern";
+// Fine Line Card variants (maps to minimal-dot hotspot family)
+export type FineLineCardVariant = "fineline-text-underline" | "fineline-text-baseline" | "fineline-subtle-caption" | "fineline-micro-line";
 
-// Editorial Card variants (Placeholder for future)
-export type EditorialCardVariant = "editorial-magazine" | "editorial-cinema" | "editorial-art" | "editorial-story";
+// Luxury Card variants (maps to luxury-line hotspot family)
+export type LuxuryCardVariant = "luxury-minimal" | "luxury-image-focus" | "luxury-split" | "luxury-price-highlight";
 
-// Minimal Card variants (Placeholder for future)
-export type MinimalCardVariant = "minimal-clean" | "minimal-dot" | "minimal-ghost" | "minimal-line";
+// E-Commerce Card variants (maps to ecommerce-line hotspot family)
+export type ECommerceCardVariant = "ecommerce-grid" | "ecommerce-badge" | "ecommerce-price-tag" | "ecommerce-retail-promo";
+
+// Editorial Card variants (maps to editorial-line hotspot family)
+export type EditorialCardVariant = "editorial-article" | "editorial-caption" | "editorial-quote" | "editorial-minimal-info";
 
 // Combined card style (family-variant)
-export type CardStyle = RetailCardVariant | LuxuryCardVariant | EditorialCardVariant | MinimalCardVariant;
+export type CardStyle = RetailCardVariant | FineLineCardVariant | LuxuryCardVariant | ECommerceCardVariant | EditorialCardVariant;
 
 export interface Hotspot {
   id: string;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Hotspot, HotspotStyle, HotspotType, HotspotVariant, ClickBehavior, CardStyle, RetailCardVariant } from "@/types/video";
+import { Hotspot, HotspotStyle, HotspotType, HotspotVariant, ClickBehavior, CardStyle, RetailCardVariant, FineLineCardVariant, LuxuryCardVariant, ECommerceCardVariant, EditorialCardVariant } from "@/types/video";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -120,19 +120,25 @@ const LayoutBehaviorPanel = ({
 
   const handleTypeChange = (type: HotspotType) => {
     setSelectedType(type);
-    // Auto-select appropriate default variant when switching families
+    // Auto-select appropriate default variant and card style when switching families
     if (type === "badge-bubble") {
       setSelectedVariant("classic");
+      setCardStyle("retail-compact");
     } else if (type === "minimal-dot") {
       setSelectedVariant("pure-line");
+      setCardStyle("fineline-text-underline");
     } else if (type === "luxury-line") {
       setSelectedVariant("serif-whisper");
+      setCardStyle("luxury-minimal");
     } else if (type === "ecommerce-line") {
       setSelectedVariant("compact-price-tag");
+      setCardStyle("ecommerce-grid");
     } else if (type === "editorial-line") {
       setSelectedVariant("headline-tag");
+      setCardStyle("editorial-article");
     } else {
       setSelectedVariant("small");
+      setCardStyle("retail-compact");
     }
   };
 
@@ -802,7 +808,175 @@ const LayoutBehaviorPanel = ({
           </div>
         </div>
 
-        {/* 3) CTA LABEL Section - For Badge bubble, E-Commerce Line, and Editorial Line */}
+        {/* 3) PRODUCT CARD STYLE Section - Family-dependent card variants */}
+        <div className="space-y-3">
+          <div>
+            <Label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">
+              Product Card Style
+            </Label>
+            <div className="text-xs text-[#6B7280] mt-1">
+              {selectedType === "badge-bubble" && "Retail card layouts"}
+              {selectedType === "minimal-dot" && "Fine Line card layouts"}
+              {selectedType === "luxury-line" && "Luxury card layouts"}
+              {selectedType === "ecommerce-line" && "E-Commerce card layouts"}
+              {selectedType === "editorial-line" && "Editorial card layouts"}
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2.5">
+            {/* Badge Bubble → Retail Cards */}
+            {selectedType === "badge-bubble" && [
+              { value: "retail-compact", label: "Retail Compact", desc: "Title + Price inline" },
+              { value: "retail-split", label: "Retail Split", desc: "Two-row layout" },
+              { value: "retail-media", label: "Retail Media", desc: "With thumbnail" },
+              { value: "retail-price-focus", label: "Retail Price Focus", desc: "Large centered price" },
+            ].map((variant) => (
+              <button
+                key={variant.value}
+                onClick={() => setCardStyle(variant.value as RetailCardVariant)}
+                className={`
+                  flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all
+                  ${cardStyle === variant.value 
+                    ? 'border-[#3B82F6] bg-[#EFF6FF]' 
+                    : 'border-[#E1E4E8] bg-white hover:border-[#D1D5DB]'}
+                `}
+              >
+                <div className="h-12 flex items-center justify-center w-full">
+                  <div className="bg-white rounded-lg border border-[#E0E0E0] px-2 py-1.5 text-center shadow-sm w-full">
+                    <div className="text-[9px] font-medium text-[#111111]">Product</div>
+                    <div className="text-[8px] text-[#6B7280]">$349</div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-semibold text-[#374151]">{variant.label}</div>
+                  <div className="text-[10px] text-[#6B7280] mt-0.5 leading-tight">{variant.desc}</div>
+                </div>
+              </button>
+            ))}
+
+            {/* Fine Line → Fine Line Cards */}
+            {selectedType === "minimal-dot" && [
+              { value: "fineline-text-underline", label: "Text Underline", desc: "Minimal with subtle underline" },
+              { value: "fineline-text-baseline", label: "Text Baseline", desc: "Clean baseline typography" },
+              { value: "fineline-subtle-caption", label: "Subtle Caption", desc: "Small caption style" },
+              { value: "fineline-micro-line", label: "Micro Line Card", desc: "Ultra-minimal line design" },
+            ].map((variant) => (
+              <button
+                key={variant.value}
+                onClick={() => setCardStyle(variant.value as FineLineCardVariant)}
+                className={`
+                  flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all
+                  ${cardStyle === variant.value 
+                    ? 'border-[#3B82F6] bg-[#EFF6FF]' 
+                    : 'border-[#E1E4E8] bg-white hover:border-[#D1D5DB]'}
+                `}
+              >
+                <div className="h-12 flex items-center justify-center w-full">
+                  <div className="bg-[#2A2A2A] rounded-lg px-2 py-1.5 text-center w-full">
+                    <div className="text-[9px] font-light text-white">Product Name</div>
+                    <div className="w-12 h-[0.5px] bg-white/50 mx-auto mt-1" />
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-semibold text-[#374151]">{variant.label}</div>
+                  <div className="text-[10px] text-[#6B7280] mt-0.5 leading-tight">{variant.desc}</div>
+                </div>
+              </button>
+            ))}
+
+            {/* Luxury Line → Luxury Cards */}
+            {selectedType === "luxury-line" && [
+              { value: "luxury-minimal", label: "Luxury Minimal Card", desc: "Clean elegant minimal" },
+              { value: "luxury-image-focus", label: "Luxury Image Focus", desc: "Image-dominant layout" },
+              { value: "luxury-split", label: "Luxury Split Card", desc: "Two-part elegant layout" },
+              { value: "luxury-price-highlight", label: "Luxury Price Highlight", desc: "Price-focused luxury style" },
+            ].map((variant) => (
+              <button
+                key={variant.value}
+                onClick={() => setCardStyle(variant.value as LuxuryCardVariant)}
+                className={`
+                  flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all
+                  ${cardStyle === variant.value 
+                    ? 'border-[#3B82F6] bg-[#EFF6FF]' 
+                    : 'border-[#E1E4E8] bg-white hover:border-[#D1D5DB]'}
+                `}
+              >
+                <div className="h-12 flex items-center justify-center w-full">
+                  <div className="bg-[#1A1A1A] rounded-lg px-2 py-1.5 text-center w-full">
+                    <div className="text-[9px] font-spectral text-[#F7F5EF]">Product Name</div>
+                    <div className="text-[8px] font-spectral text-[#D6C29A]">$349</div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-semibold text-[#374151]">{variant.label}</div>
+                  <div className="text-[10px] text-[#6B7280] mt-0.5 leading-tight">{variant.desc}</div>
+                </div>
+              </button>
+            ))}
+
+            {/* E-Commerce Line → E-Commerce Cards */}
+            {selectedType === "ecommerce-line" && [
+              { value: "ecommerce-grid", label: "Grid Card", desc: "Grid-style product layout" },
+              { value: "ecommerce-badge", label: "Badge Card", desc: "Badge-style compact card" },
+              { value: "ecommerce-price-tag", label: "Price Tag Card", desc: "Price tag design" },
+              { value: "ecommerce-retail-promo", label: "Retail Promo Card", desc: "Promotional style" },
+            ].map((variant) => (
+              <button
+                key={variant.value}
+                onClick={() => setCardStyle(variant.value as ECommerceCardVariant)}
+                className={`
+                  flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all
+                  ${cardStyle === variant.value 
+                    ? 'border-[#3B82F6] bg-[#EFF6FF]' 
+                    : 'border-[#E1E4E8] bg-white hover:border-[#D1D5DB]'}
+                `}
+              >
+                <div className="h-12 flex items-center justify-center w-full">
+                  <div className="bg-white rounded-lg border border-[#E0E0E0] px-2 py-1.5 text-center shadow-sm w-full">
+                    <div className="text-[9px] font-medium text-[#111111]">Product</div>
+                    <div className="text-[10px] font-bold text-[#3B82F6]">$349</div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-semibold text-[#374151]">{variant.label}</div>
+                  <div className="text-[10px] text-[#6B7280] mt-0.5 leading-tight">{variant.desc}</div>
+                </div>
+              </button>
+            ))}
+
+            {/* Editorial Line → Editorial Cards */}
+            {selectedType === "editorial-line" && [
+              { value: "editorial-article", label: "Article Card", desc: "Magazine article style" },
+              { value: "editorial-caption", label: "Caption Card", desc: "Photo caption style" },
+              { value: "editorial-quote", label: "Quote Card", desc: "Pull quote style" },
+              { value: "editorial-minimal-info", label: "Minimal Info Card", desc: "Minimal information display" },
+            ].map((variant) => (
+              <button
+                key={variant.value}
+                onClick={() => setCardStyle(variant.value as EditorialCardVariant)}
+                className={`
+                  flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all
+                  ${cardStyle === variant.value 
+                    ? 'border-[#3B82F6] bg-[#EFF6FF]' 
+                    : 'border-[#E1E4E8] bg-white hover:border-[#D1D5DB]'}
+                `}
+              >
+                <div className="h-12 flex items-center justify-center w-full">
+                  <div className="bg-[#1A1A1A] rounded-lg px-2 py-1.5 text-center w-full">
+                    <div className="text-[9px] font-playfair text-white">Product Name</div>
+                    <div className="w-8 h-[0.5px] bg-white/70 mx-auto mt-1" />
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-semibold text-[#374151]">{variant.label}</div>
+                  <div className="text-[10px] text-[#6B7280] mt-0.5 leading-tight">{variant.desc}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 4) CTA LABEL Section - For Badge bubble, E-Commerce Line, and Editorial Line */}
         {(selectedType === "badge-bubble" || selectedType === "ecommerce-line" || selectedType === "editorial-line") && (
           <div className="space-y-2">
             <Label htmlFor="cta-input" className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">
@@ -819,7 +993,7 @@ const LayoutBehaviorPanel = ({
           </div>
         )}
 
-        {/* 4) CLICK BEHAVIOR Section */}
+        {/* 5) CLICK BEHAVIOR Section */}
         <div className="space-y-3">
           <Label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">
             Click Behavior
@@ -862,82 +1036,7 @@ const LayoutBehaviorPanel = ({
           </RadioGroup>
         </div>
 
-        {/* 4.5) CARD STYLE Section - Only show when "show-card" is selected */}
-        {clickBehavior === "show-card" && (
-          <div className="space-y-3">
-            <div>
-              <Label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">
-                Product Card Style
-              </Label>
-              <div className="text-xs text-[#6B7280] mt-1">
-                Choose how product details are displayed
-              </div>
-            </div>
-            
-            {/* Card Family Selector - Currently only Retail is available */}
-            <div className="grid grid-cols-2 gap-2.5">
-              {/* Retail Family - Active */}
-              <button
-                onClick={() => setCardStyle("retail-compact")}
-                className={`
-                  flex flex-col items-start gap-1.5 p-3 rounded-xl border-2 transition-all text-left
-                  ${cardStyle.startsWith("retail-") 
-                    ? 'border-[#3B82F6] bg-[#EFF6FF]' 
-                    : 'border-[#E1E4E8] bg-white hover:border-[#D1D5DB]'}
-                `}
-              >
-                <div className="text-xs font-semibold text-[#374151]">Retail</div>
-                <div className="text-[10px] text-[#6B7280] leading-tight">
-                  E-commerce focused cards
-                </div>
-              </button>
-              
-              {/* Future families - Coming soon */}
-              <button
-                disabled
-                className="flex flex-col items-start gap-1.5 p-3 rounded-xl border-2 border-[#E1E4E8] bg-[#F9FAFB] opacity-60 cursor-not-allowed text-left"
-              >
-                <div className="text-xs font-semibold text-[#9CA3AF]">Luxury</div>
-                <div className="text-[10px] text-[#9CA3AF] leading-tight">
-                  Coming soon
-                </div>
-              </button>
-            </div>
-
-            {/* Retail Variant Selector - Only show when Retail family is selected */}
-            {cardStyle.startsWith("retail-") && (
-              <div className="space-y-2 pt-2">
-                <Label className="text-xs text-[#6B7280]">Retail Card Variant</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { value: "retail-compact", label: "Compact", desc: "Title + Price inline" },
-                    { value: "retail-split", label: "Split", desc: "Two-row layout" },
-                    { value: "retail-media", label: "Media", desc: "With thumbnail" },
-                    { value: "retail-price-focus", label: "Price Focus", desc: "Large centered price" },
-                  ].map((variant) => (
-                    <button
-                      key={variant.value}
-                      onClick={() => setCardStyle(variant.value as RetailCardVariant)}
-                      className={`
-                        flex flex-col items-start gap-1 p-2.5 rounded-lg border transition-all text-left
-                        ${cardStyle === variant.value 
-                          ? 'border-[#3B82F6] bg-[#EFF6FF]' 
-                          : 'border-[#E1E4E8] bg-white hover:border-[#D1D5DB]'}
-                      `}
-                    >
-                      <div className="text-xs font-medium text-[#374151]">{variant.label}</div>
-                      <div className="text-[10px] text-[#6B7280] leading-tight">
-                        {variant.desc}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* 5) TIMING Section */}
+        {/* 6) TIMING Section */}
         <div className="space-y-3">
           <Label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">
             Timing
