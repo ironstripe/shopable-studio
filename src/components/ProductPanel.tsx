@@ -101,7 +101,7 @@ const ProductPanel = ({
   // Create Mode
   if (viewMode === "create" || (viewMode === "list" && productList.length === 0)) {
     return (
-      <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] max-h-[calc(100vh-140px)] overflow-hidden flex flex-col">
+      <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] max-h-[340px] overflow-hidden flex flex-col">
         <h3 className="text-[14px] font-semibold text-[#111827] p-5 pb-0 mb-4">
           Neues Produkt
         </h3>
@@ -204,7 +204,7 @@ const ProductPanel = ({
   // Edit Mode
   if (viewMode === "edit" && editingProduct) {
     return (
-      <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] max-h-[calc(100vh-140px)] overflow-hidden flex flex-col">
+      <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] max-h-[340px] overflow-hidden flex flex-col">
         <h3 className="text-[14px] font-semibold text-[#111827] p-5 pb-0 mb-4">
           Edit Product
         </h3>
@@ -294,7 +294,7 @@ const ProductPanel = ({
 
   // List Mode (Default)
   return (
-    <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-4 max-h-[calc(100vh-140px)] flex flex-col">
+    <div className="w-[340px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] p-4 max-h-[340px] flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-[13px] font-semibold text-[#111827]">
