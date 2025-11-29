@@ -265,7 +265,10 @@ const ProductPanel = ({
           </div>
         </div>
 
-        <div className="flex gap-2 p-5 pt-4 border-t border-[rgba(0,0,0,0.06)]">
+        <div 
+          className="flex gap-2 p-5 pt-4 border-t border-[rgba(0,0,0,0.06)]"
+          {...dragHandleProps}
+        >
           <Button
             onClick={() => {
               setViewMode("list");
@@ -280,6 +283,7 @@ const ProductPanel = ({
               setThumbnailFile(null);
               setThumbnailPreview("");
             }}
+            onMouseDown={(e) => e.stopPropagation()}
             variant="outline"
             className="flex-1 h-9 text-[13px]"
           >
@@ -287,6 +291,7 @@ const ProductPanel = ({
           </Button>
           <Button
             onClick={handleCreateNew}
+            onMouseDown={(e) => e.stopPropagation()}
             disabled={!creatingProduct.title || !creatingProduct.link}
             className="flex-1 h-9 text-[13px] bg-[#3B82F6] hover:bg-[#2563EB] text-white"
           >
@@ -389,12 +394,16 @@ const ProductPanel = ({
           </div>
         </div>
 
-        <div className="flex gap-2 p-5 pt-4 border-t border-[rgba(0,0,0,0.06)]">
+        <div 
+          className="flex gap-2 p-5 pt-4 border-t border-[rgba(0,0,0,0.06)]"
+          {...dragHandleProps}
+        >
           <Button
             onClick={() => {
               setViewMode("list");
               setEditingProduct(null);
             }}
+            onMouseDown={(e) => e.stopPropagation()}
             variant="outline"
             className="flex-1 h-9 text-[13px]"
           >
@@ -402,6 +411,7 @@ const ProductPanel = ({
           </Button>
           <Button
             onClick={handleSaveEdit}
+            onMouseDown={(e) => e.stopPropagation()}
             className="flex-1 h-9 text-[13px] bg-[#3B82F6] hover:bg-[#2563EB] text-white"
           >
             <Check className="w-4 h-4 mr-1.5" />
