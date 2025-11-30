@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 import { Hotspot, Product, VideoProject, VideoCTA } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import HotspotSidebar from "@/components/HotspotSidebar";
-import VideoCTAPanel from "@/components/VideoCTAPanel";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -34,7 +33,11 @@ const Index = () => {
     label: "Shop Now",
     url: "",
     mode: "off",
-    position: { x: 0.85, y: 0.85 }, // Default bottom-right position
+    enabled: false,
+    type: "visible-button",
+    style: "ecommerce-solid-white",
+    timing: { mode: "entire-video" },
+    position: { x: 0.85, y: 0.85 },
   });
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
@@ -215,6 +218,10 @@ const Index = () => {
       label: "Shop Now",
       url: "",
       mode: "off",
+      enabled: false,
+      type: "visible-button",
+      style: "ecommerce-solid-white",
+      timing: { mode: "entire-video" },
       position: { x: 0.85, y: 0.85 },
     });
     
@@ -380,13 +387,6 @@ const Index = () => {
               onOpenLayoutPanel={handleOpenLayoutPanel}
               onDeleteHotspot={handleDeleteHotspot}
             />
-            
-            <div className="mt-4 px-4 pb-4 border-t border-[rgba(0,0,0,0.06)]">
-              <VideoCTAPanel 
-                videoCTA={videoCTA}
-                onUpdateCTA={(cta) => setVideoCTA(cta)}
-              />
-            </div>
           </div>
         )}
       </main>

@@ -34,10 +34,42 @@ export type ClickBehavior = "show-card" | "direct-link" | "no-action";
 // Video-level CTA (Global Video Link)
 export type VideoCTAMode = "off" | "show-at-end" | "always-visible";
 
+// CTA Type: Button vs Full-Video Link
+export type VideoCTAType = "visible-button" | "full-video-link";
+
+// CTA Button Style Families (12 variants)
+export type VideoCTAStyle = 
+  // eCommerce
+  | "ecommerce-solid-white" 
+  | "ecommerce-solid-dark" 
+  | "ecommerce-pill-accent"
+  // Luxury
+  | "luxury-ghost" 
+  | "luxury-underline" 
+  | "luxury-corner-badge"
+  // Editorial
+  | "editorial-bottom-ribbon" 
+  | "editorial-floating-label" 
+  | "editorial-top-badge"
+  // Minimal
+  | "minimal-tiny-pill" 
+  | "minimal-dot-label" 
+  | "minimal-underline-text";
+
+// Enhanced timing modes
+export type VideoCTATimingMode = "entire-video" | "end-only" | "fade-in-at";
+
 export interface VideoCTA {
   label: string;
   url: string;
-  mode: VideoCTAMode;
+  mode: VideoCTAMode; // Keep for backward compatibility
+  enabled: boolean;
+  type: VideoCTAType;
+  style: VideoCTAStyle;
+  timing: {
+    mode: VideoCTATimingMode;
+    fadeInAt?: number;
+  };
   position?: { x: number; y: number }; // Position as percentage (0-1), default bottom-right
 }
 

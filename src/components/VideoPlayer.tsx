@@ -5,6 +5,8 @@ import ProductCard from "./ProductCard";
 import HotspotInlineEditor from "./HotspotInlineEditor";
 import VideoUploadZone from "./VideoUploadZone";
 import VideoCTA from "./VideoCTA";
+import VideoCTASettingsPanel from "./VideoCTASettingsPanel";
+import { Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface VideoPlayerProps {
@@ -61,6 +63,7 @@ const VideoPlayer = ({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedProductHotspot, setSelectedProductHotspot] = useState<Hotspot | null>(null);
   const [showShopButton, setShowShopButton] = useState(true);
+  const [showCTASettings, setShowCTASettings] = useState(false);
   const [draggingHotspot, setDraggingHotspot] = useState<{
     id: string;
     offsetX: number;
@@ -341,6 +344,17 @@ const VideoPlayer = ({
             videoSrc && !isPreviewMode && "ring-2 ring-[rgba(59,130,246,0.4)]"
           )}
         >
+          {/* Video CTA Settings Button */}
+          {videoSrc && (
+            <button
+              onClick={() => setShowCTASettings(true)}
+              className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/90 hover:bg-white shadow-sm border border-[rgba(0,0,0,0.08)] transition-all"
+              title="Video CTA Settings"
+            >
+              <Link2 className="w-4 h-4 text-[#6B7280]" />
+            </button>
+          )}
+
           {videoSrc ? (
             <video
               ref={videoRef}
@@ -358,6 +372,24 @@ const VideoPlayer = ({
             <div
               className="absolute inset-0 bottom-[50px] hotspot-placement-cursor z-[5]"
               onClick={handleOverlayClick}
+            />
+          )}
+
+          {/* Full-Video Link Overlay - only in preview mode when enabled */}
+          {videoSrc && isPreviewMode && videoCTA?.enabled && videoCTA.type === "full-video-link" && videoCTA.url && (
+            <div
+              className="absolute inset-0 bottom-[50px] cursor-pointer z-[4] hover:bg-[rgba(255,255,255,0.02)] transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                const normalizeUrl = (url: string): string => {
+                  if (!url) return url;
+                  if (!/^https?:\/\//i.test(url)) {
+                    return `https://${url}`;
+                  }
+                  return url;
+                };
+                window.open(normalizeUrl(videoCTA.url), "_blank");
+              }}
             />
           )}
 
@@ -440,6 +472,16 @@ const VideoPlayer = ({
                 onUpdateVideoCTA({ ...videoCTA, position: { x, y } });
               }
             }}
+          />
+        )}
+
+        {/* Video CTA Settings Panel */}
+        {videoCTA && onUpdateVideoCTA && (
+          <VideoCTASettingsPanel
+            open={showCTASettings}
+            onOpenChange={setShowCTASettings}
+            videoCTA={videoCTA}
+            onUpdateCTA={onUpdateVideoCTA}
           />
         )}
       </div>
