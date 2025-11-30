@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { VideoCTA as VideoCTAType } from "@/types/video";
-import { GripVertical } from "lucide-react";
+import { VideoCTA as VideoCTAType, VideoCTAStyle } from "@/types/video";
+import { GripVertical, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface VideoCTAProps {
@@ -21,15 +21,46 @@ const VideoCTA = ({ videoCTA, currentTime, videoDuration, containerRef, isPlayin
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const ctaRef = useRef<HTMLDivElement>(null);
 
-  // Calculate visibility based on mode and edit state
+  // Calculate visibility based on enabled state, type, timing, and edit state
   useEffect(() => {
-    // In edit mode, always show if URL is set
-    if (isEditMode) {
-      setIsVisible(!!videoCTA.url);
+    // Don't show if CTA is disabled
+    if (!videoCTA.enabled) {
+      setIsVisible(false);
       return;
     }
 
-    // In preview mode, use existing logic
+    // Don't show if type is full-video-link (handled separately in VideoPlayer)
+    if (videoCTA.type === "full-video-link") {
+      setIsVisible(false);
+      return;
+    }
+
+    // In edit mode, always show if URL is set and enabled
+    if (isEditMode) {
+      setIsVisible(!!videoCTA.url && videoCTA.enabled);
+      return;
+    }
+
+    // In preview mode, use timing logic
+    const timing = videoCTA.timing;
+    
+    if (timing.mode === "entire-video") {
+      setIsVisible(isPlaying);
+      return;
+    }
+
+    if (timing.mode === "end-only") {
+      const timeRemaining = videoDuration - currentTime;
+      setIsVisible(timeRemaining <= 3 && timeRemaining > 0 && isPlaying);
+      return;
+    }
+
+    if (timing.mode === "fade-in-at" && timing.fadeInAt !== undefined) {
+      setIsVisible(currentTime >= timing.fadeInAt && isPlaying);
+      return;
+    }
+
+    // Fallback to old mode for backward compatibility
     if (videoCTA.mode === "off") {
       setIsVisible(false);
       return;
@@ -45,7 +76,7 @@ const VideoCTA = ({ videoCTA, currentTime, videoDuration, containerRef, isPlayin
       setIsVisible(timeRemaining <= 3 && timeRemaining > 0 && isPlaying);
       return;
     }
-  }, [videoCTA.mode, currentTime, videoDuration, isPlaying, isEditMode, videoCTA.url]);
+  }, [videoCTA.enabled, videoCTA.type, videoCTA.timing, videoCTA.mode, currentTime, videoDuration, isPlaying, isEditMode, videoCTA.url]);
 
   // Calculate position based on video container and stored position
   useEffect(() => {
@@ -143,6 +174,47 @@ const VideoCTA = ({ videoCTA, currentTime, videoDuration, containerRef, isPlayin
 
   if (!isVisible || !videoCTA.url) return null;
 
+  const getStyleClasses = (style: VideoCTAStyle) => {
+    const baseClasses = "transition-all duration-150 flex items-center gap-2";
+    
+    switch (style) {
+      // eCommerce styles
+      case "ecommerce-solid-white":
+        return cn(baseClasses, "bg-white text-black px-4 py-2 rounded-lg shadow-sm hover:shadow-md font-medium text-[13px]");
+      case "ecommerce-solid-dark":
+        return cn(baseClasses, "bg-[#1A1A1A] text-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md font-medium text-[13px]");
+      case "ecommerce-pill-accent":
+        return cn(baseClasses, "bg-[#3B82F6] text-white px-5 py-2.5 rounded-full shadow-sm hover:shadow-md font-medium text-[13px]");
+      
+      // Luxury styles
+      case "luxury-ghost":
+        return cn(baseClasses, "bg-transparent border border-white text-white px-4 py-2 rounded-lg hover:bg-white/10 font-light text-[13px]");
+      case "luxury-underline":
+        return cn(baseClasses, "bg-transparent text-white font-light text-[14px] border-b border-white/50 hover:border-white pb-1");
+      case "luxury-corner-badge":
+        return cn(baseClasses, "bg-white/10 backdrop-blur-sm text-white px-3 py-1.5 rounded text-[11px] font-light");
+      
+      // Editorial styles
+      case "editorial-bottom-ribbon":
+        return cn(baseClasses, "bg-black/80 backdrop-blur-sm text-white px-6 py-3 w-full justify-center text-[14px] font-normal");
+      case "editorial-floating-label":
+        return cn(baseClasses, "bg-white/90 backdrop-blur-sm text-black px-3 py-1.5 rounded text-[11px] font-medium shadow-sm");
+      case "editorial-top-badge":
+        return cn(baseClasses, "bg-black text-white px-3 py-1.5 rounded-sm text-[11px] font-medium uppercase tracking-wide");
+      
+      // Minimal styles
+      case "minimal-tiny-pill":
+        return cn(baseClasses, "bg-white text-black px-3 py-1 rounded-full text-[11px] font-medium shadow-sm");
+      case "minimal-dot-label":
+        return cn(baseClasses, "bg-transparent text-white text-[12px] font-light");
+      case "minimal-underline-text":
+        return cn(baseClasses, "bg-transparent text-white text-[13px] font-light underline hover:no-underline");
+      
+      default:
+        return cn(baseClasses, "bg-white text-black px-4 py-2 rounded-lg shadow-sm hover:shadow-md font-medium text-[13px]");
+    }
+  };
+
   const ctaElement = (
     <div
       ref={ctaRef}
@@ -158,7 +230,7 @@ const VideoCTA = ({ videoCTA, currentTime, videoDuration, containerRef, isPlayin
         onClick={handleClick}
         onMouseDown={handleDragStart}
         className={cn(
-          "bg-white rounded-full px-4 py-2 shadow-sm hover:shadow-md transition-all duration-150 text-neutral-900 text-[13px] font-medium backdrop-blur-sm flex items-center gap-2",
+          getStyleClasses(videoCTA.style),
           isEditMode && "border-2 border-dashed border-[#3B82F6] cursor-grab",
           isDragging && "cursor-grabbing shadow-lg"
         )}
@@ -166,7 +238,13 @@ const VideoCTA = ({ videoCTA, currentTime, videoDuration, containerRef, isPlayin
         {isEditMode && (
           <GripVertical className="w-3.5 h-3.5 text-[#6B7280]" />
         )}
+        {videoCTA.style === "minimal-dot-label" && (
+          <span className="w-2 h-2 rounded-full bg-white" />
+        )}
         {videoCTA.label}
+        {(videoCTA.style === "luxury-underline" || videoCTA.style === "minimal-underline-text") && (
+          <ArrowRight className="w-3 h-3" />
+        )}
         {isEditMode && (
           <span className="text-[10px] text-[#9CA3AF]">✎</span>
         )}
