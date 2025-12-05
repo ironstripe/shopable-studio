@@ -1,16 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Product, ClickBehavior } from "@/types/video";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Camera, ExternalLink } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface NewProductSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreateProduct: (product: Omit<Product, "id">) => string;
   onProductCreated?: (productId: string, clickBehavior?: ClickBehavior) => void;
+  editingProduct?: Product | null;
+  onUpdateProduct?: (product: Product) => void;
+  onDeleteProduct?: (productId: string) => void;
 }
 
 const CTA_PRESETS = ["Shop Now", "Buy", "More Info", "See Details"];
@@ -20,6 +24,9 @@ const NewProductSheet = ({
   onOpenChange,
   onCreateProduct,
   onProductCreated,
+  editingProduct,
+  onUpdateProduct,
+  onDeleteProduct,
 }: NewProductSheetProps) => {
   const [formData, setFormData] = useState({
     title: "",
@@ -28,10 +35,27 @@ const NewProductSheet = ({
     ctaLabel: "Shop Now",
     price: "",
     thumbnail: "",
-    clickBehavior: "show-card" as ClickBehavior,
   });
   const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
+  const [nameTouched, setNameTouched] = useState(false);
   const [urlTouched, setUrlTouched] = useState(false);
+
+  const isEditMode = !!editingProduct;
+
+  // Populate form when editing
+  useEffect(() => {
+    if (editingProduct) {
+      setFormData({
+        title: editingProduct.title || "",
+        description: editingProduct.description || "",
+        link: editingProduct.link || "",
+        ctaLabel: editingProduct.ctaLabel || "Shop Now",
+        price: editingProduct.price || "",
+        thumbnail: editingProduct.thumbnail || "",
+      });
+      setThumbnailPreview(editingProduct.thumbnail || "");
+    }
+  }, [editingProduct]);
 
   const resetForm = () => {
     setFormData({
@@ -41,9 +65,9 @@ const NewProductSheet = ({
       ctaLabel: "Shop Now",
       price: "",
       thumbnail: "",
-      clickBehavior: "show-card",
     });
     setThumbnailPreview("");
+    setNameTouched(false);
     setUrlTouched(false);
   };
 
@@ -68,8 +92,8 @@ const NewProductSheet = ({
   const isValidUrl = (url: string): boolean => {
     if (!url.trim()) return false;
     try {
-      new URL(url);
-      return true;
+      const parsed = new URL(url);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
     } catch {
       return false;
     }
@@ -86,24 +110,41 @@ const NewProductSheet = ({
   const handleSave = () => {
     if (!isFormValid) return;
 
-    const newId = onCreateProduct({
-      title: formData.title,
-      description: formData.description || undefined,
-      link: formData.link,
-      ctaLabel: formData.ctaLabel || "Shop Now",
-      price: formData.price || undefined,
-      thumbnail: formData.thumbnail || undefined,
-      defaultClickBehavior: formData.clickBehavior,
-    });
-    onProductCreated?.(newId, formData.clickBehavior);
+    if (isEditMode && editingProduct && onUpdateProduct) {
+      onUpdateProduct({
+        ...editingProduct,
+        title: formData.title,
+        description: formData.description || undefined,
+        link: formData.link,
+        ctaLabel: formData.ctaLabel || "Shop Now",
+        price: formData.price || undefined,
+        thumbnail: formData.thumbnail || undefined,
+      });
+    } else {
+      const newId = onCreateProduct({
+        title: formData.title,
+        description: formData.description || undefined,
+        link: formData.link,
+        ctaLabel: formData.ctaLabel || "Shop Now",
+        price: formData.price || undefined,
+        thumbnail: formData.thumbnail || undefined,
+      });
+      onProductCreated?.(newId);
+    }
     handleClose();
   };
 
-  // Validation: name required, URL required unless click behavior is "no-action"
-  const needsUrl = formData.clickBehavior !== "no-action";
-  const urlValid = !needsUrl || isValidUrl(formData.link);
-  const showUrlError = urlTouched && needsUrl && formData.link.trim() && !isValidUrl(formData.link);
-  const isFormValid = formData.title.trim() && urlValid;
+  const handleDelete = () => {
+    if (editingProduct && onDeleteProduct) {
+      onDeleteProduct(editingProduct.id);
+      handleClose();
+    }
+  };
+
+  // Validation
+  const showNameError = nameTouched && !formData.title.trim();
+  const showUrlError = urlTouched && formData.link.trim() && !isValidUrl(formData.link);
+  const isFormValid = formData.title.trim() && isValidUrl(formData.link);
 
   const domain = extractDomain(formData.link);
 
@@ -112,38 +153,38 @@ const NewProductSheet = ({
       if (!isOpen) handleClose();
       else onOpenChange(true);
     }}>
-      <DrawerContent className="h-[95vh] max-h-[95vh] bg-background flex flex-col">
+      <DrawerContent className="h-[90vh] max-h-[90vh] bg-white flex flex-col rounded-t-[20px]">
         {/* Drag Handle */}
         <div className="flex justify-center pt-3 pb-1">
-          <div className="w-8 h-1 rounded-full bg-muted-foreground/30" />
+          <div className="w-10 h-1 rounded-full bg-[#D0D0D0]" />
         </div>
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+        {/* Header - Light theme */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[#EBEBEB]">
           <button
             onClick={handleClose}
-            className="text-[15px] text-muted-foreground hover:text-foreground transition-colors min-w-[60px] text-left"
+            className="text-[15px] text-[#666666] hover:text-[#333333] transition-colors min-w-[60px] text-left font-medium"
           >
             Cancel
           </button>
-          <h2 className="text-[17px] font-semibold text-foreground">
-            New product
+          <h2 className="text-[17px] font-semibold text-[#111111]">
+            {isEditMode ? "Edit product" : "New product"}
           </h2>
           <Button
             onClick={handleSave}
             disabled={!isFormValid}
             size="sm"
-            className="h-8 px-4 text-[14px] font-medium min-w-[60px]"
+            className="h-8 px-4 text-[14px] font-medium min-w-[60px] bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             Save
           </Button>
         </div>
 
-        {/* Scrollable Content */}
+        {/* Scrollable Content - Light theme */}
         <ScrollArea className="flex-1">
-          <div className="px-4 py-5 space-y-6">
+          <div className="px-4 py-5 space-y-5">
             
-            {/* A) HERO IMAGE UPLOAD */}
+            {/* A) HERO IMAGE UPLOAD - Premium light design */}
             <div className="w-full">
               <input
                 type="file"
@@ -156,7 +197,13 @@ const NewProductSheet = ({
                 htmlFor="hero-image-upload"
                 className="block cursor-pointer"
               >
-                <div className="aspect-square w-full max-w-[280px] mx-auto rounded-2xl bg-muted/50 border-2 border-dashed border-border/60 hover:border-primary/40 hover:bg-muted/70 transition-all flex flex-col items-center justify-center overflow-hidden">
+                <div className={cn(
+                  "aspect-square w-full max-w-[240px] mx-auto rounded-2xl",
+                  "bg-[#F5F5F5] border-2 border-dashed border-[#D0D0D0]",
+                  "hover:border-primary/60 hover:bg-[#F0F0F0]",
+                  "focus-within:border-primary focus-within:border-solid",
+                  "transition-all flex flex-col items-center justify-center overflow-hidden"
+                )}>
                   {thumbnailPreview || formData.thumbnail ? (
                     <div className="relative w-full h-full group">
                       <img
@@ -168,164 +215,159 @@ const NewProductSheet = ({
                           setThumbnailPreview("");
                         }}
                       />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="text-white text-[14px] font-medium">Change image</span>
+                      <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-[13px] font-medium text-[#333333] shadow-sm">
+                          Change
+                        </span>
                       </div>
                     </div>
                   ) : (
                     <>
-                      <Camera className="w-10 h-10 text-muted-foreground/50 mb-3" />
-                      <span className="text-[14px] text-muted-foreground">Add product image</span>
+                      <Camera className="w-10 h-10 text-[#999999] mb-3" strokeWidth={1.5} />
+                      <span className="text-[15px] font-medium text-[#333333]">Add product image</span>
+                      <span className="text-[13px] text-[#888888] mt-1">Upload from library or take a photo</span>
                     </>
                   )}
                 </div>
               </label>
             </div>
 
-            {/* B) BASIC INFO */}
-            <div className="space-y-4">
-              {/* Product Name (required) */}
-              <div>
-                <label className="text-[13px] font-medium text-muted-foreground mb-2 block uppercase tracking-wide">
-                  Product name <span className="text-destructive">*</span>
-                </label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Enter product name"
-                  className="h-12 text-[16px] bg-background border-border/60 text-foreground rounded-xl"
-                />
-              </div>
-
-              {/* Short Description (optional) */}
-              <div>
-                <label className="text-[13px] font-medium text-muted-foreground mb-2 block uppercase tracking-wide">
-                  Description
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Add a short description…"
-                  rows={2}
-                  className="w-full px-3 py-3 text-[15px] text-foreground rounded-xl border border-border/60 bg-background resize-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
-                />
-              </div>
-            </div>
-
-            {/* C) PRICE */}
+            {/* B) PRODUCT NAME (required) */}
             <div>
-              <label className="text-[13px] font-medium text-muted-foreground mb-2 block uppercase tracking-wide">
-                Price
+              <label className="text-[13px] font-medium text-[#666666] mb-1.5 block">
+                Product name <span className="text-red-500">*</span>
               </label>
               <Input
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                placeholder="e.g. €49.99"
-                className="h-12 text-[15px] bg-background border-border/60 text-foreground rounded-xl"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onBlur={() => setNameTouched(true)}
+                placeholder="e.g. Bose QuietComfort Ultra"
+                className={cn(
+                  "h-12 text-[16px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl",
+                  "focus:border-primary focus:ring-2 focus:ring-primary/20",
+                  showNameError && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                )}
+              />
+              {showNameError && (
+                <p className="text-[12px] text-red-500 mt-1.5">Product name is required</p>
+              )}
+            </div>
+
+            {/* C) DESCRIPTION (optional) */}
+            <div>
+              <label className="text-[13px] font-medium text-[#666666] mb-1.5 block">
+                Description
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Optional. Short description that appears in the product card."
+                rows={3}
+                className="w-full px-3 py-3 text-[15px] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl border border-[#E0E0E0] bg-white resize-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
               />
             </div>
 
-            {/* D) LINK & ACTION */}
-            <div className="space-y-4 pt-2">
-              <h3 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide">
-                Link & Action
-              </h3>
-
-              {/* CTA Label with Presets */}
-              <div>
-                <label className="text-[13px] text-muted-foreground mb-2 block">
-                  CTA Label
-                </label>
+            {/* D) PRICE (optional) */}
+            <div>
+              <label className="text-[13px] font-medium text-[#666666] mb-1.5 block">
+                Price
+              </label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] text-[#888888] font-medium">€</span>
                 <Input
-                  value={formData.ctaLabel}
-                  onChange={(e) => setFormData({ ...formData, ctaLabel: e.target.value })}
-                  placeholder="Shop Now"
-                  className="h-12 text-[15px] bg-background border-border/60 text-foreground rounded-xl mb-2"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  placeholder="e.g. 349.–"
+                  className="h-12 text-[15px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl pl-8 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
-                <div className="flex flex-wrap gap-2">
-                  {CTA_PRESETS.map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, ctaLabel: preset })}
-                      className={`px-3 py-1.5 text-[12px] rounded-full border transition-colors ${
-                        formData.ctaLabel === preset
-                          ? "bg-primary/10 border-primary/40 text-primary"
-                          : "bg-muted/50 border-border/40 text-muted-foreground hover:border-border"
-                      }`}
-                    >
-                      {preset}
-                    </button>
-                  ))}
-                </div>
               </div>
+            </div>
 
-              {/* Product URL */}
-              <div>
-                <label className="text-[13px] text-muted-foreground mb-2 block">
-                  Product URL {needsUrl && <span className="text-destructive">*</span>}
-                </label>
-                <Input
-                  value={formData.link}
-                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                  onBlur={() => setUrlTouched(true)}
-                  placeholder="https://…"
-                  className={`h-12 text-[15px] bg-background border-border/60 text-foreground rounded-xl ${
-                    showUrlError ? "border-destructive focus:border-destructive" : ""
-                  }`}
-                />
-                {showUrlError && (
-                  <p className="text-[12px] text-destructive mt-1.5">
-                    Please enter a valid URL
-                  </p>
+            {/* E) PRODUCT URL (required) */}
+            <div>
+              <label className="text-[13px] font-medium text-[#666666] mb-1.5 block">
+                Product URL <span className="text-red-500">*</span>
+              </label>
+              <Input
+                value={formData.link}
+                onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                onBlur={() => setUrlTouched(true)}
+                placeholder="https://…"
+                className={cn(
+                  "h-12 text-[15px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl",
+                  "focus:border-primary focus:ring-2 focus:ring-primary/20",
+                  showUrlError && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
                 )}
-                {domain && !showUrlError && (
-                  <div className="flex items-center gap-1.5 mt-1.5 text-[12px] text-muted-foreground">
-                    <ExternalLink className="w-3 h-3" />
-                    <span>{domain}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Click Behavior Segmented Control */}
-              <div>
-                <label className="text-[13px] text-muted-foreground mb-2 block">
-                  Click behavior
-                </label>
-                <div className="flex rounded-xl border border-border/60 bg-muted/30 p-1 gap-1">
-                  {[
-                    { value: "show-card", label: "Show card" },
-                    { value: "direct-link", label: "Direct link" },
-                    { value: "no-action", label: "No click" },
-                  ].map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, clickBehavior: option.value as ClickBehavior })}
-                      className={`flex-1 py-2.5 text-[13px] font-medium rounded-lg transition-all ${
-                        formData.clickBehavior === option.value
-                          ? "bg-background text-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
+              />
+              <p className="text-[12px] text-[#888888] mt-1.5">
+                The link users see when they tap the product card.
+              </p>
+              {showUrlError && (
+                <p className="text-[12px] text-red-500 mt-1">Please enter a valid URL (https://...)</p>
+              )}
+              {domain && !showUrlError && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-[12px] text-[#666666]">
+                  <ExternalLink className="w-3 h-3" />
+                  <span>{domain}</span>
                 </div>
+              )}
+            </div>
+
+            {/* F) BUTTON LABEL (optional) */}
+            <div>
+              <label className="text-[13px] font-medium text-[#666666] mb-1.5 block">
+                Button label
+              </label>
+              <Input
+                value={formData.ctaLabel}
+                onChange={(e) => setFormData({ ...formData, ctaLabel: e.target.value })}
+                placeholder="e.g. Shop now"
+                className="h-12 text-[15px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 mb-2"
+              />
+              <div className="flex flex-wrap gap-2">
+                {CTA_PRESETS.map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, ctaLabel: preset })}
+                    className={cn(
+                      "px-3 py-1.5 text-[12px] rounded-full border transition-colors",
+                      formData.ctaLabel === preset
+                        ? "bg-primary/10 border-primary/40 text-primary"
+                        : "bg-[#F5F5F5] border-[#E0E0E0] text-[#666666] hover:border-[#CCCCCC]"
+                    )}
+                  >
+                    {preset}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
         </ScrollArea>
 
-        {/* Sticky Footer */}
-        <div className="border-t border-border/40 p-4 pb-safe-plus bg-background">
-          <Button
-            onClick={handleSave}
-            disabled={!isFormValid}
-            className="w-full h-12 text-[15px] font-medium rounded-xl"
-          >
-            Save product
-          </Button>
+        {/* Sticky Footer - Light theme with shadow */}
+        <div className="border-t border-[#EBEBEB] p-4 pb-safe-plus bg-white shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+          <div className="flex items-center gap-3">
+            {/* Delete button (only in edit mode) */}
+            {isEditMode && onDeleteProduct && (
+              <button
+                onClick={handleDelete}
+                className="text-[15px] font-medium text-red-500 hover:text-red-600 transition-colors px-2"
+              >
+                Delete
+              </button>
+            )}
+            <Button
+              onClick={handleSave}
+              disabled={!isFormValid}
+              className={cn(
+                "h-12 text-[15px] font-medium rounded-xl",
+                isEditMode ? "flex-1" : "w-full"
+              )}
+            >
+              {isEditMode ? "Save changes" : "Save product"}
+            </Button>
+          </div>
         </div>
       </DrawerContent>
     </Drawer>
