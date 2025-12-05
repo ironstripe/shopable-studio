@@ -381,6 +381,7 @@ const Index = () => {
           onOpenProductPanel={handleOpenProductPanel}
           onOpenLayoutPanel={handleOpenLayoutPanel}
           onDeleteHotspot={handleDeleteHotspot}
+          isPreviewMode={isPreviewMode}
         />
 
         {/* Replace Video Dialog */}
@@ -512,6 +513,7 @@ const Index = () => {
               onOpenProductPanel={handleOpenProductPanel}
               onOpenLayoutPanel={handleOpenLayoutPanel}
               onDeleteHotspot={handleDeleteHotspot}
+              isPreviewMode={isPreviewMode}
             />
           </div>
         )}

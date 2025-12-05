@@ -1,11 +1,15 @@
 import { Hotspot, Product } from "@/types/video";
-import HotspotSidebar from "./HotspotSidebar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
+  DrawerClose,
 } from "@/components/ui/drawer";
+import { cn } from "@/lib/utils";
+import { Plus, Pencil, Trash2, X, Target } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 interface HotspotDrawerProps {
   open: boolean;
@@ -17,6 +21,7 @@ interface HotspotDrawerProps {
   onOpenProductPanel?: (hotspot: Hotspot) => void;
   onOpenLayoutPanel?: (hotspot: Hotspot) => void;
   onDeleteHotspot?: (hotspotId: string) => void;
+  isPreviewMode?: boolean;
 }
 
 const HotspotDrawer = ({
@@ -29,32 +34,188 @@ const HotspotDrawer = ({
   onOpenProductPanel,
   onOpenLayoutPanel,
   onDeleteHotspot,
+  isPreviewMode = false,
 }: HotspotDrawerProps) => {
+  const sortedHotspots = [...hotspots].sort((a, b) => a.timeStart - b.timeStart);
+  const hotspotRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  // Calculate hotspot numbers only for assigned hotspots
+  const assignedHotspots = sortedHotspots.filter(h => h.productId);
+  const getHotspotNumber = (hotspot: Hotspot) => {
+    if (!hotspot.productId) return null;
+    return assignedHotspots.findIndex(h => h.id === hotspot.id) + 1;
+  };
+
+  // Auto-scroll to selected hotspot
+  useEffect(() => {
+    if (open && selectedHotspotId && hotspotRefs.current[selectedHotspotId]) {
+      setTimeout(() => {
+        hotspotRefs.current[selectedHotspotId]?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }, 100);
+    }
+  }, [open, selectedHotspotId]);
+
+  const handleRowClick = (hotspot: Hotspot) => {
+    const isUnassigned = !hotspot.productId;
+    
+    if (isPreviewMode) {
+      // In preview mode, just select and seek (view-only)
+      onSelectHotspot(hotspot);
+      onOpenChange(false);
+      return;
+    }
+
+    // Edit mode behavior
+    if (isUnassigned && onOpenProductPanel) {
+      onOpenProductPanel(hotspot);
+    } else if (!isUnassigned && onOpenLayoutPanel) {
+      onOpenLayoutPanel(hotspot);
+    }
+    onOpenChange(false);
+  };
+
+  const handleEditClick = (e: React.MouseEvent, hotspot: Hotspot) => {
+    e.stopPropagation();
+    if (onOpenLayoutPanel) {
+      onOpenLayoutPanel(hotspot);
+      onOpenChange(false);
+    }
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, hotspotId: string) => {
+    e.stopPropagation();
+    if (window.confirm('Delete this hotspot?')) {
+      onDeleteHotspot?.(hotspotId);
+    }
+  };
+
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[70vh] bg-card border-border">
-        <DrawerHeader className="border-b border-border/30 pb-3">
-          <DrawerTitle className="text-foreground">Hotspots</DrawerTitle>
+      <DrawerContent className="max-h-[85vh] min-h-[40vh] bg-white rounded-t-2xl border-t border-border/30">
+        {/* Header with close button */}
+        <DrawerHeader className="flex items-center justify-between border-b border-border/10 pb-3 px-4">
+          <DrawerTitle className="text-base font-semibold text-foreground">
+            Hotspots
+          </DrawerTitle>
+          <DrawerClose asChild>
+            <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 transition-colors">
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </DrawerClose>
         </DrawerHeader>
-        <div className="flex-1 overflow-auto">
-          <HotspotSidebar
-            hotspots={hotspots}
-            products={products}
-            selectedHotspotId={selectedHotspotId}
-            onSelectHotspot={(hotspot) => {
-              onSelectHotspot(hotspot);
-              onOpenChange(false);
-            }}
-            onOpenProductPanel={(hotspot) => {
-              onOpenProductPanel?.(hotspot);
-              onOpenChange(false);
-            }}
-            onOpenLayoutPanel={(hotspot) => {
-              onOpenLayoutPanel?.(hotspot);
-              onOpenChange(false);
-            }}
-            onDeleteHotspot={onDeleteHotspot}
-          />
+
+        {/* Content */}
+        <div className="flex-1 overflow-hidden">
+          {sortedHotspots.length === 0 ? (
+            /* Empty State */
+            <div className="flex flex-col items-center justify-center py-12 px-6">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <Target className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-base font-medium text-foreground mb-1">
+                No hotspots yet
+              </h3>
+              <p className="text-sm text-muted-foreground text-center">
+                Tap <span className="font-medium text-primary">+ Hotspot</span> to add your first one
+              </p>
+            </div>
+          ) : (
+            /* Hotspot List */
+            <ScrollArea className="h-full max-h-[60vh]">
+              <div className="p-3 space-y-2">
+                {sortedHotspots.map((hotspot) => {
+                  const product = hotspot.productId ? products[hotspot.productId] : null;
+                  const isSelected = selectedHotspotId === hotspot.id;
+                  const isUnassigned = !hotspot.productId;
+                  const hotspotNumber = getHotspotNumber(hotspot);
+
+                  return (
+                    <div
+                      key={hotspot.id}
+                      ref={(el) => (hotspotRefs.current[hotspot.id] = el)}
+                      className={cn(
+                        "w-full min-h-[56px] px-3 py-3 rounded-xl transition-all duration-150 cursor-pointer",
+                        "active:scale-[0.98]",
+                        isUnassigned
+                          ? "bg-primary/5 border border-dashed border-primary/30 hover:bg-primary/10"
+                          : "hover:bg-muted/50",
+                        !isUnassigned && isSelected
+                          ? "bg-primary/10 border border-primary/30"
+                          : !isUnassigned && "border border-transparent"
+                      )}
+                      onClick={() => handleRowClick(hotspot)}
+                    >
+                      <div className="flex items-center gap-3">
+                        {/* Circular Badge */}
+                        <div
+                          className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
+                            isUnassigned
+                              ? "bg-primary/10 border-2 border-dashed border-primary/40"
+                              : "bg-primary text-primary-foreground"
+                          )}
+                        >
+                          {isUnassigned ? (
+                            <Plus className="w-4 h-4 text-primary" />
+                          ) : (
+                            <span className="text-xs font-bold">
+                              {hotspotNumber}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <p className={cn(
+                            "text-sm font-medium truncate",
+                            isUnassigned ? "text-primary" : "text-foreground"
+                          )}>
+                            {isUnassigned 
+                              ? "New hotspot – assign product" 
+                              : product?.title || "Unknown Product"
+                            }
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {isUnassigned 
+                              ? "Tap to choose a product" 
+                              : `${hotspot.timeStart.toFixed(1)}s – ${hotspot.timeEnd.toFixed(1)}s`
+                            }
+                          </p>
+                        </div>
+
+                        {/* Action Icons - Hidden in preview mode */}
+                        {!isPreviewMode && (
+                          <div className="flex items-center gap-1 ml-auto">
+                            {!isUnassigned && onOpenLayoutPanel && (
+                              <button
+                                onClick={(e) => handleEditClick(e, hotspot)}
+                                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                                title="Edit Layout & Behavior"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                            )}
+                            {onDeleteHotspot && (
+                              <button
+                                onClick={(e) => handleDeleteClick(e, hotspot.id)}
+                                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                                title="Delete Hotspot"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          )}
         </div>
       </DrawerContent>
     </Drawer>
