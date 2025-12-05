@@ -30,8 +30,12 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
   };
 
   const handleFile = (file: File) => {
+    console.log('[VideoUpload] File received:', file.name, 'Type:', file.type, 'Size:', file.size);
     if (file && file.type.startsWith("video/")) {
       const url = URL.createObjectURL(file);
+      console.log('[VideoUpload] Blob URL created:', url);
+      // Store MIME type in URL fragment for iOS Safari compatibility
+      const urlWithType = `${url}#t=0.001&type=${encodeURIComponent(file.type)}`;
       onVideoLoad(url);
       toast.success("Video loaded successfully");
     } else {
