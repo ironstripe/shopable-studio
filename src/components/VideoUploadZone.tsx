@@ -33,6 +33,8 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
 
   const handleFile = (file: File) => {
     console.log('[VideoUpload] File received:', file.name, 'Type:', file.type, 'Size:', file.size);
+    console.log('[VideoUpload] isIOS() result:', isIOS());
+    console.log('[VideoUpload] User Agent:', navigator.userAgent);
     
     if (!file || !file.type.startsWith("video/")) {
       toast.error("Please select a valid video file");
