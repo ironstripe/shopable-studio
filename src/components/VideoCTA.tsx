@@ -224,7 +224,7 @@ const VideoCTA = ({ videoCTA, currentTime, videoDuration, containerRef, isPlayin
         right: `${position.right}px`,
         zIndex: 9999,
       }}
-      className="animate-fade-in"
+      className="animate-cta-intro"
     >
       <button
         onClick={handleClick}
