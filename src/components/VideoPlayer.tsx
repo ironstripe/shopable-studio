@@ -5,9 +5,7 @@ import ProductCard from "./ProductCard";
 import HotspotInlineEditor from "./HotspotInlineEditor";
 import VideoUploadZone from "./VideoUploadZone";
 import VideoCTA from "./VideoCTA";
-import VideoCTASettingsPanel from "./VideoCTASettingsPanel";
 import SafeZoneOverlay from "./SafeZoneOverlay";
-import { Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface VideoPlayerProps {
@@ -34,8 +32,6 @@ interface VideoPlayerProps {
   onUpdateVideoCTA?: (cta: VideoCTAType) => void;
   showSafeZones?: boolean;
   isMobile?: boolean;
-  showCTASettings?: boolean;
-  onShowCTASettingsChange?: (show: boolean) => void;
 }
 
 const VideoPlayer = ({
@@ -62,8 +58,6 @@ const VideoPlayer = ({
   onUpdateVideoCTA,
   showSafeZones = false,
   isMobile = false,
-  showCTASettings: externalShowCTASettings,
-  onShowCTASettingsChange,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -72,7 +66,6 @@ const VideoPlayer = ({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedProductHotspot, setSelectedProductHotspot] = useState<Hotspot | null>(null);
   const [showShopButton, setShowShopButton] = useState(true);
-  const [internalShowCTASettings, setInternalShowCTASettings] = useState(false);
   const [draggingHotspot, setDraggingHotspot] = useState<{
     id: string;
     offsetX: number;
@@ -84,10 +77,6 @@ const VideoPlayer = ({
     initialDistance: number;
   } | null>(null);
   const [didDrag, setDidDrag] = useState(false);
-
-  // Use external or internal CTA settings state
-  const showCTASettings = externalShowCTASettings ?? internalShowCTASettings;
-  const setShowCTASettings = onShowCTASettingsChange ?? setInternalShowCTASettings;
 
   useEffect(() => {
     if (onVideoRef && videoRef.current) {
@@ -334,17 +323,6 @@ const VideoPlayer = ({
             videoSrc && !isPreviewMode && "ring-2 ring-[rgba(59,130,246,0.4)]"
           )}
         >
-          {/* Video CTA Settings Button (Desktop only) */}
-          {videoSrc && !isMobile && (
-            <button
-              onClick={() => setShowCTASettings(true)}
-              className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/90 hover:bg-white shadow-sm border border-[rgba(0,0,0,0.08)] transition-all"
-              title="Video CTA Settings"
-            >
-              <Link2 className="w-4 h-4 text-[#6B7280]" />
-            </button>
-          )}
-
           {videoSrc ? (
             <video
               ref={videoRef}
@@ -466,16 +444,6 @@ const VideoPlayer = ({
                 onUpdateVideoCTA({ ...videoCTA, position: { x, y } });
               }
             }}
-          />
-        )}
-
-        {/* Video CTA Settings Panel */}
-        {videoCTA && onUpdateVideoCTA && (
-          <VideoCTASettingsPanel
-            open={showCTASettings}
-            onOpenChange={setShowCTASettings}
-            videoCTA={videoCTA}
-            onUpdateCTA={onUpdateVideoCTA}
           />
         )}
       </div>
