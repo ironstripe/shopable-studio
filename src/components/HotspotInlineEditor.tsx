@@ -1,10 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Hotspot, Product } from "@/types/video";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Tag, Settings, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import LayoutBehaviorPanel from "./LayoutBehaviorPanel";
 
 interface HotspotInlineEditorProps {
   hotspot: Hotspot;
@@ -12,6 +10,7 @@ interface HotspotInlineEditorProps {
   onUpdateHotspot: (hotspot: Hotspot) => void;
   onDeleteHotspot: () => void;
   onOpenProductSelection: (hotspotId: string) => void;
+  onOpenLayoutSheet: (hotspot: Hotspot) => void;
   autoOpenProductPanel?: boolean;
 }
 
@@ -21,27 +20,15 @@ const HotspotInlineEditor = ({
   onUpdateHotspot,
   onDeleteHotspot,
   onOpenProductSelection,
+  onOpenLayoutSheet,
   autoOpenProductPanel,
 }: HotspotInlineEditorProps) => {
-  const [layoutOpen, setLayoutOpen] = useState(false);
-
   // Auto-open product selection when requested
   useEffect(() => {
     if (autoOpenProductPanel && !hotspot.productId) {
       onOpenProductSelection(hotspot.id);
     }
   }, [autoOpenProductPanel, hotspot.id, hotspot.productId, onOpenProductSelection]);
-
-  // ESC key handler
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (layoutOpen) setLayoutOpen(false);
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [layoutOpen]);
 
   const hasProduct = !!hotspot.productId;
 
@@ -51,7 +38,7 @@ const HotspotInlineEditor = ({
       onOpenProductSelection(hotspot.id);
       return;
     }
-    setLayoutOpen(true);
+    onOpenLayoutSheet(hotspot);
   };
 
   const handleProductClick = () => {
@@ -85,38 +72,18 @@ const HotspotInlineEditor = ({
 
       {/* Layout & Behavior - Only show if product is assigned */}
       {hasProduct && (
-        <Popover open={layoutOpen} onOpenChange={setLayoutOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleLayoutClick}
-              className={cn(
-                "h-8 w-8 p-0 hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]",
-                layoutOpen ? "bg-[rgba(59,130,246,0.12)] text-[#3B82F6]" : "text-[#374151]"
-              )}
-              title="Layout & Behavior"
-            >
-              <Settings className="w-4 h-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent 
-            className="w-auto p-0 border-0 shadow-none bg-transparent" 
-            align="start" 
-            sideOffset={8}
-            side="bottom"
-            collisionPadding={{ top: 70, left: 16, right: 16, bottom: 16 }}
-          >
-            <LayoutBehaviorPanel
-              hotspot={hotspot}
-              onUpdateHotspot={(updated) => {
-                onUpdateHotspot(updated);
-                setLayoutOpen(false);
-              }}
-              onClose={() => setLayoutOpen(false)}
-            />
-          </PopoverContent>
-        </Popover>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={handleLayoutClick}
+          className={cn(
+            "h-8 w-8 p-0 hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]",
+            "text-[#374151]"
+          )}
+          title="Layout & Behavior"
+        >
+          <Settings className="w-4 h-4" />
+        </Button>
       )}
 
       {/* Delete */}
