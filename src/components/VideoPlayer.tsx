@@ -89,6 +89,11 @@ const VideoPlayer = ({
     show: false,
   });
   const [tapIndicators, setTapIndicators] = useState<Array<{ id: string; x: number; y: number }>>([]);
+  const [pendingDragPosition, setPendingDragPosition] = useState<{
+    x: number;
+    y: number;
+    hotspotCount: number;
+  } | null>(null);
 
   const removeTapIndicator = useCallback((id: string) => {
     setTapIndicators(prev => prev.filter(t => t.id !== id));
@@ -160,6 +165,29 @@ const VideoPlayer = ({
     };
   }, [videoSrc]);
 
+  // Enable immediate drag after hotspot creation on touch
+  useEffect(() => {
+    if (pendingDragPosition && hotspots.length > pendingDragPosition.hotspotCount) {
+      // A new hotspot was created - find it and start dragging
+      const tolerance = 0.05;
+      const newHotspot = hotspots.find(h => 
+        Math.abs(h.x - pendingDragPosition.x) < tolerance &&
+        Math.abs(h.y - pendingDragPosition.y) < tolerance
+      );
+      
+      if (newHotspot && !draggingHotspot) {
+        console.log('[VideoPlayer] New hotspot detected, enabling immediate drag');
+        setDraggingHotspot({ 
+          id: newHotspot.id, 
+          offsetX: 0, 
+          offsetY: 0 
+        });
+        setDidDrag(false);
+        setPendingDragPosition(null);
+      }
+    }
+  }, [hotspots, pendingDragPosition, draggingHotspot]);
+
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!videoRef.current || !containerRef.current) return;
     
@@ -192,17 +220,18 @@ const VideoPlayer = ({
     videoRef.current.pause();
   };
 
-  // iOS touch event handler for hotspot placement
-  const handleOverlayTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+  // iOS touch event handler for hotspot placement - triggered on touchStart for immediate feedback
+  const handleOverlayTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     if (!videoRef.current || !containerRef.current) return;
     
-    // Prevent default to avoid double-firing on devices that support both click and touch
-    e.preventDefault();
-    
-    const touch = e.changedTouches[0];
+    const touch = e.touches[0];
     if (!touch) return;
 
-    console.log('[VideoPlayer] Touch event fired on overlay');
+    // Prevent default to stop click from firing and enable immediate interaction
+    e.preventDefault();
+    e.stopPropagation();
+
+    console.log('[VideoPlayer] TouchStart on overlay - creating hotspot');
     
     const actualTime = videoRef.current.currentTime;
     setCurrentTime(actualTime);
@@ -211,7 +240,7 @@ const VideoPlayer = ({
     const x = (touch.clientX - rect.left) / rect.width;
     const y = (touch.clientY - rect.top) / rect.height;
 
-    // Add tap indicator at touch position (pixel coords)
+    // Add tap indicator at touch position IMMEDIATELY (pixel coords)
     const pixelX = touch.clientX - rect.left;
     const pixelY = touch.clientY - rect.top;
     const indicatorId = `tap-${Date.now()}`;
@@ -228,6 +257,13 @@ const VideoPlayer = ({
     if (showPlacementHint && onPlacementHintDismiss) {
       onPlacementHintDismiss();
     }
+
+    // Store pending drag position to enable immediate drag after creation
+    setPendingDragPosition({
+      x,
+      y,
+      hotspotCount: hotspots.length,
+    });
 
     onAddHotspot(x, y, actualTime);
     videoRef.current.pause();
@@ -294,6 +330,7 @@ const VideoPlayer = ({
 
   const handleDragEnd = () => {
     setDraggingHotspot(null);
+    setPendingDragPosition(null);
   };
 
   const getDistanceFromCenter = (hotspot: Hotspot, clientX: number, clientY: number) => {
@@ -579,9 +616,10 @@ const VideoPlayer = ({
             <div
               className="absolute inset-0 bottom-[50px] hotspot-placement-cursor z-[5]"
               onClick={handleOverlayClick}
-              onTouchEnd={handleOverlayTouchEnd}
+              onTouchStart={handleOverlayTouchStart}
+              onTouchEnd={(e) => e.preventDefault()} // Prevent click from double-firing
               style={{
-                touchAction: 'manipulation',
+                touchAction: 'none', // Disable all browser touch actions for immediate response
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
                 WebkitTapHighlightColor: 'transparent',

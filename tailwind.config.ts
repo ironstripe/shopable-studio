@@ -117,8 +117,9 @@ export default {
           "100%": { opacity: "0", transform: "scale(0.98)" }
         },
         "tap-ripple": {
-          "0%": { opacity: "1", transform: "scale(0.85)" },
-          "100%": { opacity: "0", transform: "scale(1.15)" }
+          "0%": { opacity: "1", transform: "scale(0.8)" },
+          "50%": { opacity: "0.7", transform: "scale(1.0)" },
+          "100%": { opacity: "0", transform: "scale(1.2)" }
         },
       },
       animation: {
@@ -131,7 +132,7 @@ export default {
         "card-exit": "card-exit 100ms ease-out",
         "luxury-card-enter": "luxury-card-enter 200ms ease-out",
         "luxury-card-exit": "luxury-card-exit 120ms ease-out",
-        "tap-ripple": "tap-ripple 180ms ease-out forwards",
+        "tap-ripple": "tap-ripple 260ms ease-out forwards",
       },
     },
   },
