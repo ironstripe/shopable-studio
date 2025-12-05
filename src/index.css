@@ -216,6 +216,27 @@ All colors MUST be HSL.
   animation: fade-in 240ms ease-out forwards;
 }
 
+/* Fade-in with slide up for sections */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 200ms ease-out forwards;
+}
+
+/* Smooth 120ms selection animation */
+.animate-select {
+  transition: all 120ms ease-out;
+}
+
 /* 1.1 Hotspot Pop-in (120ms) */
 @keyframes hotspot-pop-in {
   0% {
