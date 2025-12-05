@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Hotspot, Product, VideoProject, VideoCTA, EditorMode } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import HotspotSidebar from "@/components/HotspotSidebar";
@@ -10,6 +10,7 @@ import SelectProductSheet from "@/components/SelectProductSheet";
 import NewProductSheet from "@/components/NewProductSheet";
 import LayoutBehaviorSheet from "@/components/LayoutBehaviorSheet";
 import VideoCTASheet from "@/components/VideoCTASheet";
+import WelcomeOverlay from "@/components/ftux/WelcomeOverlay";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -25,11 +26,13 @@ import { Download, Pencil, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useFTUX } from "@/hooks/use-ftux";
 import { clampPositionToSafeZone, getMaxScaleAtPosition, SafeZonePreset } from "@/utils/safe-zone";
 import shopableLogo from "@/assets/shopable-logo.png";
 
 const Index = () => {
   const isMobile = useIsMobile();
+  const { step: ftuxStep, isComplete: ftuxComplete, advanceStep, completeFTUX } = useFTUX();
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
@@ -50,6 +53,8 @@ const Index = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [shownPreviewHint, setShownPreviewHint] = useState(false);
+  const [shownExportHint, setShownExportHint] = useState(false);
   const [videoCTA, setVideoCTA] = useState<VideoCTA>({
     label: "Shop Now",
     url: "",
@@ -95,6 +100,11 @@ const Index = () => {
     const filename = src.split('/').pop()?.split('.')[0] || "Untitled Video";
     setVideoTitle(filename);
     toast.success("Video loaded successfully");
+    
+    // FTUX: Advance to videoLoaded step
+    if (!ftuxComplete && ftuxStep === "emptyEditor") {
+      advanceStep("videoLoaded");
+    }
   };
 
   // Active safe zone preset
@@ -130,6 +140,13 @@ const Index = () => {
     setShouldAutoOpenProductPanel(true);
     setTimeout(() => setShouldAutoOpenProductPanel(false), 100);
     toast.success("Hotspot created!");
+    
+    // FTUX: Advance to productSelect step and auto-open product sheet
+    if (!ftuxComplete && ftuxStep === "hotspotPlacement") {
+      advanceStep("productSelect");
+      setProductAssignmentHotspotId(newHotspot.id);
+      setSelectProductSheetOpen(true);
+    }
   };
 
   const handleHotspotSelect = (hotspotId: string) => {
@@ -260,6 +277,34 @@ const Index = () => {
     setSelectProductSheetOpen(false);
     setProductAssignmentHotspotId(null);
     toast.success("Product assigned to hotspot");
+    
+    // FTUX: Show preview hint and then export hint
+    if (!ftuxComplete && ftuxStep === "productSelect" && !shownPreviewHint) {
+      advanceStep("postProduct");
+      setShownPreviewHint(true);
+      setTimeout(() => {
+        toast("Switch to Preview to see your final video.", {
+          duration: 4000,
+          icon: "👀",
+        });
+      }, 500);
+      
+      // Then show export hint
+      setTimeout(() => {
+        if (!shownExportHint) {
+          setShownExportHint(true);
+          advanceStep("exportHint");
+          toast("You can now export your Shopable video.", {
+            duration: 4000,
+            icon: "🎉",
+          });
+          // Mark FTUX complete after export hint
+          setTimeout(() => {
+            completeFTUX();
+          }, 4000);
+        }
+      }, 5000);
+    }
   };
 
   const handleProductCreatedFromSheet = (productId: string, clickBehavior?: import("@/types/video").ClickBehavior) => {
@@ -362,8 +407,23 @@ const Index = () => {
   };
 
   const handleEnterPlacementMode = () => {
+    // FTUX: Advance to hotspotPlacement step when FAB is tapped
+    if (!ftuxComplete && ftuxStep === "videoLoaded") {
+      advanceStep("hotspotPlacement");
+    }
     toast.info("Tap on the video to place a hotspot");
   };
+
+  // FTUX: Handle welcome overlay close
+  const handleWelcomeClose = () => {
+    advanceStep("emptyEditor");
+  };
+
+  // FTUX computed states
+  const showWelcomeOverlay = !ftuxComplete && ftuxStep === "welcome";
+  const showFABHint = !ftuxComplete && ftuxStep === "videoLoaded" && videoSrc && editorMode === "edit";
+  const showPlacementHint = !ftuxComplete && ftuxStep === "hotspotPlacement" && videoSrc && editorMode === "edit";
+  const showProductSheetHint = !ftuxComplete && ftuxStep === "productSelect";
 
   // Mobile layout
   if (isMobile) {
@@ -411,6 +471,8 @@ const Index = () => {
             onUpdateVideoCTA={setVideoCTA}
             showSafeZones={editorMode === "edit"}
             isMobile={true}
+            showPlacementHint={showPlacementHint}
+            onPlacementHintDismiss={() => advanceStep("productSelect")}
           />
         </main>
 
@@ -433,7 +495,8 @@ const Index = () => {
         {videoSrc && editorMode === "edit" && (
           <AddHotspotFAB
             onClick={handleEnterPlacementMode}
-            className="bottom-[160px] right-4"
+            showHint={showFABHint}
+            onHintDismiss={() => advanceStep("hotspotPlacement")}
           />
         )}
 
@@ -459,6 +522,8 @@ const Index = () => {
           selectedProductId={productAssignmentHotspotId ? hotspots.find(h => h.id === productAssignmentHotspotId)?.productId : null}
           onSelectProduct={handleAssignProduct}
           onOpenNewProduct={() => setNewProductSheetOpen(true)}
+          showFTUXHint={showProductSheetHint}
+          onFTUXHintDismiss={() => advanceStep("postProduct")}
         />
 
         {/* New Product Sheet */}
@@ -502,6 +567,9 @@ const Index = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Welcome Overlay - shown on first visit */}
+        {showWelcomeOverlay && <WelcomeOverlay onStart={handleWelcomeClose} />}
       </div>
     );
   }
@@ -601,6 +669,8 @@ const Index = () => {
             onUpdateVideoCTA={setVideoCTA}
             showSafeZones={editorMode === "edit"}
             isMobile={false}
+            showPlacementHint={showPlacementHint}
+            onPlacementHintDismiss={() => advanceStep("productSelect")}
           />
         </div>
 
@@ -627,6 +697,8 @@ const Index = () => {
           selectedProductId={productAssignmentHotspotId ? hotspots.find(h => h.id === productAssignmentHotspotId)?.productId : null}
           onSelectProduct={handleAssignProduct}
           onOpenNewProduct={() => setNewProductSheetOpen(true)}
+          showFTUXHint={showProductSheetHint}
+          onFTUXHintDismiss={() => advanceStep("postProduct")}
         />
 
         {/* Desktop: New Product Sheet */}
@@ -670,6 +742,9 @@ const Index = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Welcome Overlay - shown on first visit */}
+      {showWelcomeOverlay && <WelcomeOverlay onStart={handleWelcomeClose} />}
     </div>
   );
 };

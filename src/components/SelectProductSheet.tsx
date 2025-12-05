@@ -13,6 +13,8 @@ interface SelectProductSheetProps {
   selectedProductId?: string | null;
   onSelectProduct: (productId: string) => void;
   onOpenNewProduct: () => void;
+  showFTUXHint?: boolean;
+  onFTUXHintDismiss?: () => void;
 }
 
 const SelectProductSheet = ({
@@ -22,6 +24,8 @@ const SelectProductSheet = ({
   selectedProductId,
   onSelectProduct,
   onOpenNewProduct,
+  showFTUXHint = false,
+  onFTUXHintDismiss,
 }: SelectProductSheetProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -44,8 +48,18 @@ const SelectProductSheet = ({
   );
 
   const handleSelectProduct = (productId: string) => {
+    if (showFTUXHint && onFTUXHintDismiss) {
+      onFTUXHintDismiss();
+    }
     onSelectProduct(productId);
     onOpenChange(false);
+  };
+
+  const handleOpenNewProduct = () => {
+    if (showFTUXHint && onFTUXHintDismiss) {
+      onFTUXHintDismiss();
+    }
+    onOpenNewProduct();
   };
 
   const hasProducts = productList.length > 0;
@@ -54,6 +68,15 @@ const SelectProductSheet = ({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[90vh] min-h-[50vh] bg-white">
+        {/* FTUX Hint Banner */}
+        {showFTUXHint && (
+          <div className="mx-4 mt-3 px-4 py-2.5 bg-primary/10 rounded-xl">
+            <p className="text-[13px] text-primary font-medium text-center">
+              Choose a product or create a new one.
+            </p>
+          </div>
+        )}
+
         {/* Header */}
         <DrawerHeader className="border-b border-border/40 pb-4">
           <div className="flex items-center justify-between">
@@ -61,7 +84,7 @@ const SelectProductSheet = ({
               Select product
             </DrawerTitle>
             <Button
-              onClick={onOpenNewProduct}
+              onClick={handleOpenNewProduct}
               size="sm"
               className="h-8 px-3 bg-primary hover:bg-primary/90 text-primary-foreground text-[13px] font-medium rounded-full"
             >
