@@ -413,6 +413,9 @@ const VideoPlayer = ({
             videoSrc && "shadow-[0_4px_16px_rgba(0,0,0,0.12)]",
             videoSrc && !isPreviewMode && "ring-2 ring-[rgba(59,130,246,0.4)]"
           )}
+          style={{
+            minHeight: videoSrc ? '200px' : undefined,
+          }}
         >
           {videoSrc ? (
             <video
@@ -421,35 +424,25 @@ const VideoPlayer = ({
               playsInline
               // @ts-ignore - webkit-playsinline is needed for older iOS
               webkit-playsinline=""
+              muted
               preload="auto"
               autoPlay={false}
-              className="w-full h-full min-h-[200px] rounded-[12px] animate-video-enter"
+              poster=""
+              className="w-full h-full min-h-[200px] rounded-[12px] animate-video-enter ios-video-fix"
               style={{ 
                 display: "block",
                 objectFit: "contain",
                 width: "100%",
                 height: "100%",
-                WebkitTransform: "translateZ(0)",
+                minHeight: "200px",
               }}
             >
               <source 
-                src={
-                  videoSrc.startsWith('data:') 
-                    ? videoSrc 
-                    : videoSrc.startsWith('blob:') 
-                      ? `${videoSrc}#t=0.001` 
-                      : videoSrc
-                }
+                src={videoSrc.startsWith('data:') ? videoSrc : `${videoSrc}#t=0.001`}
                 type={
                   videoSrc.startsWith('data:video/') 
                     ? videoSrc.match(/^data:(video\/[^;]+)/)?.[1] || 'video/mp4'
-                    : videoSrc.startsWith('blob:') 
-                      ? 'video/mp4' 
-                      : videoSrc.includes('.webm') 
-                        ? 'video/webm' 
-                        : videoSrc.includes('.mov') 
-                          ? 'video/quicktime' 
-                          : 'video/mp4'
+                    : 'video/mp4'
                 } 
               />
               Your browser does not support the video tag.
