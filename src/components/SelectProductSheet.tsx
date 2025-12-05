@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Product } from "@/types/video";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Plus, Check, Package } from "lucide-react";
+import { Search, Plus, Check, Package, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SelectProductSheetProps {
@@ -66,12 +66,12 @@ const SelectProductSheet = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[85vh] min-h-[50vh] bg-background flex flex-col">
+      <DrawerContent className="max-h-[85vh] min-h-[50vh] bg-white flex flex-col rounded-t-[20px]">
         {/* Sticky Header */}
-        <div className="sticky top-0 z-10 bg-white pt-2 pb-0">
+        <div className="sticky top-0 z-10 bg-white pt-3 pb-0">
           {/* Drag Handle */}
-          <div className="flex justify-center mb-3">
-            <div className="w-10 h-1 rounded-full bg-neutral-200" />
+          <div className="flex justify-center mb-4">
+            <div className="w-9 h-1 rounded-full bg-[#D0D0D0]" />
           </div>
 
           {/* FTUX Hint Banner */}
@@ -83,27 +83,18 @@ const SelectProductSheet = ({
             </div>
           )}
 
-          {/* Title Area with New Button */}
-          <div className="relative px-4 mb-3">
-            {/* Centered Title & Subtitle */}
-            <div className="text-center pr-16">
-              <h2 className="text-[17px] font-medium text-foreground">
-                Select a Product
-              </h2>
-              <p className="text-[14px] text-muted-foreground mt-0.5">
-                Choose one or create a new product
-              </p>
-            </div>
-
-            {/* + New Button - Absolute Right */}
+          {/* Header Row: Title left, + New button right */}
+          <div className="flex items-center justify-between px-4 pb-3">
+            <h2 className="text-[17px] font-semibold text-[#111111]">
+              Choose a product
+            </h2>
             <button
               onClick={handleOpenNewProduct}
               className={cn(
-                "absolute right-4 top-1/2 -translate-y-1/2",
-                "flex items-center gap-1 h-8 px-3",
-                "bg-primary/10 text-primary rounded-full",
+                "flex items-center gap-1.5 h-8 px-4",
+                "bg-primary text-white rounded-full",
                 "text-[13px] font-medium",
-                "hover:bg-primary/15 active:scale-[0.97]",
+                "hover:bg-primary/90 active:scale-[0.97]",
                 "transition-all duration-150"
               )}
             >
@@ -112,13 +103,10 @@ const SelectProductSheet = ({
             </button>
           </div>
 
-          {/* Divider */}
-          <div className="h-px bg-[#E5E7EB] mx-4" />
-
-          {/* Search Bar - Always visible */}
-          <div className="px-4 py-3">
+          {/* Search Bar */}
+          <div className="px-4 pb-3">
             <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-neutral-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#999999]" />
               <input
                 ref={searchInputRef}
                 type="text"
@@ -126,11 +114,10 @@ const SelectProductSheet = ({
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search products…"
                 className={cn(
-                  "w-full h-12 pl-11 pr-4",
-                  "text-[16px] text-foreground placeholder:text-neutral-400",
-                  "bg-white border border-[#E5E7EB] rounded-[14px]",
-                  "shadow-sm",
-                  "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40",
+                  "w-full h-11 pl-11 pr-4",
+                  "text-[15px] text-[#111111] placeholder:text-[#999999]",
+                  "bg-[#F5F5F7] rounded-xl",
+                  "focus:outline-none focus:ring-2 focus:ring-primary/20",
                   "transition-all duration-150"
                 )}
               />
@@ -139,24 +126,24 @@ const SelectProductSheet = ({
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden bg-white">
           {/* Empty State: No products exist */}
           {!hasProducts && (
             <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Package className="w-8 h-8 text-primary" />
+              <div className="w-16 h-16 rounded-2xl bg-[#F5F5F7] flex items-center justify-center mb-4">
+                <Package className="w-7 h-7 text-[#AAAAAA]" />
               </div>
-              <h3 className="text-[16px] font-semibold text-foreground mb-2">
+              <h3 className="text-[17px] font-semibold text-[#111111] mb-2">
                 No products yet
               </h3>
-              <p className="text-[14px] text-muted-foreground mb-6 max-w-[260px]">
-                Tap '+ New' to create your first product.
+              <p className="text-[14px] text-[#666666] mb-6 max-w-[260px]">
+                Add your first product to link it to this hotspot.
               </p>
               <button
                 onClick={handleOpenNewProduct}
                 className={cn(
                   "flex items-center gap-1.5 h-11 px-5",
-                  "bg-primary text-primary-foreground rounded-full",
+                  "bg-primary text-white rounded-full",
                   "text-[15px] font-medium",
                   "hover:bg-primary/90 active:scale-[0.97]",
                   "transition-all duration-150"
@@ -171,13 +158,13 @@ const SelectProductSheet = ({
           {/* Empty State: No search results */}
           {hasProducts && !hasSearchResults && searchQuery && (
             <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-              <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-4">
-                <Search className="w-6 h-6 text-muted-foreground" />
+              <div className="w-14 h-14 rounded-2xl bg-[#F5F5F7] flex items-center justify-center mb-4">
+                <Search className="w-6 h-6 text-[#AAAAAA]" />
               </div>
-              <h3 className="text-[16px] font-medium text-foreground mb-1">
+              <h3 className="text-[16px] font-semibold text-[#111111] mb-1">
                 No products found
               </h3>
-              <p className="text-[14px] text-muted-foreground max-w-[240px]">
+              <p className="text-[14px] text-[#666666] max-w-[240px]">
                 Try a different term or create a new product.
               </p>
             </div>
@@ -185,8 +172,8 @@ const SelectProductSheet = ({
 
           {/* Product List */}
           {hasProducts && (hasSearchResults || !searchQuery) && (
-            <ScrollArea className="h-full">
-              <div className="px-4 pb-safe-plus flex flex-col gap-3.5">
+            <ScrollArea className="h-full bg-white">
+              <div className="px-4 pb-safe-plus flex flex-col gap-3">
                 {filteredProducts.map((product) => {
                   const isSelected = selectedProductId === product.id;
                   
@@ -195,16 +182,16 @@ const SelectProductSheet = ({
                       key={product.id}
                       onClick={() => handleSelectProduct(product.id)}
                       className={cn(
-                        "w-full flex items-center gap-3.5 p-3.5 rounded-2xl",
-                        "min-h-[64px] text-left",
-                        "bg-white border border-[#E5E7EB]",
-                        "hover:bg-neutral-50 active:bg-neutral-100 active:scale-[0.98]",
+                        "w-full flex items-start gap-3.5 p-3 rounded-xl",
+                        "text-left bg-white",
+                        "border border-[#E5E5E5]",
+                        "hover:bg-[#FAFAFA] active:bg-[#F5F5F5] active:scale-[0.99]",
                         "transition-all duration-100",
-                        isSelected && "bg-primary/5 border-primary/30 ring-1 ring-primary/20"
+                        isSelected && "bg-[#F4F7FF] border-primary ring-1 ring-primary/30"
                       )}
                     >
-                      {/* Thumbnail */}
-                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-neutral-100 overflow-hidden">
+                      {/* Thumbnail - 56x56px */}
+                      <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-[#F5F5F5] overflow-hidden">
                         {product.thumbnail ? (
                           <img
                             src={product.thumbnail}
@@ -212,40 +199,41 @@ const SelectProductSheet = ({
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               (e.target as HTMLImageElement).style.display = 'none';
+                              (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
                             }}
                           />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Package className="w-5 h-5 text-neutral-300" />
-                          </div>
-                        )}
+                        ) : null}
+                        <div className={cn(
+                          "w-full h-full flex items-center justify-center",
+                          product.thumbnail && "hidden"
+                        )}>
+                          <ImageIcon className="w-5 h-5 text-[#CCCCCC]" />
+                        </div>
                       </div>
 
                       {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[16px] font-medium text-foreground line-clamp-2 leading-snug">
+                      <div className="flex-1 min-w-0 py-0.5">
+                        <p className="text-[15px] font-medium text-[#111111] line-clamp-2 leading-snug">
                           {product.title}
                         </p>
                         {product.description && (
-                          <p className="text-[14px] text-muted-foreground truncate mt-0.5">
+                          <p className="text-[13px] text-[#666666] line-clamp-2 mt-1 leading-snug">
                             {product.description}
+                          </p>
+                        )}
+                        {product.price && (
+                          <p className="text-[14px] font-semibold text-[#111111] mt-1.5">
+                            {product.price}
                           </p>
                         )}
                       </div>
 
-                      {/* Right side: Price and/or checkmark */}
-                      <div className="flex-shrink-0 flex items-center gap-2.5">
-                        {product.price && (
-                          <span className="text-[15px] font-medium text-foreground">
-                            {product.price}
-                          </span>
-                        )}
-                        {isSelected && (
-                          <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                            <Check className="w-3.5 h-3.5 text-primary-foreground" />
-                          </div>
-                        )}
-                      </div>
+                      {/* Selection checkmark */}
+                      {isSelected && (
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center mt-0.5">
+                          <Check className="w-3.5 h-3.5 text-white" />
+                        </div>
+                      )}
                     </button>
                   );
                 })}
