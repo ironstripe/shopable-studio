@@ -8,10 +8,10 @@ interface TapIndicatorProps {
 }
 
 const TapIndicator = ({ x, y, onComplete, isMobile = false }: TapIndicatorProps) => {
-  const size = isMobile ? 36 : 28;
+  const size = isMobile ? 40 : 28;
 
   useEffect(() => {
-    const timer = setTimeout(onComplete, 180);
+    const timer = setTimeout(onComplete, 280);
     return () => clearTimeout(timer);
   }, [onComplete]);
 
@@ -24,13 +24,18 @@ const TapIndicator = ({ x, y, onComplete, isMobile = false }: TapIndicatorProps)
         width: size,
         height: size,
         zIndex: 8,
+        // iOS Safari animation optimization
+        WebkitBackfaceVisibility: 'hidden',
+        backfaceVisibility: 'hidden',
+        willChange: 'transform, opacity',
       }}
     >
       <div
         className="w-full h-full rounded-full"
         style={{
-          backgroundColor: "rgba(255, 255, 255, 0.45)",
-          border: "1px solid rgba(255, 255, 255, 0.5)",
+          backgroundColor: "rgba(255, 255, 255, 0.55)",
+          border: "1.5px solid rgba(255, 255, 255, 0.65)",
+          boxShadow: "0 0 10px rgba(255, 255, 255, 0.25)",
         }}
       />
     </div>
