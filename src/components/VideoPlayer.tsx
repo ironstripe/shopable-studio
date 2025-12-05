@@ -7,6 +7,7 @@ import VideoUploadZone from "./VideoUploadZone";
 import VideoCTA from "./VideoCTA";
 import SafeZoneOverlay from "./SafeZoneOverlay";
 import { cn } from "@/lib/utils";
+import { isPointInSafeZone } from "@/utils/safe-zone";
 
 interface VideoPlayerProps {
   videoSrc: string | null;
@@ -77,6 +78,11 @@ const VideoPlayer = ({
     initialDistance: number;
   } | null>(null);
   const [didDrag, setDidDrag] = useState(false);
+  const [safeZoneTooltip, setSafeZoneTooltip] = useState<{ x: number; y: number; show: boolean }>({
+    x: 0,
+    y: 0,
+    show: false,
+  });
 
   useEffect(() => {
     if (onVideoRef && videoRef.current) {
@@ -120,6 +126,13 @@ const VideoPlayer = ({
     const rect = containerRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
+
+    // Check if click is in reserved zone and show tooltip
+    const isInSafeZone = isPointInSafeZone(x, y, 'vertical_social');
+    if (!isInSafeZone) {
+      setSafeZoneTooltip({ x: e.clientX, y: e.clientY, show: true });
+      setTimeout(() => setSafeZoneTooltip(prev => ({ ...prev, show: false })), 2500);
+    }
 
     onAddHotspot(x, y, actualTime);
     videoRef.current.pause();
@@ -347,6 +360,20 @@ const VideoPlayer = ({
               className="absolute inset-0 bottom-[50px] hotspot-placement-cursor z-[5]"
               onClick={handleOverlayClick}
             />
+          )}
+
+          {/* Safe zone tooltip feedback */}
+          {safeZoneTooltip.show && (
+            <div 
+              className="fixed z-[200] px-3 py-2 bg-black/85 text-white text-xs rounded-md shadow-lg animate-fade-in pointer-events-none"
+              style={{ 
+                left: safeZoneTooltip.x + 12, 
+                top: safeZoneTooltip.y - 36,
+                maxWidth: 220 
+              }}
+            >
+              This area is reserved by platform UI
+            </div>
           )}
 
           {/* Full-Video Link Overlay (preview mode only) */}
