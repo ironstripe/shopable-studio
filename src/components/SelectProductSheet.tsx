@@ -66,7 +66,7 @@ const SelectProductSheet = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[85vh] min-h-[50vh] bg-white flex flex-col">
+      <DrawerContent className="max-h-[85vh] min-h-[50vh] bg-background flex flex-col">
         {/* Sticky Header */}
         <div className="sticky top-0 z-10 bg-white pt-2 pb-0">
           {/* Drag Handle */}
@@ -186,7 +186,7 @@ const SelectProductSheet = ({
           {/* Product List */}
           {hasProducts && (hasSearchResults || !searchQuery) && (
             <ScrollArea className="h-full">
-              <div className="px-4 pb-6 flex flex-col gap-3.5">
+              <div className="px-4 pb-safe-plus flex flex-col gap-3.5">
                 {filteredProducts.map((product) => {
                   const isSelected = selectedProductId === product.id;
                   
