@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface TooltipHintProps {
@@ -19,6 +19,17 @@ const TooltipHint = ({
   className,
 }: TooltipHintProps) => {
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Delay visibility for smooth entrance animation
+  useEffect(() => {
+    if (show) {
+      const timer = setTimeout(() => setIsVisible(true), 10);
+      return () => clearTimeout(timer);
+    } else {
+      setIsVisible(false);
+    }
+  }, [show]);
 
   // Dismiss on outside click
   useEffect(() => {
@@ -55,8 +66,8 @@ const TooltipHint = ({
       ref={tooltipRef}
       className={cn(
         "bg-white rounded-xl shadow-lg border border-border/30 px-4 py-3",
-        "animate-fade-in",
         "max-w-[220px]",
+        isVisible ? "animate-tooltip-enter" : "opacity-0",
         className
       )}
     >

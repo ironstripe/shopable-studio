@@ -2,6 +2,7 @@ import { Hotspot } from "@/types/video";
 import HotspotIcon from "./HotspotIcon";
 import EmptyHotspotIndicator from "./EmptyHotspotIndicator";
 import { cn } from "@/lib/utils";
+import { useState, useEffect, useRef } from "react";
 
 interface VideoHotspotProps {
   hotspot: Hotspot;
@@ -17,6 +18,7 @@ interface VideoHotspotProps {
   hotspotIndex?: number;
   hasProduct: boolean;
   isHighlighted?: boolean;
+  isNew?: boolean;
 }
 
 const VideoHotspot = ({ 
@@ -33,9 +35,33 @@ const VideoHotspot = ({
   hotspotIndex, 
   hasProduct,
   isHighlighted = false,
+  isNew = false,
 }: VideoHotspotProps) => {
   const countdown = Math.ceil(hotspot.timeEnd - currentTime);
   const isActive = currentTime >= hotspot.timeStart && currentTime <= hotspot.timeEnd;
+  
+  // Track if pop-in animation should play
+  const [showPopIn, setShowPopIn] = useState(isNew);
+  const [showSelectionHalo, setShowSelectionHalo] = useState(false);
+  const prevSelectedRef = useRef(isSelected);
+
+  // Clear pop-in after animation completes
+  useEffect(() => {
+    if (showPopIn) {
+      const timer = setTimeout(() => setShowPopIn(false), 120);
+      return () => clearTimeout(timer);
+    }
+  }, [showPopIn]);
+
+  // Trigger selection halo when isSelected becomes true
+  useEffect(() => {
+    if (isSelected && !prevSelectedRef.current) {
+      setShowSelectionHalo(true);
+      const timer = setTimeout(() => setShowSelectionHalo(false), 200);
+      return () => clearTimeout(timer);
+    }
+    prevSelectedRef.current = isSelected;
+  }, [isSelected]);
 
   if (!isActive || countdown <= 0) return null;
 
@@ -43,15 +69,17 @@ const VideoHotspot = ({
     <div
       className={cn(
         "absolute select-none pointer-events-auto",
-        isDragging ? "" : "transition-all",
+        isDragging ? "" : "transition-all duration-150",
         isSelected ? "hotspot-pulse scale-110" : "hotspot-pulse",
         isDragging ? "cursor-grabbing opacity-80" : isEditMode ? "cursor-grab" : "cursor-pointer",
+        showPopIn && "animate-hotspot-pop-in",
+        showSelectionHalo && "animate-selection-halo",
         isHighlighted && "hotspot-highlight-halo"
       )}
       style={{
         left: `${hotspot.x * 100}%`,
         top: `${hotspot.y * 100}%`,
-        transform: "translate(-50%, -50%)",
+        transform: showPopIn ? undefined : "translate(-50%, -50%)",
         zIndex: isDragging || isResizing ? 100 : 10,
       }}
       onClick={onClick}
@@ -79,7 +107,10 @@ const VideoHotspot = ({
       {/* Resize handle - only visible in edit mode when selected */}
       {isEditMode && isSelected && (
         <div
-          className="absolute -bottom-2 -right-2 w-4 h-4 bg-white/85 border border-[#D0D0D0] rounded-full cursor-se-resize flex items-center justify-center transition-all hover:border-neutral-400 hover:shadow-sm"
+          className={cn(
+            "absolute -bottom-2 -right-2 w-4 h-4 bg-white/85 border border-[#D0D0D0] rounded-full cursor-se-resize flex items-center justify-center transition-all hover:border-neutral-400 hover:shadow-sm",
+            isResizing && "animate-resize-pulse"
+          )}
           onMouseDown={(e) => {
             e.stopPropagation();
             onResizeStart(e);

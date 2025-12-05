@@ -125,22 +125,164 @@ All colors MUST be HSL.
   animation: fade-in 240ms ease-out forwards;
 }
 
-@keyframes hotspot-halo {
+/* 1.1 Hotspot Pop-in (120ms) */
+@keyframes hotspot-pop-in {
   0% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 0 12px rgba(59, 130, 246, 0);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
+/* 1.2 Selection Halo (200ms) */
+@keyframes hotspot-selection-halo {
+  0% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+  }
+  30% {
+    box-shadow: 0 0 0 8px hsl(var(--primary) / 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 12px hsl(var(--primary) / 0);
+  }
+}
+
+/* Legacy halo for backward compatibility */
+@keyframes hotspot-halo {
+  0% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 12px hsl(var(--primary) / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+  }
+}
+
+/* 1.4 Resize Handle Pulse (600ms loop) */
+@keyframes resize-handle-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 6px hsl(var(--primary) / 0.5);
+  }
+}
+
+/* 2.2 Row Highlight Flash (150ms) */
+@keyframes row-highlight-flash {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: hsl(var(--primary) / 0.15);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* 4.2 CTA Button Intro (150ms) */
+@keyframes cta-intro {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 5.1 Tooltip Entrance (150ms) */
+@keyframes tooltip-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 6.1 Mode Crossfade (150ms) */
+@keyframes mode-fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes mode-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Animation utility classes */
+.animate-hotspot-pop-in {
+  animation: hotspot-pop-in 120ms ease-out forwards;
+}
+
+.animate-selection-halo {
+  animation: hotspot-selection-halo 200ms ease-out;
+}
+
 .hotspot-highlight-halo {
-  animation: hotspot-halo 1s ease-out;
+  animation: hotspot-halo 200ms ease-out;
+}
+
+.animate-resize-pulse {
+  animation: resize-handle-pulse 600ms ease-in-out infinite;
+}
+
+.animate-row-highlight {
+  animation: row-highlight-flash 150ms ease-out;
+}
+
+.animate-cta-intro {
+  animation: cta-intro 150ms ease-out forwards;
+}
+
+.animate-tooltip-enter {
+  animation: tooltip-enter 150ms ease-out forwards;
+}
+
+.animate-mode-fade-out {
+  animation: mode-fade-out 150ms ease-out forwards;
+}
+
+.animate-mode-fade-in {
+  animation: mode-fade-in 150ms ease-out forwards;
 }
 
 .hotspot-placement-cursor {
   cursor: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10' fill='%230E76FD' fill-opacity='0.8'/%3E%3Ccircle cx='12' cy='12' r='10' stroke='%23ffffff' stroke-width='2'/%3E%3C/svg%3E") 12 12, crosshair;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-hotspot-pop-in,
+  .animate-selection-halo,
+  .hotspot-highlight-halo,
+  .animate-resize-pulse,
+  .animate-row-highlight,
+  .animate-cta-intro,
+  .animate-tooltip-enter,
+  .animate-mode-fade-out,
+  .animate-mode-fade-in,
+  .hotspot-pulse,
+  .animate-icon-pulse {
+    animation: none !important;
+  }
 }

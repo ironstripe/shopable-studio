@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { Plus, Pencil, Trash2, X, Target } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface HotspotDrawerProps {
   open: boolean;
@@ -38,6 +38,8 @@ const HotspotDrawer = ({
 }: HotspotDrawerProps) => {
   const sortedHotspots = [...hotspots].sort((a, b) => a.timeStart - b.timeStart);
   const hotspotRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const [highlightedRowId, setHighlightedRowId] = useState<string | null>(null);
+  const prevSelectedId = useRef<string | null>(null);
 
   // Calculate hotspot numbers only for assigned hotspots
   const assignedHotspots = sortedHotspots.filter(h => h.productId);
@@ -46,7 +48,7 @@ const HotspotDrawer = ({
     return assignedHotspots.findIndex(h => h.id === hotspot.id) + 1;
   };
 
-  // Auto-scroll to selected hotspot
+  // Auto-scroll to selected hotspot and highlight
   useEffect(() => {
     if (open && selectedHotspotId && hotspotRefs.current[selectedHotspotId]) {
       setTimeout(() => {
@@ -54,8 +56,15 @@ const HotspotDrawer = ({
           behavior: 'smooth',
           block: 'center',
         });
+        
+        // Flash highlight if selection came from outside (video tap)
+        if (prevSelectedId.current !== selectedHotspotId) {
+          setHighlightedRowId(selectedHotspotId);
+          setTimeout(() => setHighlightedRowId(null), 150);
+        }
       }, 100);
     }
+    prevSelectedId.current = selectedHotspotId;
   }, [open, selectedHotspotId]);
 
   const handleRowClick = (hotspot: Hotspot) => {
@@ -144,7 +153,8 @@ const HotspotDrawer = ({
                           : "hover:bg-muted/50",
                         !isUnassigned && isSelected
                           ? "bg-primary/10 border border-primary/30"
-                          : !isUnassigned && "border border-transparent"
+                          : !isUnassigned && "border border-transparent",
+                        highlightedRowId === hotspot.id && "animate-row-highlight"
                       )}
                       onClick={() => handleRowClick(hotspot)}
                     >
