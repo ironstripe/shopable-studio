@@ -435,6 +435,7 @@ const Index = () => {
           onReplaceVideo={() => setShowReplaceVideoDialog(true)}
           onExport={handleExport}
           hasVideo={!!videoSrc}
+          onDeleteVideo={() => setShowReplaceVideoDialog(true)}
         />
 
         {/* Main content area */}
@@ -488,6 +489,7 @@ const Index = () => {
             onToggleMode={handleToggleMode}
             onOpenHotspotDrawer={() => setHotspotDrawerOpen(true)}
             onOpenCTASettings={() => setVideoCTASheetOpen(true)}
+            hotspotCount={hotspots.length}
           />
         )}
 

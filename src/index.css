@@ -298,6 +298,68 @@ All colors MUST be HSL.
   cursor: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10' fill='%230E76FD' fill-opacity='0.8'/%3E%3Ccircle cx='12' cy='12' r='10' stroke='%23ffffff' stroke-width='2'/%3E%3C/svg%3E") 12 12, crosshair;
 }
 
+/* FAB button animations */
+@keyframes fab-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes fab-bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-fab-enter {
+  animation: fab-enter 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-fab-bounce {
+  animation: fab-bounce 300ms ease-out;
+}
+
+/* Hotspot spring animation */
+@keyframes hotspot-spring {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.animate-hotspot-spring {
+  animation: hotspot-spring 350ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Safe zone fade animation */
+@keyframes safe-zone-fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-safe-zone-fade {
+  animation: safe-zone-fade 200ms ease-out forwards;
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   .animate-hotspot-pop-in,
@@ -310,7 +372,11 @@ All colors MUST be HSL.
   .animate-mode-fade-out,
   .animate-mode-fade-in,
   .hotspot-pulse,
-  .animate-icon-pulse {
+  .animate-icon-pulse,
+  .animate-fab-enter,
+  .animate-fab-bounce,
+  .animate-hotspot-spring,
+  .animate-safe-zone-fade {
     animation: none !important;
   }
 }
