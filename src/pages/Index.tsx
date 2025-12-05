@@ -9,6 +9,7 @@ import AddHotspotFAB from "@/components/AddHotspotFAB";
 import SelectProductSheet from "@/components/SelectProductSheet";
 import NewProductSheet from "@/components/NewProductSheet";
 import LayoutBehaviorSheet from "@/components/LayoutBehaviorSheet";
+import VideoCTASheet from "@/components/VideoCTASheet";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -39,7 +40,7 @@ const Index = () => {
   const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
   const [showReplaceVideoDialog, setShowReplaceVideoDialog] = useState(false);
   const [hotspotDrawerOpen, setHotspotDrawerOpen] = useState(false);
-  const [showCTASettings, setShowCTASettings] = useState(false);
+  const [videoCTASheetOpen, setVideoCTASheetOpen] = useState(false);
   const [selectProductSheetOpen, setSelectProductSheetOpen] = useState(false);
   const [newProductSheetOpen, setNewProductSheetOpen] = useState(false);
   const [productAssignmentHotspotId, setProductAssignmentHotspotId] = useState<string | null>(null);
@@ -280,7 +281,7 @@ const Index = () => {
       setSelectedHotspot(null);
       setActiveToolbarHotspotId(null);
       setHotspotDrawerOpen(false);
-      setShowCTASettings(false);
+      setVideoCTASheetOpen(false);
     }
     setEditorMode(editorMode === "edit" ? "preview" : "edit");
   };
@@ -403,8 +404,6 @@ const Index = () => {
             onUpdateVideoCTA={setVideoCTA}
             showSafeZones={editorMode === "edit"}
             isMobile={true}
-            showCTASettings={showCTASettings}
-            onShowCTASettingsChange={setShowCTASettings}
           />
         </main>
 
@@ -419,7 +418,7 @@ const Index = () => {
             onSeek={handleSeek}
             onToggleMode={handleToggleMode}
             onOpenHotspotDrawer={() => setHotspotDrawerOpen(true)}
-            onOpenCTASettings={() => setShowCTASettings(true)}
+            onOpenCTASettings={() => setVideoCTASheetOpen(true)}
           />
         )}
 
@@ -469,6 +468,14 @@ const Index = () => {
           onOpenChange={setLayoutBehaviorSheetOpen}
           hotspot={layoutEditingHotspot}
           onUpdateHotspot={handleUpdateHotspot}
+        />
+
+        {/* Video CTA Sheet */}
+        <VideoCTASheet
+          open={videoCTASheetOpen}
+          onOpenChange={setVideoCTASheetOpen}
+          videoCTA={videoCTA}
+          onUpdateCTA={setVideoCTA}
         />
 
         {/* Replace Video Dialog */}
@@ -629,6 +636,14 @@ const Index = () => {
           onOpenChange={setLayoutBehaviorSheetOpen}
           hotspot={layoutEditingHotspot}
           onUpdateHotspot={handleUpdateHotspot}
+        />
+
+        {/* Desktop: Video CTA Sheet */}
+        <VideoCTASheet
+          open={videoCTASheetOpen}
+          onOpenChange={setVideoCTASheetOpen}
+          videoCTA={videoCTA}
+          onUpdateCTA={setVideoCTA}
         />
       </main>
 
