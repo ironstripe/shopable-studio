@@ -25,6 +25,7 @@ interface VideoPlayerProps {
   onUpdateHotspotPosition: (hotspotId: string, x: number, y: number) => void;
   onUpdateHotspotScale: (hotspotId: string, scale: number) => void;
   onOpenProductSelection: (hotspotId: string) => void;
+  onOpenLayoutSheet: (hotspot: Hotspot) => void;
   onVideoRef?: (ref: HTMLVideoElement | null) => void;
   onVideoLoad: (src: string) => void;
   shouldAutoOpenProductPanel?: boolean;
@@ -52,6 +53,7 @@ const VideoPlayer = ({
   onUpdateHotspotPosition,
   onUpdateHotspotScale,
   onOpenProductSelection,
+  onOpenLayoutSheet,
   onVideoRef,
   onVideoLoad,
   shouldAutoOpenProductPanel,
@@ -423,6 +425,7 @@ const VideoPlayer = ({
                         onUpdateHotspot={onUpdateHotspot}
                         onDeleteHotspot={() => onDeleteHotspot(hotspot.id)}
                         onOpenProductSelection={onOpenProductSelection}
+                        onOpenLayoutSheet={onOpenLayoutSheet}
                         autoOpenProductPanel={shouldAutoOpenProductPanel && !hotspot.productId}
                       />
                     )}

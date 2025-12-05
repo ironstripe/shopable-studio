@@ -8,6 +8,7 @@ import HotspotDrawer from "@/components/HotspotDrawer";
 import AddHotspotFAB from "@/components/AddHotspotFAB";
 import SelectProductSheet from "@/components/SelectProductSheet";
 import NewProductSheet from "@/components/NewProductSheet";
+import LayoutBehaviorSheet from "@/components/LayoutBehaviorSheet";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -42,6 +43,8 @@ const Index = () => {
   const [selectProductSheetOpen, setSelectProductSheetOpen] = useState(false);
   const [newProductSheetOpen, setNewProductSheetOpen] = useState(false);
   const [productAssignmentHotspotId, setProductAssignmentHotspotId] = useState<string | null>(null);
+  const [layoutBehaviorSheetOpen, setLayoutBehaviorSheetOpen] = useState(false);
+  const [layoutEditingHotspot, setLayoutEditingHotspot] = useState<Hotspot | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -182,11 +185,13 @@ const Index = () => {
     }
   };
 
-  const handleOpenLayoutPanel = (hotspot: Hotspot) => {
+  const handleOpenLayoutSheet = (hotspot: Hotspot) => {
     if (!hotspot.productId) {
       handleOpenProductPanel(hotspot);
       return;
     }
+    setLayoutEditingHotspot(hotspot);
+    setLayoutBehaviorSheetOpen(true);
     setSelectedHotspot(hotspot);
     setActiveToolbarHotspotId(hotspot.id);
     if (videoRef.current) {
@@ -381,6 +386,7 @@ const Index = () => {
             onUpdateHotspotPosition={handleUpdateHotspotPosition}
             onUpdateHotspotScale={handleUpdateHotspotScale}
             onOpenProductSelection={handleOpenProductSelection}
+            onOpenLayoutSheet={handleOpenLayoutSheet}
             onVideoRef={(ref) => {
               videoRef.current = ref;
               if (ref) {
@@ -434,7 +440,7 @@ const Index = () => {
           selectedHotspotId={selectedHotspot?.id || null}
           onSelectHotspot={handleSelectFromList}
           onOpenProductSelection={handleOpenProductSelection}
-          onOpenLayoutPanel={handleOpenLayoutPanel}
+          onOpenLayoutSheet={handleOpenLayoutSheet}
           onDeleteHotspot={handleDeleteHotspot}
           isPreviewMode={isPreviewMode}
         />
@@ -455,6 +461,14 @@ const Index = () => {
           onOpenChange={setNewProductSheetOpen}
           onCreateProduct={handleCreateProduct}
           onProductCreated={handleProductCreatedFromSheet}
+        />
+
+        {/* Layout & Behavior Sheet */}
+        <LayoutBehaviorSheet
+          open={layoutBehaviorSheetOpen}
+          onOpenChange={setLayoutBehaviorSheetOpen}
+          hotspot={layoutEditingHotspot}
+          onUpdateHotspot={handleUpdateHotspot}
         />
 
         {/* Replace Video Dialog */}
@@ -564,6 +578,7 @@ const Index = () => {
             onUpdateHotspotPosition={handleUpdateHotspotPosition}
             onUpdateHotspotScale={handleUpdateHotspotScale}
             onOpenProductSelection={handleOpenProductSelection}
+            onOpenLayoutSheet={handleOpenLayoutSheet}
             onVideoRef={(ref) => (videoRef.current = ref)}
             onVideoLoad={handleVideoLoad}
             shouldAutoOpenProductPanel={shouldAutoOpenProductPanel}
@@ -583,7 +598,7 @@ const Index = () => {
               selectedHotspotId={selectedHotspot?.id || null}
               onSelectHotspot={handleSelectFromList}
               onOpenProductSelection={handleOpenProductSelection}
-              onOpenLayoutPanel={handleOpenLayoutPanel}
+              onOpenLayoutSheet={handleOpenLayoutSheet}
               onDeleteHotspot={handleDeleteHotspot}
               isPreviewMode={isPreviewMode}
             />
@@ -606,6 +621,14 @@ const Index = () => {
           onOpenChange={setNewProductSheetOpen}
           onCreateProduct={handleCreateProduct}
           onProductCreated={handleProductCreatedFromSheet}
+        />
+
+        {/* Desktop: Layout & Behavior Sheet */}
+        <LayoutBehaviorSheet
+          open={layoutBehaviorSheetOpen}
+          onOpenChange={setLayoutBehaviorSheetOpen}
+          hotspot={layoutEditingHotspot}
+          onUpdateHotspot={handleUpdateHotspot}
         />
       </main>
 

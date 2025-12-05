@@ -10,7 +10,7 @@ interface HotspotSidebarProps {
   selectedHotspotId: string | null;
   onSelectHotspot: (hotspot: Hotspot) => void;
   onOpenProductSelection: (hotspotId: string) => void;
-  onOpenLayoutPanel: (hotspot: Hotspot) => void;
+  onOpenLayoutSheet: (hotspot: Hotspot) => void;
   onDeleteHotspot: (hotspotId: string) => void;
   isPreviewMode: boolean;
 }
@@ -21,7 +21,7 @@ const HotspotSidebar = ({
   selectedHotspotId,
   onSelectHotspot,
   onOpenProductSelection,
-  onOpenLayoutPanel,
+  onOpenLayoutSheet,
   onDeleteHotspot,
   isPreviewMode,
 }: HotspotSidebarProps) => {
@@ -60,7 +60,7 @@ const HotspotSidebar = ({
     if (isUnassigned) {
       onOpenProductSelection(hotspot.id);
     } else {
-      onOpenLayoutPanel(hotspot);
+      onOpenLayoutSheet(hotspot);
     }
   };
 
@@ -155,7 +155,7 @@ const HotspotSidebar = ({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              onOpenLayoutPanel(hotspot);
+                              onOpenLayoutSheet(hotspot);
                             }}
                             className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
                             title="Edit Layout & Behavior"

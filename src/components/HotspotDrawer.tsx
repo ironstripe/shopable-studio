@@ -19,7 +19,7 @@ interface HotspotDrawerProps {
   selectedHotspotId: string | null;
   onSelectHotspot: (hotspot: Hotspot) => void;
   onOpenProductSelection: (hotspotId: string) => void;
-  onOpenLayoutPanel: (hotspot: Hotspot) => void;
+  onOpenLayoutSheet: (hotspot: Hotspot) => void;
   onDeleteHotspot: (hotspotId: string) => void;
   isPreviewMode: boolean;
 }
@@ -32,7 +32,7 @@ const HotspotDrawer = ({
   selectedHotspotId,
   onSelectHotspot,
   onOpenProductSelection,
-  onOpenLayoutPanel,
+  onOpenLayoutSheet,
   onDeleteHotspot,
   isPreviewMode,
 }: HotspotDrawerProps) => {
@@ -75,16 +75,14 @@ const HotspotDrawer = ({
     if (isUnassigned) {
       onOpenProductSelection(hotspot.id);
     } else {
-      onOpenLayoutPanel(hotspot);
+      onOpenLayoutSheet(hotspot);
     }
   };
 
   const handleEditClick = (e: React.MouseEvent, hotspot: Hotspot) => {
     e.stopPropagation();
-    if (onOpenLayoutPanel) {
-      onOpenLayoutPanel(hotspot);
-      onOpenChange(false);
-    }
+    onOpenLayoutSheet(hotspot);
+    onOpenChange(false);
   };
 
   const handleDeleteClick = (e: React.MouseEvent, hotspotId: string) => {
