@@ -18,10 +18,10 @@ interface HotspotDrawerProps {
   products: Record<string, Product>;
   selectedHotspotId: string | null;
   onSelectHotspot: (hotspot: Hotspot) => void;
-  onOpenProductPanel?: (hotspot: Hotspot) => void;
-  onOpenLayoutPanel?: (hotspot: Hotspot) => void;
-  onDeleteHotspot?: (hotspotId: string) => void;
-  isPreviewMode?: boolean;
+  onOpenProductSelection: (hotspotId: string) => void;
+  onOpenLayoutPanel: (hotspot: Hotspot) => void;
+  onDeleteHotspot: (hotspotId: string) => void;
+  isPreviewMode: boolean;
 }
 
 const HotspotDrawer = ({
@@ -31,10 +31,10 @@ const HotspotDrawer = ({
   products,
   selectedHotspotId,
   onSelectHotspot,
-  onOpenProductPanel,
+  onOpenProductSelection,
   onOpenLayoutPanel,
   onDeleteHotspot,
-  isPreviewMode = false,
+  isPreviewMode,
 }: HotspotDrawerProps) => {
   const sortedHotspots = [...hotspots].sort((a, b) => a.timeStart - b.timeStart);
   const hotspotRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -69,12 +69,14 @@ const HotspotDrawer = ({
     }
 
     // Edit mode behavior
-    if (isUnassigned && onOpenProductPanel) {
-      onOpenProductPanel(hotspot);
-    } else if (!isUnassigned && onOpenLayoutPanel) {
+    onSelectHotspot(hotspot);
+    onOpenChange(false);
+    
+    if (isUnassigned) {
+      onOpenProductSelection(hotspot.id);
+    } else {
       onOpenLayoutPanel(hotspot);
     }
-    onOpenChange(false);
   };
 
   const handleEditClick = (e: React.MouseEvent, hotspot: Hotspot) => {
@@ -189,7 +191,7 @@ const HotspotDrawer = ({
                         {/* Action Icons - Hidden in preview mode */}
                         {!isPreviewMode && (
                           <div className="flex items-center gap-1 ml-auto">
-                            {!isUnassigned && onOpenLayoutPanel && (
+                            {!isUnassigned && (
                               <button
                                 onClick={(e) => handleEditClick(e, hotspot)}
                                 className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
@@ -198,15 +200,13 @@ const HotspotDrawer = ({
                                 <Pencil className="w-4 h-4" />
                               </button>
                             )}
-                            {onDeleteHotspot && (
-                              <button
-                                onClick={(e) => handleDeleteClick(e, hotspot.id)}
-                                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                                title="Delete Hotspot"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            )}
+                            <button
+                              onClick={(e) => handleDeleteClick(e, hotspot.id)}
+                              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                              title="Delete Hotspot"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
                         )}
                       </div>
