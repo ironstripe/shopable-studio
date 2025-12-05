@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Hotspot, Product, VideoProject, VideoCTA, EditorMode, VERTICAL_SOCIAL_SAFE_ZONE } from "@/types/video";
+import { Hotspot, Product, VideoProject, VideoCTA, EditorMode } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import HotspotSidebar from "@/components/HotspotSidebar";
 import MobileHeader from "@/components/MobileHeader";
@@ -25,6 +25,7 @@ import { Download, Pencil, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { clampPositionToSafeZone, getMaxScaleAtPosition, SafeZonePreset } from "@/utils/safe-zone";
 import shopableLogo from "@/assets/shopable-logo.png";
 
 const Index = () => {
@@ -96,22 +97,18 @@ const Index = () => {
     toast.success("Video loaded successfully");
   };
 
-  const clampToSafeZone = (x: number, y: number) => {
-    const safeZone = VERTICAL_SOCIAL_SAFE_ZONE;
-    const maxX = 1 - safeZone.right;
-    const maxY = 1 - safeZone.bottom;
-    const clampedX = Math.min(x, maxX);
-    const clampedY = Math.min(y, maxY);
-    const wasConstrained = x !== clampedX || y !== clampedY;
-    return { x: clampedX, y: clampedY, wasConstrained };
-  };
+  // Active safe zone preset
+  const activeSafeZonePreset: SafeZonePreset = 'vertical_social';
 
   const handleAddHotspot = (x: number, y: number, time: number) => {
-    // Clamp to safe zone
-    const { x: safeX, y: safeY, wasConstrained } = clampToSafeZone(x, y);
+    const defaultScale = 1;
+    // Clamp to safe zone considering hotspot dimensions
+    const { x: safeX, y: safeY, wasConstrained } = clampPositionToSafeZone(x, y, defaultScale, activeSafeZonePreset);
     
     if (wasConstrained) {
-      toast.info("Hotspot snapped to safe area. Reserved zones are used by platform UI.");
+      toast.info("Hotspot snapped to safe area. Reserved zones are used by platform UI.", {
+        duration: 3000,
+      });
     }
 
     const newHotspot: Hotspot = {
@@ -123,7 +120,7 @@ const Index = () => {
       productId: null,
       style: "badge-bubble-classic",
       ctaLabel: "Kaufen",
-      scale: 1,
+      scale: defaultScale,
       clickBehavior: "show-card",
       cardStyle: "retail-compact",
     };
@@ -155,8 +152,11 @@ const Index = () => {
   };
 
   const handleUpdateHotspotPosition = (hotspotId: string, x: number, y: number) => {
-    // Clamp to safe zone during drag
-    const { x: safeX, y: safeY } = clampToSafeZone(x, y);
+    const hotspot = hotspots.find(h => h.id === hotspotId);
+    if (!hotspot) return;
+    
+    // Clamp to safe zone considering hotspot dimensions
+    const { x: safeX, y: safeY } = clampPositionToSafeZone(x, y, hotspot.scale, activeSafeZonePreset);
     
     setHotspots(
       hotspots.map((h) => (h.id === hotspotId ? { ...h, x: safeX, y: safeY } : h))
@@ -167,11 +167,18 @@ const Index = () => {
   };
 
   const handleUpdateHotspotScale = (hotspotId: string, scale: number) => {
+    const hotspot = hotspots.find(h => h.id === hotspotId);
+    if (!hotspot) return;
+    
+    // Calculate maximum allowed scale at current position
+    const maxScale = getMaxScaleAtPosition(hotspot.x, hotspot.y, activeSafeZonePreset);
+    const clampedScale = Math.min(scale, maxScale);
+    
     setHotspots(
-      hotspots.map((h) => (h.id === hotspotId ? { ...h, scale } : h))
+      hotspots.map((h) => (h.id === hotspotId ? { ...h, scale: clampedScale } : h))
     );
     if (selectedHotspot?.id === hotspotId) {
-      setSelectedHotspot({ ...selectedHotspot, scale });
+      setSelectedHotspot({ ...selectedHotspot, scale: clampedScale });
     }
   };
 
