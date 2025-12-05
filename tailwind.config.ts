@@ -116,6 +116,10 @@ export default {
           "0%": { opacity: "1", transform: "scale(1)" },
           "100%": { opacity: "0", transform: "scale(0.98)" }
         },
+        "tap-ripple": {
+          "0%": { opacity: "1", transform: "scale(0.85)" },
+          "100%": { opacity: "0", transform: "scale(1.15)" }
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -127,6 +131,7 @@ export default {
         "card-exit": "card-exit 100ms ease-out",
         "luxury-card-enter": "luxury-card-enter 200ms ease-out",
         "luxury-card-exit": "luxury-card-exit 120ms ease-out",
+        "tap-ripple": "tap-ripple 180ms ease-out forwards",
       },
     },
   },
