@@ -94,6 +94,39 @@ const VideoPlayer = ({
     }
   }, [onVideoRef]);
 
+  // iOS Safari fix: explicitly load video when source changes
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video && videoSrc) {
+      console.log('[VideoPlayer] Loading video source:', videoSrc.substring(0, 50));
+      video.load();
+      
+      // iOS Safari: wait for loadedmetadata event before allowing interaction
+      const handleLoadedMetadata = () => {
+        console.log('[VideoPlayer] Video metadata loaded successfully');
+      };
+      
+      const handleError = (e: Event) => {
+        const target = e.target as HTMLVideoElement;
+        console.error('[VideoPlayer] Video error:', target.error?.code, target.error?.message);
+      };
+      
+      const handleCanPlay = () => {
+        console.log('[VideoPlayer] Video can play');
+      };
+      
+      video.addEventListener('loadedmetadata', handleLoadedMetadata);
+      video.addEventListener('error', handleError);
+      video.addEventListener('canplay', handleCanPlay);
+      
+      return () => {
+        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        video.removeEventListener('error', handleError);
+        video.removeEventListener('canplay', handleCanPlay);
+      };
+    }
+  }, [videoSrc]);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -349,12 +382,13 @@ const VideoPlayer = ({
           {videoSrc ? (
             <video
               ref={videoRef}
-              src={videoSrc}
               controls={!isMobile}
               playsInline
               // @ts-ignore - webkit-playsinline is needed for older iOS
               webkit-playsinline=""
               muted
+              preload="auto"
+              autoPlay={false}
               className="w-full h-full min-h-[200px] rounded-[12px] animate-video-enter"
               style={{ 
                 display: "block",
@@ -363,7 +397,21 @@ const VideoPlayer = ({
                 height: "100%",
                 WebkitTransform: "translateZ(0)",
               }}
-            />
+            >
+              <source 
+                src={videoSrc.startsWith('blob:') ? `${videoSrc}#t=0.001` : videoSrc} 
+                type={
+                  videoSrc.startsWith('blob:') 
+                    ? 'video/mp4' 
+                    : videoSrc.includes('.webm') 
+                      ? 'video/webm' 
+                      : videoSrc.includes('.mov') 
+                        ? 'video/quicktime' 
+                        : 'video/mp4'
+                } 
+              />
+              Your browser does not support the video tag.
+            </video>
           ) : (
             <VideoUploadZone onVideoLoad={onVideoLoad} />
           )}
