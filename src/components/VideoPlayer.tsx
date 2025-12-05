@@ -180,6 +180,41 @@ const VideoPlayer = ({
     videoRef.current.pause();
   };
 
+  // iOS touch event handler for hotspot placement
+  const handleOverlayTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!videoRef.current || !containerRef.current) return;
+    
+    // Prevent default to avoid double-firing on devices that support both click and touch
+    e.preventDefault();
+    
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+
+    console.log('[VideoPlayer] Touch event fired on overlay');
+    
+    const actualTime = videoRef.current.currentTime;
+    setCurrentTime(actualTime);
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = (touch.clientX - rect.left) / rect.width;
+    const y = (touch.clientY - rect.top) / rect.height;
+
+    // Check if touch is in reserved zone and show tooltip
+    const isInSafeZone = isPointInSafeZone(x, y, 'vertical_social');
+    if (!isInSafeZone) {
+      setSafeZoneTooltip({ x: touch.clientX, y: touch.clientY, show: true });
+      setTimeout(() => setSafeZoneTooltip(prev => ({ ...prev, show: false })), 2500);
+    }
+
+    // Dismiss placement hint when hotspot is placed
+    if (showPlacementHint && onPlacementHintDismiss) {
+      onPlacementHintDismiss();
+    }
+
+    onAddHotspot(x, y, actualTime);
+    videoRef.current.pause();
+  };
+
   const handleDragStart = (hotspot: Hotspot, e: React.MouseEvent) => {
     if (isPreviewMode || !containerRef.current) return;
     
@@ -443,6 +478,14 @@ const VideoPlayer = ({
             <div
               className="absolute inset-0 bottom-[50px] hotspot-placement-cursor z-[5]"
               onClick={handleOverlayClick}
+              onTouchEnd={handleOverlayTouchEnd}
+              style={{
+                touchAction: 'manipulation',
+                WebkitUserSelect: 'none',
+                userSelect: 'none',
+                WebkitTapHighlightColor: 'transparent',
+                backgroundColor: 'rgba(0, 0, 0, 0.001)', // Nearly invisible but detectable on iOS
+              }}
             />
           )}
 

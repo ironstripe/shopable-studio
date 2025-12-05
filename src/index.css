@@ -66,6 +66,21 @@ All colors MUST be HSL.
   }
 }
 
+/* iOS touch optimization for hotspot placement overlay */
+.hotspot-placement-cursor {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Ensure touch events work on iOS Safari for video overlays */
+@supports (-webkit-touch-callout: none) {
+  .hotspot-placement-cursor {
+    cursor: pointer;
+  }
+}
+
 @keyframes pulse-scale {
   0%, 100% {
     transform: scale(1);
