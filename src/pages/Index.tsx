@@ -221,18 +221,27 @@ const Index = () => {
     }
   };
 
-  const handleAssignProduct = (productId: string) => {
+  const handleAssignProduct = (productId: string, overrideClickBehavior?: import("@/types/video").ClickBehavior) => {
     if (!productAssignmentHotspotId) return;
+    
+    const product = products[productId];
+    const clickBehavior = overrideClickBehavior || product?.defaultClickBehavior;
     
     setHotspots(
       hotspots.map((h) => 
-        h.id === productAssignmentHotspotId ? { ...h, productId } : h
+        h.id === productAssignmentHotspotId 
+          ? { ...h, productId, ...(clickBehavior && { clickBehavior }) } 
+          : h
       )
     );
     
     const updatedHotspot = hotspots.find(h => h.id === productAssignmentHotspotId);
     if (updatedHotspot) {
-      setSelectedHotspot({ ...updatedHotspot, productId });
+      setSelectedHotspot({ 
+        ...updatedHotspot, 
+        productId,
+        ...(clickBehavior && { clickBehavior })
+      });
     }
     
     setSelectProductSheetOpen(false);
@@ -240,10 +249,10 @@ const Index = () => {
     toast.success("Product assigned to hotspot");
   };
 
-  const handleProductCreatedFromSheet = (productId: string) => {
+  const handleProductCreatedFromSheet = (productId: string, clickBehavior?: import("@/types/video").ClickBehavior) => {
     // Auto-assign the newly created product to the active hotspot
     if (productAssignmentHotspotId) {
-      handleAssignProduct(productId);
+      handleAssignProduct(productId, clickBehavior);
     }
     setNewProductSheetOpen(false);
   };

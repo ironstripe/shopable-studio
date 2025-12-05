@@ -135,6 +135,7 @@ export interface Product {
   description?: string;
   thumbnail?: string;
   ctaLabel?: string;
+  defaultClickBehavior?: ClickBehavior;
 }
 
 export interface VideoProject {
