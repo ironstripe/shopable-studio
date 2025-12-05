@@ -6,6 +6,8 @@ import MobileHeader from "@/components/MobileHeader";
 import MobileBottomControls from "@/components/MobileBottomControls";
 import HotspotDrawer from "@/components/HotspotDrawer";
 import AddHotspotFAB from "@/components/AddHotspotFAB";
+import SelectProductSheet from "@/components/SelectProductSheet";
+import NewProductSheet from "@/components/NewProductSheet";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -37,6 +39,9 @@ const Index = () => {
   const [showReplaceVideoDialog, setShowReplaceVideoDialog] = useState(false);
   const [hotspotDrawerOpen, setHotspotDrawerOpen] = useState(false);
   const [showCTASettings, setShowCTASettings] = useState(false);
+  const [selectProductSheetOpen, setSelectProductSheetOpen] = useState(false);
+  const [newProductSheetOpen, setNewProductSheetOpen] = useState(false);
+  const [productAssignmentHotspotId, setProductAssignmentHotspotId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -191,14 +196,56 @@ const Index = () => {
   };
 
   const handleOpenProductPanel = (hotspot: Hotspot) => {
+    // Open the new SelectProductSheet instead of inline panel
+    setProductAssignmentHotspotId(hotspot.id);
+    setSelectProductSheetOpen(true);
     setSelectedHotspot(hotspot);
     setActiveToolbarHotspotId(hotspot.id);
-    setShouldAutoOpenProductPanel(true);
-    setTimeout(() => setShouldAutoOpenProductPanel(false), 100);
     if (videoRef.current) {
       const seekTime = Math.max(0, hotspot.timeStart - 0.5);
       videoRef.current.currentTime = seekTime;
     }
+  };
+
+  const handleOpenProductSelection = (hotspotId: string) => {
+    setProductAssignmentHotspotId(hotspotId);
+    setSelectProductSheetOpen(true);
+    const hotspot = hotspots.find(h => h.id === hotspotId);
+    if (hotspot) {
+      setSelectedHotspot(hotspot);
+      setActiveToolbarHotspotId(hotspotId);
+      if (videoRef.current) {
+        const seekTime = Math.max(0, hotspot.timeStart - 0.5);
+        videoRef.current.currentTime = seekTime;
+      }
+    }
+  };
+
+  const handleAssignProduct = (productId: string) => {
+    if (!productAssignmentHotspotId) return;
+    
+    setHotspots(
+      hotspots.map((h) => 
+        h.id === productAssignmentHotspotId ? { ...h, productId } : h
+      )
+    );
+    
+    const updatedHotspot = hotspots.find(h => h.id === productAssignmentHotspotId);
+    if (updatedHotspot) {
+      setSelectedHotspot({ ...updatedHotspot, productId });
+    }
+    
+    setSelectProductSheetOpen(false);
+    setProductAssignmentHotspotId(null);
+    toast.success("Product assigned to hotspot");
+  };
+
+  const handleProductCreatedFromSheet = (productId: string) => {
+    // Auto-assign the newly created product to the active hotspot
+    if (productAssignmentHotspotId) {
+      handleAssignProduct(productId);
+    }
+    setNewProductSheetOpen(false);
   };
 
   const handleUpdateProduct = (updatedProduct: Product) => {
@@ -324,8 +371,7 @@ const Index = () => {
             onHotspotSelect={handleHotspotSelect}
             onUpdateHotspotPosition={handleUpdateHotspotPosition}
             onUpdateHotspotScale={handleUpdateHotspotScale}
-            onUpdateProduct={handleUpdateProduct}
-            onCreateProduct={handleCreateProduct}
+            onOpenProductSelection={handleOpenProductSelection}
             onVideoRef={(ref) => {
               videoRef.current = ref;
               if (ref) {
@@ -378,10 +424,28 @@ const Index = () => {
           products={products}
           selectedHotspotId={selectedHotspot?.id || null}
           onSelectHotspot={handleSelectFromList}
-          onOpenProductPanel={handleOpenProductPanel}
+          onOpenProductSelection={handleOpenProductSelection}
           onOpenLayoutPanel={handleOpenLayoutPanel}
           onDeleteHotspot={handleDeleteHotspot}
           isPreviewMode={isPreviewMode}
+        />
+
+        {/* Select Product Sheet */}
+        <SelectProductSheet
+          open={selectProductSheetOpen}
+          onOpenChange={setSelectProductSheetOpen}
+          products={products}
+          selectedProductId={productAssignmentHotspotId ? hotspots.find(h => h.id === productAssignmentHotspotId)?.productId : null}
+          onSelectProduct={handleAssignProduct}
+          onOpenNewProduct={() => setNewProductSheetOpen(true)}
+        />
+
+        {/* New Product Sheet */}
+        <NewProductSheet
+          open={newProductSheetOpen}
+          onOpenChange={setNewProductSheetOpen}
+          onCreateProduct={handleCreateProduct}
+          onProductCreated={handleProductCreatedFromSheet}
         />
 
         {/* Replace Video Dialog */}
@@ -490,8 +554,7 @@ const Index = () => {
             onHotspotSelect={handleHotspotSelect}
             onUpdateHotspotPosition={handleUpdateHotspotPosition}
             onUpdateHotspotScale={handleUpdateHotspotScale}
-            onUpdateProduct={handleUpdateProduct}
-            onCreateProduct={handleCreateProduct}
+            onOpenProductSelection={handleOpenProductSelection}
             onVideoRef={(ref) => (videoRef.current = ref)}
             onVideoLoad={handleVideoLoad}
             shouldAutoOpenProductPanel={shouldAutoOpenProductPanel}
@@ -510,13 +573,31 @@ const Index = () => {
               products={products}
               selectedHotspotId={selectedHotspot?.id || null}
               onSelectHotspot={handleSelectFromList}
-              onOpenProductPanel={handleOpenProductPanel}
+              onOpenProductSelection={handleOpenProductSelection}
               onOpenLayoutPanel={handleOpenLayoutPanel}
               onDeleteHotspot={handleDeleteHotspot}
               isPreviewMode={isPreviewMode}
             />
           </div>
         )}
+
+        {/* Desktop: Select Product Sheet */}
+        <SelectProductSheet
+          open={selectProductSheetOpen}
+          onOpenChange={setSelectProductSheetOpen}
+          products={products}
+          selectedProductId={productAssignmentHotspotId ? hotspots.find(h => h.id === productAssignmentHotspotId)?.productId : null}
+          onSelectProduct={handleAssignProduct}
+          onOpenNewProduct={() => setNewProductSheetOpen(true)}
+        />
+
+        {/* Desktop: New Product Sheet */}
+        <NewProductSheet
+          open={newProductSheetOpen}
+          onOpenChange={setNewProductSheetOpen}
+          onCreateProduct={handleCreateProduct}
+          onProductCreated={handleProductCreatedFromSheet}
+        />
       </main>
 
       <AlertDialog open={showReplaceVideoDialog} onOpenChange={setShowReplaceVideoDialog}>

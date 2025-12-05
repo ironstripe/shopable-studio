@@ -9,10 +9,10 @@ interface HotspotSidebarProps {
   products: Record<string, Product>;
   selectedHotspotId: string | null;
   onSelectHotspot: (hotspot: Hotspot) => void;
-  onOpenProductPanel?: (hotspot: Hotspot) => void;
-  onOpenLayoutPanel?: (hotspot: Hotspot) => void;
-  onDeleteHotspot?: (hotspotId: string) => void;
-  isPreviewMode?: boolean;
+  onOpenProductSelection: (hotspotId: string) => void;
+  onOpenLayoutPanel: (hotspot: Hotspot) => void;
+  onDeleteHotspot: (hotspotId: string) => void;
+  isPreviewMode: boolean;
 }
 
 const HotspotSidebar = ({
@@ -20,10 +20,10 @@ const HotspotSidebar = ({
   products,
   selectedHotspotId,
   onSelectHotspot,
-  onOpenProductPanel,
+  onOpenProductSelection,
   onOpenLayoutPanel,
   onDeleteHotspot,
-  isPreviewMode = false,
+  isPreviewMode,
 }: HotspotSidebarProps) => {
   const sortedHotspots = [...hotspots].sort((a, b) => a.timeStart - b.timeStart);
   const hotspotRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -55,9 +55,11 @@ const HotspotSidebar = ({
     }
 
     // Edit mode behavior
-    if (isUnassigned && onOpenProductPanel) {
-      onOpenProductPanel(hotspot);
-    } else if (!isUnassigned && onOpenLayoutPanel) {
+    onSelectHotspot(hotspot);
+    
+    if (isUnassigned) {
+      onOpenProductSelection(hotspot.id);
+    } else {
       onOpenLayoutPanel(hotspot);
     }
   };
@@ -149,7 +151,7 @@ const HotspotSidebar = ({
                     {/* Action Icons - Hidden in preview mode */}
                     {!isPreviewMode && (
                       <div className="flex items-center gap-1 ml-auto">
-                        {!isUnassigned && onOpenLayoutPanel && (
+                        {!isUnassigned && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -161,20 +163,18 @@ const HotspotSidebar = ({
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
                         )}
-                        {onDeleteHotspot && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (window.confirm(`Delete this hotspot?`)) {
-                                onDeleteHotspot(hotspot.id);
-                              }
-                            }}
-                            className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                            title="Delete Hotspot"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm(`Delete this hotspot?`)) {
+                              onDeleteHotspot(hotspot.id);
+                            }
+                          }}
+                          className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                          title="Delete Hotspot"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     )}
                   </div>

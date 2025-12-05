@@ -4,7 +4,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { Tag, Settings, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import ProductPanel from "./ProductPanel";
 import LayoutBehaviorPanel from "./LayoutBehaviorPanel";
 
 interface HotspotInlineEditorProps {
@@ -12,8 +11,7 @@ interface HotspotInlineEditorProps {
   products: Record<string, Product>;
   onUpdateHotspot: (hotspot: Hotspot) => void;
   onDeleteHotspot: () => void;
-  onUpdateProduct: (product: Product) => void;
-  onCreateProduct: (product: Omit<Product, "id">) => string;
+  onOpenProductSelection: (hotspotId: string) => void;
   autoOpenProductPanel?: boolean;
 }
 
@@ -22,41 +20,42 @@ const HotspotInlineEditor = ({
   products,
   onUpdateHotspot,
   onDeleteHotspot,
-  onUpdateProduct,
-  onCreateProduct,
+  onOpenProductSelection,
   autoOpenProductPanel,
 }: HotspotInlineEditorProps) => {
-  const [productOpen, setProductOpen] = useState(false);
   const [layoutOpen, setLayoutOpen] = useState(false);
 
-  // Auto-open product panel when requested
+  // Auto-open product selection when requested
   useEffect(() => {
-    if (autoOpenProductPanel) {
-      setProductOpen(true);
+    if (autoOpenProductPanel && !hotspot.productId) {
+      onOpenProductSelection(hotspot.id);
     }
-  }, [autoOpenProductPanel]);
+  }, [autoOpenProductPanel, hotspot.id, hotspot.productId, onOpenProductSelection]);
 
   // ESC key handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (productOpen) setProductOpen(false);
         if (layoutOpen) setLayoutOpen(false);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [productOpen, layoutOpen]);
+  }, [layoutOpen]);
 
   const hasProduct = !!hotspot.productId;
 
   // Redirect to product picker if trying to open layout without product
   const handleLayoutClick = () => {
     if (!hasProduct) {
-      setProductOpen(true);
+      onOpenProductSelection(hotspot.id);
       return;
     }
     setLayoutOpen(true);
+  };
+
+  const handleProductClick = () => {
+    onOpenProductSelection(hotspot.id);
   };
 
   return (
@@ -70,45 +69,19 @@ const HotspotInlineEditor = ({
       }}
       onClick={(e) => e.stopPropagation()}
     >
-      {/* Product Selector */}
-      <Popover open={productOpen} onOpenChange={setProductOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            size="sm"
-            variant="ghost"
-            className={cn(
-              "h-8 w-8 p-0 hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]",
-              productOpen ? "bg-[rgba(59,130,246,0.12)] text-[#3B82F6]" : "text-[#374151]"
-            )}
-            title="Change Product"
-          >
-            <Tag className="w-4 h-4" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent 
-          className="w-auto p-0 border-0 shadow-none bg-transparent" 
-          align="start" 
-          sideOffset={8}
-          side="bottom"
-          collisionPadding={{ top: 70, left: 16, right: 16, bottom: 16 }}
-        >
-          <ProductPanel
-            products={products}
-            selectedProductId={hotspot.productId || undefined}
-            onSelectProduct={(productId) => {
-              onUpdateHotspot({ ...hotspot, productId });
-              setProductOpen(false);
-            }}
-            onUpdateProduct={onUpdateProduct}
-            onCreateProduct={(newProduct) => {
-              const newId = onCreateProduct(newProduct);
-              onUpdateHotspot({ ...hotspot, productId: newId });
-              setProductOpen(false);
-            }}
-            onClose={() => setProductOpen(false)}
-          />
-        </PopoverContent>
-      </Popover>
+      {/* Product Selector - now opens the sheet */}
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={handleProductClick}
+        className={cn(
+          "h-8 w-8 p-0 hover:bg-[rgba(59,130,246,0.08)] hover:text-[#3B82F6]",
+          "text-[#374151]"
+        )}
+        title={hasProduct ? "Change Product" : "Assign Product"}
+      >
+        <Tag className="w-4 h-4" />
+      </Button>
 
       {/* Layout & Behavior - Only show if product is assigned */}
       {hasProduct && (
@@ -127,22 +100,22 @@ const HotspotInlineEditor = ({
               <Settings className="w-4 h-4" />
             </Button>
           </PopoverTrigger>
-        <PopoverContent 
-          className="w-auto p-0 border-0 shadow-none bg-transparent" 
-          align="start" 
-          sideOffset={8}
-          side="bottom"
-          collisionPadding={{ top: 70, left: 16, right: 16, bottom: 16 }}
-        >
-          <LayoutBehaviorPanel
-            hotspot={hotspot}
-            onUpdateHotspot={(updated) => {
-              onUpdateHotspot(updated);
-              setLayoutOpen(false);
-            }}
-            onClose={() => setLayoutOpen(false)}
-          />
-        </PopoverContent>
+          <PopoverContent 
+            className="w-auto p-0 border-0 shadow-none bg-transparent" 
+            align="start" 
+            sideOffset={8}
+            side="bottom"
+            collisionPadding={{ top: 70, left: 16, right: 16, bottom: 16 }}
+          >
+            <LayoutBehaviorPanel
+              hotspot={hotspot}
+              onUpdateHotspot={(updated) => {
+                onUpdateHotspot(updated);
+                setLayoutOpen(false);
+              }}
+              onClose={() => setLayoutOpen(false)}
+            />
+          </PopoverContent>
         </Popover>
       )}
 
