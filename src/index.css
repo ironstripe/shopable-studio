@@ -85,6 +85,26 @@ All colors MUST be HSL.
   }
 }
 
+@keyframes upload-button-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes upload-icon-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
 @keyframes video-enter {
   0% {
     opacity: 0;
@@ -115,6 +135,14 @@ All colors MUST be HSL.
 
 .animate-upload-enter {
   animation: upload-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-upload-button-enter {
+  animation: upload-button-enter 200ms ease-out forwards;
+}
+
+.animate-upload-icon-pulse {
+  animation: upload-icon-pulse 600ms ease-out 200ms;
 }
 
 .animate-video-enter {
