@@ -386,7 +386,6 @@ const VideoPlayer = ({
               playsInline
               // @ts-ignore - webkit-playsinline is needed for older iOS
               webkit-playsinline=""
-              muted
               preload="auto"
               autoPlay={false}
               className="w-full h-full min-h-[200px] rounded-[12px] animate-video-enter"
@@ -399,15 +398,23 @@ const VideoPlayer = ({
               }}
             >
               <source 
-                src={videoSrc.startsWith('blob:') ? `${videoSrc}#t=0.001` : videoSrc} 
+                src={
+                  videoSrc.startsWith('data:') 
+                    ? videoSrc 
+                    : videoSrc.startsWith('blob:') 
+                      ? `${videoSrc}#t=0.001` 
+                      : videoSrc
+                }
                 type={
-                  videoSrc.startsWith('blob:') 
-                    ? 'video/mp4' 
-                    : videoSrc.includes('.webm') 
-                      ? 'video/webm' 
-                      : videoSrc.includes('.mov') 
-                        ? 'video/quicktime' 
-                        : 'video/mp4'
+                  videoSrc.startsWith('data:video/') 
+                    ? videoSrc.match(/^data:(video\/[^;]+)/)?.[1] || 'video/mp4'
+                    : videoSrc.startsWith('blob:') 
+                      ? 'video/mp4' 
+                      : videoSrc.includes('.webm') 
+                        ? 'video/webm' 
+                        : videoSrc.includes('.mov') 
+                          ? 'video/quicktime' 
+                          : 'video/mp4'
                 } 
               />
               Your browser does not support the video tag.
