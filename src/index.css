@@ -102,6 +102,23 @@ All colors MUST be HSL.
   }
 }
 
+/* Touch optimization for hotspot drag */
+.hotspot-draggable {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Ensure resize handle is touch-friendly */
+.hotspot-resize-handle {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 @keyframes pulse-scale {
   0%, 100% {
     transform: scale(1);
