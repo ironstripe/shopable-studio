@@ -215,6 +215,7 @@ const VideoPlayer = ({
     videoRef.current.pause();
   };
 
+  // Mouse drag handlers
   const handleDragStart = (hotspot: Hotspot, e: React.MouseEvent) => {
     if (isPreviewMode || !containerRef.current) return;
     
@@ -229,12 +230,45 @@ const VideoPlayer = ({
     setDidDrag(false);
   };
 
+  // Touch drag handlers (iOS)
+  const handleTouchDragStart = (hotspot: Hotspot, e: React.TouchEvent) => {
+    if (isPreviewMode || !containerRef.current) return;
+    
+    e.stopPropagation();
+    
+    const touch = e.touches[0];
+    if (!touch) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const offsetX = (touch.clientX - rect.left) / rect.width - hotspot.x;
+    const offsetY = (touch.clientY - rect.top) / rect.height - hotspot.y;
+    
+    setDraggingHotspot({ id: hotspot.id, offsetX, offsetY });
+    setDidDrag(false);
+  };
+
   const handleDragMove = (e: MouseEvent) => {
     if (!draggingHotspot || !containerRef.current) return;
     
     const rect = containerRef.current.getBoundingClientRect();
     const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width - draggingHotspot.offsetX));
     const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height - draggingHotspot.offsetY));
+    
+    onUpdateHotspotPosition(draggingHotspot.id, x, y);
+    setDidDrag(true);
+  };
+
+  const handleTouchDragMove = (e: TouchEvent) => {
+    if (!draggingHotspot || !containerRef.current) return;
+    
+    e.preventDefault(); // Prevent scroll while dragging
+    
+    const touch = e.touches[0];
+    if (!touch) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width - draggingHotspot.offsetX));
+    const y = Math.max(0, Math.min(1, (touch.clientY - rect.top) / rect.height - draggingHotspot.offsetY));
     
     onUpdateHotspotPosition(draggingHotspot.id, x, y);
     setDidDrag(true);
@@ -257,6 +291,7 @@ const VideoPlayer = ({
     );
   };
 
+  // Mouse resize handlers
   const handleResizeStart = (hotspot: Hotspot, e: React.MouseEvent) => {
     if (isPreviewMode || !containerRef.current) return;
     
@@ -264,6 +299,24 @@ const VideoPlayer = ({
     e.stopPropagation();
     
     const initialDistance = getDistanceFromCenter(hotspot, e.clientX, e.clientY);
+    
+    setResizingHotspot({
+      id: hotspot.id,
+      initialScale: hotspot.scale,
+      initialDistance: Math.max(initialDistance, 10),
+    });
+  };
+
+  // Touch resize handlers (iOS)
+  const handleTouchResizeStart = (hotspot: Hotspot, e: React.TouchEvent) => {
+    if (isPreviewMode || !containerRef.current) return;
+    
+    e.stopPropagation();
+    
+    const touch = e.touches[0];
+    if (!touch) return;
+    
+    const initialDistance = getDistanceFromCenter(hotspot, touch.clientX, touch.clientY);
     
     setResizingHotspot({
       id: hotspot.id,
@@ -285,28 +338,65 @@ const VideoPlayer = ({
     onUpdateHotspotScale(resizingHotspot.id, newScale);
   };
 
+  const handleTouchResizeMove = (e: TouchEvent) => {
+    if (!resizingHotspot) return;
+    
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    if (!touch) return;
+    
+    const hotspot = hotspots.find(h => h.id === resizingHotspot.id);
+    if (!hotspot) return;
+    
+    const currentDistance = getDistanceFromCenter(hotspot, touch.clientX, touch.clientY);
+    const scaleRatio = currentDistance / resizingHotspot.initialDistance;
+    const newScale = Math.min(2, Math.max(0.5, resizingHotspot.initialScale * scaleRatio));
+    
+    onUpdateHotspotScale(resizingHotspot.id, newScale);
+  };
+
   const handleResizeEnd = () => {
     setResizingHotspot(null);
   };
 
+  // Event listeners for drag and resize (mouse + touch)
   useEffect(() => {
     if (draggingHotspot) {
+      // Mouse events
       document.addEventListener('mousemove', handleDragMove);
       document.addEventListener('mouseup', handleDragEnd);
+      // Touch events (iOS)
+      document.addEventListener('touchmove', handleTouchDragMove, { passive: false });
+      document.addEventListener('touchend', handleDragEnd);
+      document.addEventListener('touchcancel', handleDragEnd);
+      
       return () => {
         document.removeEventListener('mousemove', handleDragMove);
         document.removeEventListener('mouseup', handleDragEnd);
+        document.removeEventListener('touchmove', handleTouchDragMove);
+        document.removeEventListener('touchend', handleDragEnd);
+        document.removeEventListener('touchcancel', handleDragEnd);
       };
     }
     if (resizingHotspot) {
+      // Mouse events
       document.addEventListener('mousemove', handleResizeMove);
       document.addEventListener('mouseup', handleResizeEnd);
+      // Touch events (iOS)
+      document.addEventListener('touchmove', handleTouchResizeMove, { passive: false });
+      document.addEventListener('touchend', handleResizeEnd);
+      document.addEventListener('touchcancel', handleResizeEnd);
+      
       return () => {
         document.removeEventListener('mousemove', handleResizeMove);
         document.removeEventListener('mouseup', handleResizeEnd);
+        document.removeEventListener('touchmove', handleTouchResizeMove);
+        document.removeEventListener('touchend', handleResizeEnd);
+        document.removeEventListener('touchcancel', handleResizeEnd);
       };
     }
-  }, [draggingHotspot, resizingHotspot]);
+  }, [draggingHotspot, resizingHotspot, hotspots]);
 
   const handleHotspotClick = (hotspot: Hotspot, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -537,7 +627,9 @@ const VideoPlayer = ({
                       isEditMode={!isPreviewMode}
                       onClick={(e) => handleHotspotClick(hotspot, e)}
                       onDragStart={(e) => handleDragStart(hotspot, e)}
+                      onTouchDragStart={(e) => handleTouchDragStart(hotspot, e)}
                       onResizeStart={(e) => handleResizeStart(hotspot, e)}
+                      onTouchResizeStart={(e) => handleTouchResizeStart(hotspot, e)}
                       price={price}
                       hotspotIndex={getHotspotIndex(hotspot)}
                       hasProduct={!!hotspot.productId}

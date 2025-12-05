@@ -13,7 +13,9 @@ interface VideoHotspotProps {
   isEditMode: boolean;
   onClick: (e: React.MouseEvent) => void;
   onDragStart: (e: React.MouseEvent) => void;
+  onTouchDragStart?: (e: React.TouchEvent) => void;
   onResizeStart: (e: React.MouseEvent) => void;
+  onTouchResizeStart?: (e: React.TouchEvent) => void;
   price?: string;
   hotspotIndex?: number;
   hasProduct: boolean;
@@ -29,8 +31,10 @@ const VideoHotspot = ({
   isResizing, 
   isEditMode, 
   onClick, 
-  onDragStart, 
-  onResizeStart, 
+  onDragStart,
+  onTouchDragStart,
+  onResizeStart,
+  onTouchResizeStart,
   price, 
   hotspotIndex, 
   hasProduct,
@@ -68,7 +72,7 @@ const VideoHotspot = ({
   return (
     <div
       className={cn(
-        "absolute select-none pointer-events-auto",
+        "absolute select-none pointer-events-auto hotspot-draggable",
         isDragging ? "" : "transition-all duration-150",
         isSelected ? "hotspot-pulse scale-110" : "hotspot-pulse",
         isDragging ? "cursor-grabbing opacity-80" : isEditMode ? "cursor-grab" : "cursor-pointer",
@@ -81,9 +85,11 @@ const VideoHotspot = ({
         top: `${hotspot.y * 100}%`,
         transform: showPopIn ? undefined : "translate(-50%, -50%)",
         zIndex: isDragging || isResizing ? 100 : 10,
+        touchAction: isEditMode ? 'none' : 'auto',
       }}
       onClick={onClick}
       onMouseDown={isEditMode ? onDragStart : undefined}
+      onTouchStart={isEditMode ? onTouchDragStart : undefined}
     >
       {!hasProduct ? (
         <EmptyHotspotIndicator
@@ -108,12 +114,17 @@ const VideoHotspot = ({
       {isEditMode && isSelected && (
         <div
           className={cn(
-            "absolute -bottom-2 -right-2 w-4 h-4 bg-white/85 border border-[#D0D0D0] rounded-full cursor-se-resize flex items-center justify-center transition-all hover:border-neutral-400 hover:shadow-sm",
+            "absolute -bottom-2 -right-2 w-6 h-6 bg-white/85 border border-[#D0D0D0] rounded-full cursor-se-resize flex items-center justify-center transition-all hover:border-neutral-400 hover:shadow-sm hotspot-resize-handle",
             isResizing && "animate-resize-pulse"
           )}
+          style={{ touchAction: 'none' }}
           onMouseDown={(e) => {
             e.stopPropagation();
             onResizeStart(e);
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            onTouchResizeStart?.(e);
           }}
         >
           {/* Diagonal resize icon */}
