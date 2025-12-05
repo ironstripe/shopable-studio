@@ -36,6 +36,7 @@ interface VideoPlayerProps {
   isMobile?: boolean;
   showPlacementHint?: boolean;
   onPlacementHintDismiss?: () => void;
+  onHotspotDragEnd?: (hotspotId: string) => void;
 }
 
 const VideoPlayer = ({
@@ -64,6 +65,7 @@ const VideoPlayer = ({
   isMobile = false,
   showPlacementHint = false,
   onPlacementHintDismiss,
+  onHotspotDragEnd,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -329,8 +331,14 @@ const VideoPlayer = ({
   };
 
   const handleDragEnd = () => {
+    const draggedId = draggingHotspot?.id;
     setDraggingHotspot(null);
     setPendingDragPosition(null);
+    
+    // Notify parent that drag ended so it can open panel
+    if (draggedId && onHotspotDragEnd) {
+      onHotspotDragEnd(draggedId);
+    }
   };
 
   const getDistanceFromCenter = (hotspot: Hotspot, clientX: number, clientY: number) => {

@@ -50,6 +50,7 @@ const Index = () => {
   const [productAssignmentHotspotId, setProductAssignmentHotspotId] = useState<string | null>(null);
   const [layoutBehaviorSheetOpen, setLayoutBehaviorSheetOpen] = useState(false);
   const [layoutEditingHotspot, setLayoutEditingHotspot] = useState<Hotspot | null>(null);
+  const [pendingPanelHotspotId, setPendingPanelHotspotId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -137,22 +138,51 @@ const Index = () => {
     setHotspots([...hotspots, newHotspot]);
     setActiveToolbarHotspotId(newHotspot.id);
     setSelectedHotspot(newHotspot);
-    setShouldAutoOpenProductPanel(true);
-    setTimeout(() => setShouldAutoOpenProductPanel(false), 100);
-    toast.success("Hotspot created!");
     
-    // FTUX: Advance to productSelect step and auto-open product sheet
-    if (!ftuxComplete && ftuxStep === "hotspotPlacement") {
-      advanceStep("productSelect");
-      setProductAssignmentHotspotId(newHotspot.id);
-      setSelectProductSheetOpen(true);
-    }
+    // Don't open panel immediately - defer until drag ends (for touch) or timeout (for click)
+    setPendingPanelHotspotId(newHotspot.id);
+    
+    toast.success("Hotspot created!");
   };
 
   const handleHotspotSelect = (hotspotId: string) => {
     setActiveToolbarHotspotId(hotspotId);
     setSelectedHotspot(null);
   };
+
+  // Called when drag ends - open panel now that finger is lifted
+  const handleHotspotDragEnd = (hotspotId: string) => {
+    if (pendingPanelHotspotId === hotspotId) {
+      setPendingPanelHotspotId(null);
+      
+      // FTUX flow
+      if (!ftuxComplete && ftuxStep === "hotspotPlacement") {
+        advanceStep("productSelect");
+      }
+      
+      // Open product selection
+      setProductAssignmentHotspotId(hotspotId);
+      setSelectProductSheetOpen(true);
+    }
+  };
+
+  // Fallback for desktop clicks (no drag) - open panel after short delay
+  useEffect(() => {
+    if (pendingPanelHotspotId) {
+      const timer = setTimeout(() => {
+        // FTUX flow
+        if (!ftuxComplete && ftuxStep === "hotspotPlacement") {
+          advanceStep("productSelect");
+        }
+        
+        setProductAssignmentHotspotId(pendingPanelHotspotId);
+        setSelectProductSheetOpen(true);
+        setPendingPanelHotspotId(null);
+      }, 400); // Give time for drag to start
+      
+      return () => clearTimeout(timer);
+    }
+  }, [pendingPanelHotspotId, ftuxComplete, ftuxStep, advanceStep]);
 
   const handleUpdateHotspot = (updatedHotspot: Hotspot) => {
     setHotspots(
@@ -474,6 +504,7 @@ const Index = () => {
             isMobile={true}
             showPlacementHint={showPlacementHint}
             onPlacementHintDismiss={() => advanceStep("productSelect")}
+            onHotspotDragEnd={handleHotspotDragEnd}
           />
         </main>
 
@@ -673,6 +704,7 @@ const Index = () => {
             isMobile={false}
             showPlacementHint={showPlacementHint}
             onPlacementHintDismiss={() => advanceStep("productSelect")}
+            onHotspotDragEnd={handleHotspotDragEnd}
           />
         </div>
 
