@@ -374,7 +374,7 @@ const LayoutBehaviorSheet = ({
         </div>
 
         {/* Sticky Footer */}
-        <div className="sticky bottom-0 px-4 py-4 border-t border-border/30 bg-background safe-area-pb">
+        <div className="sticky bottom-0 px-4 py-4 border-t border-border/30 bg-background pb-safe-plus">
           <div className="flex gap-3">
             <Button
               variant="outline"

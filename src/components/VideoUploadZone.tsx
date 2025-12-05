@@ -134,7 +134,7 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
 
   return (
     <div 
-      className="w-full min-h-[calc(100vh-56px)] flex flex-col items-center justify-center px-5 py-12 bg-gradient-to-b from-neutral-50 to-neutral-100/80"
+      className="w-full min-h-screen-safe flex flex-col items-center justify-center px-5 py-12 bg-gradient-to-b from-neutral-50 to-neutral-100/80"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}

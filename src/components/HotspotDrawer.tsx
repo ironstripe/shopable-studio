@@ -103,7 +103,7 @@ const HotspotDrawer = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[85vh] min-h-[40vh] bg-white rounded-t-2xl border-t border-border/30">
+      <DrawerContent className="max-h-[85vh] min-h-[40vh] bg-background rounded-t-2xl border-t border-border/30">
         {/* Header with close button */}
         <DrawerHeader className="flex items-center justify-between border-b border-border/10 pb-3 px-4">
           <DrawerTitle className="text-base font-semibold text-foreground">
@@ -134,7 +134,7 @@ const HotspotDrawer = ({
           ) : (
             /* Hotspot List */
             <ScrollArea className="h-full max-h-[60vh]">
-              <div className="p-3 space-y-2">
+              <div className="p-3 pb-safe-plus space-y-2">
                 {sortedHotspots.map((hotspot) => {
                   const product = hotspot.productId ? products[hotspot.productId] : null;
                   const isSelected = selectedHotspotId === hotspot.id;

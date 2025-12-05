@@ -78,7 +78,7 @@ const MobileBottomControls = ({
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border/30 pb-safe">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border/30 pb-safe-plus">
       {/* Row 1: Play/Pause + Timeline */}
       <div className="flex items-center gap-3 px-4 py-3">
         <button

@@ -413,7 +413,7 @@ const VideoCTASheet = ({
         </ScrollArea>
 
         {/* Sticky Footer */}
-        <div className="border-t border-border/30 px-4 py-4 flex gap-3 bg-card">
+        <div className="border-t border-border/30 px-4 py-4 pb-safe-plus flex gap-3 bg-card">
           <button
             onClick={() => onOpenChange(false)}
             className="flex-1 h-12 rounded-xl border border-border/50 text-sm font-medium text-muted-foreground hover:bg-secondary/50 transition-colors"

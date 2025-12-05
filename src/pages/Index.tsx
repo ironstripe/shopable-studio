@@ -468,8 +468,14 @@ const Index = () => {
           onDeleteVideo={() => setShowReplaceVideoDialog(true)}
         />
 
-        {/* Main content area */}
-        <main className="flex-1 flex items-center justify-center pt-12 pb-[140px] px-2">
+        {/* Main content area - accounts for header with safe area and bottom controls */}
+        <main 
+          className="flex-1 flex items-center justify-center px-2"
+          style={{
+            paddingTop: 'calc(56px + env(safe-area-inset-top, 0px) + 8px)',
+            paddingBottom: 'calc(140px + env(safe-area-inset-bottom, 0px) + 8px)',
+          }}
+        >
           <VideoPlayer
             videoSrc={videoSrc}
             hotspots={hotspots}

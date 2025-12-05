@@ -9,8 +9,22 @@ export interface SafeRect {
   bottom: number; // maximum Y position for hotspot bottom edge
 }
 
+// ========================================
+// Configurable Safe Zone Constants
+// ========================================
+export const SAFE_ZONE_CONFIG = {
+  // Platform UI reserved areas (as fraction 0-1)
+  rightMargin: 0.15,   // 15% for TikTok/IG/YT icons column
+  bottomMargin: 0.18,  // 18% for captions/controls area
+  
+  // Hotspot constraints
+  baseHotspotSize: 0.08,  // 8% of video dimension
+  minScale: 0.5,
+  maxScale: 2.0,
+} as const;
+
 // Base hotspot size as percentage of video dimensions
-const BASE_HOTSPOT_SIZE = 0.08; // ~8% of video dimension
+const BASE_HOTSPOT_SIZE = SAFE_ZONE_CONFIG.baseHotspotSize;
 
 /**
  * Get safe rect boundaries for a given preset
@@ -20,12 +34,12 @@ export const getSafeRect = (preset: SafeZonePreset): SafeRect => {
     return { left: 0, top: 0, right: 1, bottom: 1 };
   }
   
-  // vertical_social: reserves 15% right edge, 18% bottom edge
+  // vertical_social: reserves configured margins
   return {
     left: 0,
     top: 0,
-    right: 0.85,   // 1 - 0.15 (15% reserved on right for platform icons)
-    bottom: 0.82   // 1 - 0.18 (18% reserved on bottom for captions/controls)
+    right: 1 - SAFE_ZONE_CONFIG.rightMargin,
+    bottom: 1 - SAFE_ZONE_CONFIG.bottomMargin,
   };
 };
 

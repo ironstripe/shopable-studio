@@ -318,7 +318,7 @@ const NewProductSheet = ({
         </ScrollArea>
 
         {/* Sticky Footer */}
-        <div className="border-t border-border/40 p-4 pb-8 bg-background">
+        <div className="border-t border-border/40 p-4 pb-safe-plus bg-background">
           <Button
             onClick={handleSave}
             disabled={!isFormValid}
