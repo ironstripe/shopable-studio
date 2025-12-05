@@ -1,7 +1,11 @@
 import { useState, useRef } from "react";
-import { Hotspot, Product, VideoProject, VideoCTA } from "@/types/video";
+import { Hotspot, Product, VideoProject, VideoCTA, EditorMode, VERTICAL_SOCIAL_SAFE_ZONE } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import HotspotSidebar from "@/components/HotspotSidebar";
+import MobileHeader from "@/components/MobileHeader";
+import MobileBottomControls from "@/components/MobileBottomControls";
+import HotspotDrawer from "@/components/HotspotDrawer";
+import AddHotspotFAB from "@/components/AddHotspotFAB";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -13,22 +17,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Download, ChevronDown, Pencil, RefreshCw } from "lucide-react";
+import { Download, Pencil, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 import shopableLogo from "@/assets/shopable-logo.png";
 
 const Index = () => {
+  const isMobile = useIsMobile();
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
   const [activeToolbarHotspotId, setActiveToolbarHotspotId] = useState<string | null>(null);
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [editorMode, setEditorMode] = useState<EditorMode>("edit");
   const [videoTitle, setVideoTitle] = useState<string>("Untitled Video");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [shouldAutoOpenProductPanel, setShouldAutoOpenProductPanel] = useState(false);
   const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
   const [showReplaceVideoDialog, setShowReplaceVideoDialog] = useState(false);
+  const [hotspotDrawerOpen, setHotspotDrawerOpen] = useState(false);
+  const [showCTASettings, setShowCTASettings] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [videoCTA, setVideoCTA] = useState<VideoCTA>({
     label: "Shop Now",
     url: "",
@@ -67,38 +78,51 @@ const Index = () => {
     },
   });
 
+  const isPreviewMode = editorMode === "preview";
+
   const handleVideoLoad = (src: string) => {
     setVideoSrc(src);
-    
-    // Extract filename from video source
     const filename = src.split('/').pop()?.split('.')[0] || "Untitled Video";
     setVideoTitle(filename);
-    
     toast.success("Video loaded successfully");
   };
 
+  const clampToSafeZone = (x: number, y: number) => {
+    const safeZone = VERTICAL_SOCIAL_SAFE_ZONE;
+    const maxX = 1 - safeZone.right;
+    const maxY = 1 - safeZone.bottom;
+    const clampedX = Math.min(x, maxX);
+    const clampedY = Math.min(y, maxY);
+    const wasConstrained = x !== clampedX || y !== clampedY;
+    return { x: clampedX, y: clampedY, wasConstrained };
+  };
+
   const handleAddHotspot = (x: number, y: number, time: number) => {
+    // Clamp to safe zone
+    const { x: safeX, y: safeY, wasConstrained } = clampToSafeZone(x, y);
+    
+    if (wasConstrained) {
+      toast.info("Hotspot snapped to safe area. Reserved zones are used by platform UI.");
+    }
+
     const newHotspot: Hotspot = {
       id: `hotspot-${Date.now()}`,
       timeStart: time,
       timeEnd: time + 3,
-      x,
-      y,
-      productId: null, // No product assigned yet
+      x: safeX,
+      y: safeY,
+      productId: null,
       style: "badge-bubble-classic",
       ctaLabel: "Kaufen",
       scale: 1,
       clickBehavior: "show-card",
-      cardStyle: "retail-compact", // Default card style
+      cardStyle: "retail-compact",
     };
     setHotspots([...hotspots, newHotspot]);
     setActiveToolbarHotspotId(newHotspot.id);
     setSelectedHotspot(newHotspot);
-    
-    // Auto-open product picker for new hotspots
     setShouldAutoOpenProductPanel(true);
     setTimeout(() => setShouldAutoOpenProductPanel(false), 100);
-    
     toast.success("Hotspot created!");
   };
 
@@ -122,12 +146,14 @@ const Index = () => {
   };
 
   const handleUpdateHotspotPosition = (hotspotId: string, x: number, y: number) => {
+    // Clamp to safe zone during drag
+    const { x: safeX, y: safeY } = clampToSafeZone(x, y);
+    
     setHotspots(
-      hotspots.map((h) => (h.id === hotspotId ? { ...h, x, y } : h))
+      hotspots.map((h) => (h.id === hotspotId ? { ...h, x: safeX, y: safeY } : h))
     );
-    // Also update selectedHotspot if it's the one being dragged
     if (selectedHotspot?.id === hotspotId) {
-      setSelectedHotspot({ ...selectedHotspot, x, y });
+      setSelectedHotspot({ ...selectedHotspot, x: safeX, y: safeY });
     }
   };
 
@@ -143,11 +169,8 @@ const Index = () => {
   const handleSelectFromList = (hotspot: Hotspot) => {
     setSelectedHotspot(hotspot);
     setActiveToolbarHotspotId(hotspot.id);
-    
-    // Highlight hotspot for 1 second
     setHighlightedHotspotId(hotspot.id);
     setTimeout(() => setHighlightedHotspotId(null), 1000);
-    
     if (videoRef.current) {
       const seekTime = Math.max(0, hotspot.timeStart - 0.5);
       videoRef.current.currentTime = seekTime;
@@ -156,14 +179,11 @@ const Index = () => {
 
   const handleOpenLayoutPanel = (hotspot: Hotspot) => {
     if (!hotspot.productId) {
-      // Redirect to product picker if no product assigned
       handleOpenProductPanel(hotspot);
       return;
     }
     setSelectedHotspot(hotspot);
     setActiveToolbarHotspotId(hotspot.id);
-    
-    // Seek video to hotspot position
     if (videoRef.current) {
       const seekTime = Math.max(0, hotspot.timeStart - 0.5);
       videoRef.current.currentTime = seekTime;
@@ -175,8 +195,6 @@ const Index = () => {
     setActiveToolbarHotspotId(hotspot.id);
     setShouldAutoOpenProductPanel(true);
     setTimeout(() => setShouldAutoOpenProductPanel(false), 100);
-    
-    // Seek video to hotspot position
     if (videoRef.current) {
       const seekTime = Math.max(0, hotspot.timeStart - 0.5);
       videoRef.current.currentTime = seekTime;
@@ -184,36 +202,34 @@ const Index = () => {
   };
 
   const handleUpdateProduct = (updatedProduct: Product) => {
-    setProducts({
-      ...products,
-      [updatedProduct.id]: updatedProduct,
-    });
+    setProducts({ ...products, [updatedProduct.id]: updatedProduct });
     toast.success("Product updated");
   };
 
   const handleCreateProduct = (newProduct: Omit<Product, "id">): string => {
     const id = `product-${Date.now()}`;
-    setProducts({
-      ...products,
-      [id]: { ...newProduct, id },
-    });
+    setProducts({ ...products, [id]: { ...newProduct, id } });
     toast.success("Product created");
     return id;
   };
 
+  const handleToggleMode = () => {
+    if (editorMode === "edit") {
+      // Switching to preview: close panels, clear selection
+      setSelectedHotspot(null);
+      setActiveToolbarHotspotId(null);
+      setHotspotDrawerOpen(false);
+      setShowCTASettings(false);
+    }
+    setEditorMode(editorMode === "edit" ? "preview" : "edit");
+  };
+
   const handleReplaceVideo = () => {
-    // Clear video source - triggers upload zone display
     setVideoSrc(null);
-    
-    // Clear all hotspots
     setHotspots([]);
-    
-    // Clear selection states
     setSelectedHotspot(null);
     setActiveToolbarHotspotId(null);
     setHighlightedHotspotId(null);
-    
-    // Reset video CTA to defaults
     setVideoCTA({
       label: "Shop Now",
       url: "",
@@ -224,45 +240,33 @@ const Index = () => {
       timing: { mode: "entire-video" },
       position: { x: 0.85, y: 0.85 },
     });
-    
-    // Reset title to default
     setVideoTitle("Untitled Video");
-    
-    // Ensure edit mode
-    setIsPreviewMode(false);
-    
-    // Reset auto-open product panel flag
+    setEditorMode("edit");
     setShouldAutoOpenProductPanel(false);
-    
-    // Close the dialog
     setShowReplaceVideoDialog(false);
-    
     toast.success("Video removed. Upload a new video to continue.");
   };
 
   const handleExport = () => {
     const project: VideoProject = {
       videoSrc: videoSrc || "",
-        hotspots: hotspots.map((h) => ({
-          timeStart: h.timeStart,
-          timeEnd: h.timeEnd,
-          x: h.x,
-          y: h.y,
-          productId: h.productId,
-          id: h.id,
-          style: h.style,
-          ctaLabel: h.ctaLabel,
-          scale: h.scale,
-          clickBehavior: h.clickBehavior,
-          cardStyle: h.cardStyle,
-        })),
+      hotspots: hotspots.map((h) => ({
+        timeStart: h.timeStart,
+        timeEnd: h.timeEnd,
+        x: h.x,
+        y: h.y,
+        productId: h.productId,
+        id: h.id,
+        style: h.style,
+        ctaLabel: h.ctaLabel,
+        scale: h.scale,
+        clickBehavior: h.clickBehavior,
+        cardStyle: h.cardStyle,
+      })),
       products,
       videoCTA,
     };
-
-    const blob = new Blob([JSON.stringify(project, null, 2)], {
-      type: "application/json",
-    });
+    const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -272,13 +276,140 @@ const Index = () => {
     toast.success("Project exported successfully");
   };
 
+  const handlePlayPause = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play();
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  };
+
+  const handleSeek = (time: number) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = time;
+    }
+  };
+
+  const handleEnterPlacementMode = () => {
+    toast.info("Tap on the video to place a hotspot");
+  };
+
+  // Mobile layout
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <MobileHeader
+          videoTitle={videoTitle}
+          onTitleChange={setVideoTitle}
+          onReplaceVideo={() => setShowReplaceVideoDialog(true)}
+          onExport={handleExport}
+          hasVideo={!!videoSrc}
+        />
+
+        {/* Main content area */}
+        <main className="flex-1 flex items-center justify-center pt-12 pb-[140px] px-2">
+          <VideoPlayer
+            videoSrc={videoSrc}
+            hotspots={hotspots}
+            products={products}
+            selectedHotspot={selectedHotspot}
+            activeToolbarHotspotId={activeToolbarHotspotId}
+            isPreviewMode={isPreviewMode}
+            onTogglePreviewMode={handleToggleMode}
+            onAddHotspot={handleAddHotspot}
+            onUpdateHotspot={handleUpdateHotspot}
+            onDeleteHotspot={handleDeleteHotspot}
+            onHotspotSelect={handleHotspotSelect}
+            onUpdateHotspotPosition={handleUpdateHotspotPosition}
+            onUpdateHotspotScale={handleUpdateHotspotScale}
+            onUpdateProduct={handleUpdateProduct}
+            onCreateProduct={handleCreateProduct}
+            onVideoRef={(ref) => {
+              videoRef.current = ref;
+              if (ref) {
+                ref.addEventListener("timeupdate", () => setCurrentTime(ref.currentTime));
+                ref.addEventListener("durationchange", () => setDuration(ref.duration));
+                ref.addEventListener("play", () => setIsPlaying(true));
+                ref.addEventListener("pause", () => setIsPlaying(false));
+              }
+            }}
+            onVideoLoad={handleVideoLoad}
+            shouldAutoOpenProductPanel={shouldAutoOpenProductPanel}
+            highlightedHotspotId={highlightedHotspotId}
+            videoCTA={videoCTA}
+            onUpdateVideoCTA={setVideoCTA}
+            showSafeZones={editorMode === "edit"}
+            isMobile={true}
+            showCTASettings={showCTASettings}
+            onShowCTASettingsChange={setShowCTASettings}
+          />
+        </main>
+
+        {/* Mobile bottom controls */}
+        {videoSrc && (
+          <MobileBottomControls
+            isPlaying={isPlaying}
+            currentTime={currentTime}
+            duration={duration}
+            editorMode={editorMode}
+            onPlayPause={handlePlayPause}
+            onSeek={handleSeek}
+            onToggleMode={handleToggleMode}
+            onOpenHotspotDrawer={() => setHotspotDrawerOpen(true)}
+            onOpenCTASettings={() => setShowCTASettings(true)}
+          />
+        )}
+
+        {/* Add Hotspot FAB - Edit mode only */}
+        {videoSrc && editorMode === "edit" && (
+          <AddHotspotFAB
+            onClick={handleEnterPlacementMode}
+            className="bottom-[160px] right-4"
+          />
+        )}
+
+        {/* Hotspot Drawer */}
+        <HotspotDrawer
+          open={hotspotDrawerOpen}
+          onOpenChange={setHotspotDrawerOpen}
+          hotspots={hotspots}
+          products={products}
+          selectedHotspotId={selectedHotspot?.id || null}
+          onSelectHotspot={handleSelectFromList}
+          onOpenProductPanel={handleOpenProductPanel}
+          onOpenLayoutPanel={handleOpenLayoutPanel}
+          onDeleteHotspot={handleDeleteHotspot}
+        />
+
+        {/* Replace Video Dialog */}
+        <AlertDialog open={showReplaceVideoDialog} onOpenChange={setShowReplaceVideoDialog}>
+          <AlertDialogContent className="bg-card border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-foreground">Replace current video?</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                Replacing the video will remove all hotspots and their timings. Your products will stay available.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border-border">Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleReplaceVideo} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Replace video
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    );
+  }
+
+  // Desktop layout
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
+      {/* Desktop Header */}
       <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-white border-b border-[rgba(0,0,0,0.04)]">
         <div className="flex items-center justify-between h-full px-6 lg:px-8">
-          
-          {/* LEFT: Logo (unchanged) + Project Name */}
           <div className="flex items-center gap-3">
             <img src={shopableLogo} alt="Shopable" className="w-[140px] h-auto" />
             <div className="h-4 w-px bg-[rgba(0,0,0,0.08)]" />
@@ -290,9 +421,7 @@ const Index = () => {
                 onChange={(e) => setVideoTitle(e.target.value)}
                 onBlur={() => setIsEditingTitle(false)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    setIsEditingTitle(false);
-                  }
+                  if (e.key === "Enter") setIsEditingTitle(false);
                 }}
                 className="text-[14px] font-medium text-[#111827] bg-white border border-[#3B82F6] rounded px-2 py-0.5 outline-none focus:ring-1 focus:ring-[#3B82F6] min-w-[200px]"
                 autoFocus
@@ -308,10 +437,8 @@ const Index = () => {
             )}
           </div>
 
-          {/* CENTER: Reserved for status (empty for now) */}
           <div className="hidden md:flex items-center justify-center flex-1" />
 
-          {/* RIGHT: Change Video + Export buttons */}
           <div className="flex items-center gap-2">
             {videoSrc && (
               <button
@@ -342,13 +469,11 @@ const Index = () => {
               Export
             </button>
           </div>
-
         </div>
       </header>
 
-      {/* Main Content - Horizontal Flex Layout */}
+      {/* Desktop Main Content */}
       <main className="flex w-full pt-[56px] min-h-screen">
-        {/* Video Area - Flexible */}
         <div className="flex-1 min-w-0 flex justify-center items-start p-6">
           <VideoPlayer
             videoSrc={videoSrc}
@@ -357,7 +482,7 @@ const Index = () => {
             selectedHotspot={selectedHotspot}
             activeToolbarHotspotId={activeToolbarHotspotId}
             isPreviewMode={isPreviewMode}
-            onTogglePreviewMode={() => setIsPreviewMode(!isPreviewMode)}
+            onTogglePreviewMode={handleToggleMode}
             onAddHotspot={handleAddHotspot}
             onUpdateHotspot={handleUpdateHotspot}
             onDeleteHotspot={handleDeleteHotspot}
@@ -372,10 +497,11 @@ const Index = () => {
             highlightedHotspotId={highlightedHotspotId}
             videoCTA={videoCTA}
             onUpdateVideoCTA={setVideoCTA}
+            showSafeZones={editorMode === "edit"}
+            isMobile={false}
           />
         </div>
 
-        {/* Sidebar - Fixed Width (only show when video is loaded) */}
         {videoSrc && (
           <div className="w-[320px] flex-shrink-0 bg-white border-l border-[rgba(0,0,0,0.04)] flex flex-col overflow-y-auto">
             <HotspotSidebar
@@ -391,22 +517,17 @@ const Index = () => {
         )}
       </main>
 
-      {/* Replace Video Confirmation Dialog */}
       <AlertDialog open={showReplaceVideoDialog} onOpenChange={setShowReplaceVideoDialog}>
         <AlertDialogContent className="bg-white">
           <AlertDialogHeader>
             <AlertDialogTitle>Replace current video?</AlertDialogTitle>
             <AlertDialogDescription>
-              Replacing the video will remove all hotspots and their timings for this video. 
-              Your products will stay available in the product library.
+              Replacing the video will remove all hotspots and their timings. Your products will stay available.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleReplaceVideo}
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
+            <AlertDialogAction onClick={handleReplaceVideo} className="bg-red-500 hover:bg-red-600 text-white">
               Replace video
             </AlertDialogAction>
           </AlertDialogFooter>
