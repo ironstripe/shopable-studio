@@ -339,7 +339,8 @@ const VideoPlayer = ({
         <div
           ref={containerRef}
           className={cn(
-            "relative w-full overflow-visible transition-all duration-200",
+            "relative w-full min-h-[300px] overflow-visible transition-all duration-200",
+            isMobile && "aspect-[9/16] max-h-[80vh]",
             videoSrc && "bg-gradient-to-br from-[#101010] to-[#181818] rounded-[14px] p-1",
             videoSrc && "shadow-[0_4px_16px_rgba(0,0,0,0.12)]",
             videoSrc && !isPreviewMode && "ring-2 ring-[rgba(59,130,246,0.4)]"
@@ -351,8 +352,17 @@ const VideoPlayer = ({
               src={videoSrc}
               controls={!isMobile}
               playsInline
-              className="w-full max-w-full h-auto rounded-[12px] animate-video-enter"
-              style={{ display: "block" }}
+              // @ts-ignore - webkit-playsinline is needed for older iOS
+              webkit-playsinline=""
+              muted
+              className="w-full h-full min-h-[200px] rounded-[12px] animate-video-enter"
+              style={{ 
+                display: "block",
+                objectFit: "contain",
+                width: "100%",
+                height: "100%",
+                WebkitTransform: "translateZ(0)",
+              }}
             />
           ) : (
             <VideoUploadZone onVideoLoad={onVideoLoad} />
