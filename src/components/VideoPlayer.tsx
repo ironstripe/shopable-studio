@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Hotspot, Product, VideoCTA as VideoCTAType, VERTICAL_SOCIAL_SAFE_ZONE } from "@/types/video";
 import VideoHotspot from "./VideoHotspot";
 import ProductCard from "./ProductCard";
@@ -6,6 +6,7 @@ import HotspotInlineEditor from "./HotspotInlineEditor";
 import VideoUploadZone from "./VideoUploadZone";
 import VideoCTA from "./VideoCTA";
 import SafeZoneOverlay from "./SafeZoneOverlay";
+import TapIndicator from "./TapIndicator";
 import { cn } from "@/lib/utils";
 import { isPointInSafeZone } from "@/utils/safe-zone";
 
@@ -87,6 +88,11 @@ const VideoPlayer = ({
     y: 0,
     show: false,
   });
+  const [tapIndicators, setTapIndicators] = useState<Array<{ id: string; x: number; y: number }>>([]);
+
+  const removeTapIndicator = useCallback((id: string) => {
+    setTapIndicators(prev => prev.filter(t => t.id !== id));
+  }, []);
 
   useEffect(() => {
     if (onVideoRef && videoRef.current) {
@@ -164,6 +170,12 @@ const VideoPlayer = ({
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
 
+    // Add tap indicator at click position (pixel coords)
+    const pixelX = e.clientX - rect.left;
+    const pixelY = e.clientY - rect.top;
+    const indicatorId = `tap-${Date.now()}`;
+    setTapIndicators(prev => [...prev, { id: indicatorId, x: pixelX, y: pixelY }]);
+
     // Check if click is in reserved zone and show tooltip
     const isInSafeZone = isPointInSafeZone(x, y, 'vertical_social');
     if (!isInSafeZone) {
@@ -198,6 +210,12 @@ const VideoPlayer = ({
     const rect = containerRef.current.getBoundingClientRect();
     const x = (touch.clientX - rect.left) / rect.width;
     const y = (touch.clientY - rect.top) / rect.height;
+
+    // Add tap indicator at touch position (pixel coords)
+    const pixelX = touch.clientX - rect.left;
+    const pixelY = touch.clientY - rect.top;
+    const indicatorId = `tap-${Date.now()}`;
+    setTapIndicators(prev => [...prev, { id: indicatorId, x: pixelX, y: pixelY }]);
 
     // Check if touch is in reserved zone and show tooltip
     const isInSafeZone = isPointInSafeZone(x, y, 'vertical_social');
@@ -571,6 +589,17 @@ const VideoPlayer = ({
               }}
             />
           )}
+
+          {/* Tap indicators for hotspot creation feedback */}
+          {tapIndicators.map(indicator => (
+            <TapIndicator
+              key={indicator.id}
+              x={indicator.x}
+              y={indicator.y}
+              isMobile={isMobile}
+              onComplete={() => removeTapIndicator(indicator.id)}
+            />
+          ))}
 
           {/* Safe zone tooltip feedback */}
           {safeZoneTooltip.show && (
