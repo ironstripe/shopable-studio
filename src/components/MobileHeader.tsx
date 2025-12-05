@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MoreVertical, RefreshCw, Download, HelpCircle } from "lucide-react";
+import { RefreshCw, Download, HelpCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +16,14 @@ interface MobileHeaderProps {
   onExport: () => void;
   hasVideo: boolean;
 }
+
+// Two-dot menu icon component
+const TwoDotsIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="10" cy="6" r="1.5" fill="currentColor" />
+    <circle cx="10" cy="14" r="1.5" fill="currentColor" />
+  </svg>
+);
 
 const MobileHeader = ({
   videoTitle,
@@ -45,10 +53,10 @@ const MobileHeader = ({
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-12 bg-white border-b border-border/20">
+    <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-white/[0.06] backdrop-blur-xl border-b border-white/10">
       <div className="flex items-center justify-between h-full px-4">
-        {/* Left: Small logo */}
-        <img src={shopableLogo} alt="Shopable" className="h-6 w-auto" />
+        {/* Left: Logo (slightly larger) */}
+        <img src={shopableLogo} alt="Shopable" className="h-[18px] w-auto" />
 
         {/* Center: Editable title */}
         <div className="flex-1 mx-4 min-w-0">
@@ -78,11 +86,11 @@ const MobileHeader = ({
           )}
         </div>
 
-        {/* Right: Menu */}
+        {/* Right: Two-dot menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 transition-colors">
-              <MoreVertical className="w-5 h-5 text-muted-foreground" />
+            <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors text-muted-foreground">
+              <TwoDotsIcon />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48 bg-card border-border">

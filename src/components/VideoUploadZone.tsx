@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Plus, Link } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -10,7 +10,14 @@ interface VideoUploadZoneProps {
 const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [urlInput, setUrlInput] = useState("");
+  const [hasAnimated, setHasAnimated] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Trigger animations after mount
+    const timer = setTimeout(() => setHasAnimated(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   const isValidVideoUrl = (url: string): boolean => {
     const videoUrlPatterns = [
@@ -83,21 +90,14 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
   };
 
   return (
-    <div className="w-full flex flex-col items-center justify-center py-12 px-8 animate-upload-enter">
-      {/* Upload Area - File picker and drag & drop */}
-      <div
-        className={cn(
-          "w-full max-h-[380px] flex flex-col items-center justify-center py-12",
-          "bg-white rounded-3xl border-2 border-dashed border-gray-300",
-          "transition-all duration-200 cursor-pointer shadow-sm",
-          "hover:border-[rgba(0,122,255,0.8)] hover:bg-gray-50 hover:shadow-[0_0_12px_rgba(0,122,255,0.25)]",
-          isDragging && "border-[rgba(0,122,255,0.8)] bg-primary/5 shadow-[0_0_12px_rgba(0,122,255,0.25)]"
-        )}
-        onClick={handleClick}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
+    <div 
+      className="w-full min-h-[calc(100vh-56px)] flex flex-col items-center justify-center px-5 py-12 bg-gradient-to-b from-neutral-50 to-neutral-100/80"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <div className="w-full max-w-[480px] flex flex-col items-center">
+        {/* Hidden file input */}
         <input
           ref={fileInputRef}
           type="file"
@@ -106,56 +106,79 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
           className="hidden"
         />
 
-        <div className="flex flex-col items-center gap-8">
-          <div className={cn(
-            "w-24 h-24 rounded-full bg-primary/8 flex items-center justify-center",
-            "transition-all duration-200 shadow-sm",
-            isDragging && "bg-primary/15 scale-110 shadow-md"
-          )}>
-            <Plus className={cn(
-              "w-12 h-12 text-primary transition-transform duration-200 animate-icon-pulse",
-              isDragging && "scale-125"
-            )} />
-          </div>
-
-          <div className="text-center space-y-3">
-            <h2 className="text-3xl font-semibold text-gray-900 tracking-tight">
-              Upload your video
-            </h2>
-            <p className="text-[#505050] text-base max-w-md font-light">
-              Drag & drop a file or browse your computer.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* OR Separator */}
-      <div className="flex items-center justify-center my-6">
-        <div className="h-px bg-gray-200 w-12"></div>
-        <span className="mx-4 text-sm text-gray-400 font-light tracking-wide">OR</span>
-        <div className="h-px bg-gray-200 w-12"></div>
-      </div>
-
-      {/* URL Input - Always visible */}
-      <div className="w-full max-w-[420px]">
-        <div className="flex items-center gap-3 bg-gray-50 rounded-xl border border-gray-200 px-4 py-3.5 hover:border-[rgba(0,122,255,0.8)] hover:bg-white transition-all duration-200 shadow-sm">
-          <Link className="w-4 h-4 text-gray-400 flex-shrink-0" />
-          <input
-            type="text"
-            placeholder="Paste a video URL..."
-            value={urlInput}
-            onChange={(e) => setUrlInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="flex-1 text-sm outline-none bg-transparent text-gray-800 placeholder:text-gray-400 font-light"
-          />
-          {urlInput && (
-            <button
-              onClick={handleUrlSubmit}
-              className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors px-3 py-1.5 rounded-lg hover:bg-primary/10"
-            >
-              Load
-            </button>
+        {/* Large circular upload button */}
+        <button
+          onClick={handleClick}
+          className={cn(
+            "w-[112px] h-[112px] rounded-full flex items-center justify-center",
+            "bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)]",
+            "active:scale-[0.95] transition-all duration-100",
+            "hover:shadow-[0_6px_32px_rgba(0,0,0,0.12)]",
+            hasAnimated ? "animate-upload-button-enter" : "opacity-0",
+            isDragging && "scale-105 shadow-[0_8px_40px_rgba(0,122,255,0.2)]"
           )}
+        >
+          <Plus 
+            className={cn(
+              "w-9 h-9 text-primary",
+              hasAnimated && "animate-upload-icon-pulse"
+            )} 
+            strokeWidth={1.5}
+          />
+        </button>
+
+        {/* Title and subtitle */}
+        <div className={cn(
+          "mt-8 text-center",
+          hasAnimated ? "animate-fade-in" : "opacity-0"
+        )}>
+          <h1 className="text-[22px] font-semibold text-neutral-900 tracking-tight">
+            Upload your video
+          </h1>
+          <p className="mt-2 text-[15px] text-neutral-500">
+            Tap to upload or paste a link.
+          </p>
+        </div>
+
+        {/* Modern divider */}
+        <div className={cn(
+          "mt-8 flex items-center justify-center",
+          hasAnimated ? "animate-fade-in" : "opacity-0"
+        )} style={{ animationDelay: "100ms" }}>
+          <span className="text-sm text-neutral-400 font-light">
+            — or paste link —
+          </span>
+        </div>
+
+        {/* URL input field */}
+        <div className={cn(
+          "mt-6 w-full",
+          hasAnimated ? "animate-fade-in" : "opacity-0"
+        )} style={{ animationDelay: "150ms" }}>
+          <div className={cn(
+            "flex items-center gap-3 h-12 px-4",
+            "bg-white/80 rounded-[14px] border border-neutral-200/80",
+            "shadow-sm transition-all duration-200",
+            "focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white focus-within:border-primary/30"
+          )}>
+            <Link className="w-[18px] h-[18px] text-neutral-400 flex-shrink-0" strokeWidth={1.5} />
+            <input
+              type="text"
+              placeholder="Paste a video URL..."
+              value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="flex-1 text-[15px] outline-none bg-transparent text-neutral-800 placeholder:text-neutral-400"
+            />
+            {urlInput && (
+              <button
+                onClick={handleUrlSubmit}
+                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors px-2 py-1 rounded-lg hover:bg-primary/5"
+              >
+                Load
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
