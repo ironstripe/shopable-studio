@@ -1,3 +1,22 @@
+// Editor mode
+export type EditorMode = "edit" | "preview";
+
+// Safe zone configuration for social platforms
+export interface SafeZone {
+  id: string;
+  name: string;
+  right: number;  // Percentage from right edge (0-1)
+  bottom: number; // Percentage from bottom edge (0-1)
+}
+
+// Predefined safe zone preset
+export const VERTICAL_SOCIAL_SAFE_ZONE: SafeZone = {
+  id: "vertical-social",
+  name: "TikTok / Reels / Shorts",
+  right: 0.15,  // 15% reserved for platform icons
+  bottom: 0.18, // 18% reserved for captions/controls
+};
+
 // Top-level hotspot types
 export type HotspotType = "icon-only" | "icon-cta-pill" | "badge-bubble" | "minimal-dot" | "luxury-line" | "ecommerce-line" | "editorial-line";
 

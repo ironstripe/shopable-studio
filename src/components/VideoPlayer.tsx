@@ -1,11 +1,12 @@
 import { useRef, useState, useEffect } from "react";
-import { Hotspot, Product, VideoCTA as VideoCTAType } from "@/types/video";
+import { Hotspot, Product, VideoCTA as VideoCTAType, VERTICAL_SOCIAL_SAFE_ZONE } from "@/types/video";
 import VideoHotspot from "./VideoHotspot";
 import ProductCard from "./ProductCard";
 import HotspotInlineEditor from "./HotspotInlineEditor";
 import VideoUploadZone from "./VideoUploadZone";
 import VideoCTA from "./VideoCTA";
 import VideoCTASettingsPanel from "./VideoCTASettingsPanel";
+import SafeZoneOverlay from "./SafeZoneOverlay";
 import { Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,10 @@ interface VideoPlayerProps {
   highlightedHotspotId?: string | null;
   videoCTA?: VideoCTAType;
   onUpdateVideoCTA?: (cta: VideoCTAType) => void;
+  showSafeZones?: boolean;
+  isMobile?: boolean;
+  showCTASettings?: boolean;
+  onShowCTASettingsChange?: (show: boolean) => void;
 }
 
 const VideoPlayer = ({
@@ -55,6 +60,10 @@ const VideoPlayer = ({
   highlightedHotspotId,
   videoCTA,
   onUpdateVideoCTA,
+  showSafeZones = false,
+  isMobile = false,
+  showCTASettings: externalShowCTASettings,
+  onShowCTASettingsChange,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,7 +72,7 @@ const VideoPlayer = ({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedProductHotspot, setSelectedProductHotspot] = useState<Hotspot | null>(null);
   const [showShopButton, setShowShopButton] = useState(true);
-  const [showCTASettings, setShowCTASettings] = useState(false);
+  const [internalShowCTASettings, setInternalShowCTASettings] = useState(false);
   const [draggingHotspot, setDraggingHotspot] = useState<{
     id: string;
     offsetX: number;
@@ -76,6 +85,10 @@ const VideoPlayer = ({
   } | null>(null);
   const [didDrag, setDidDrag] = useState(false);
 
+  // Use external or internal CTA settings state
+  const showCTASettings = externalShowCTASettings ?? internalShowCTASettings;
+  const setShowCTASettings = onShowCTASettingsChange ?? setInternalShowCTASettings;
+
   useEffect(() => {
     if (onVideoRef && videoRef.current) {
       onVideoRef(videoRef.current);
@@ -86,15 +99,11 @@ const VideoPlayer = ({
     const video = videoRef.current;
     if (!video) return;
 
-    const handleTimeUpdate = () => {
-      setCurrentTime(video.currentTime);
-    };
-
+    const handleTimeUpdate = () => setCurrentTime(video.currentTime);
     const handlePlay = () => {
       setIsPlaying(true);
       handleTimeUpdate();
     };
-
     const handlePause = () => {
       setIsPlaying(false);
       handleTimeUpdate();
@@ -113,11 +122,9 @@ const VideoPlayer = ({
     };
   }, [videoSrc]);
 
-
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!videoRef.current || !containerRef.current) return;
     
-    // Force sync currentTime state with actual video time
     const actualTime = videoRef.current.currentTime;
     setCurrentTime(actualTime);
     
@@ -231,7 +238,7 @@ const VideoPlayer = ({
     }
     
     if (isPreviewMode) {
-      if (!hotspot.productId) return; // Skip if no product assigned
+      if (!hotspot.productId) return;
       const product = products[hotspot.productId];
       if (!product) return;
       
@@ -239,14 +246,12 @@ const VideoPlayer = ({
         case "direct-link":
           window.open(product.link, "_blank");
           break;
-        
         case "no-action":
           videoRef.current?.pause();
           setSelectedProduct(product);
           setSelectedProductHotspot(hotspot);
           setShowShopButton(false);
           break;
-        
         case "show-card":
         default:
           videoRef.current?.pause();
@@ -262,20 +267,13 @@ const VideoPlayer = ({
 
   const activeHotspots = hotspots.filter((h) => {
     const isInTimeRange = currentTime >= h.timeStart && currentTime <= h.timeEnd;
-    
-    // Always show selected hotspot or hotspot with active toolbar (for editing)
     const isSelectedOrActive = selectedHotspot?.id === h.id || activeToolbarHotspotId === h.id;
     
-    // In preview mode, only show hotspots with assigned products
-    if (isPreviewMode && !h.productId) {
-      return false;
-    }
+    if (isPreviewMode && !h.productId) return false;
     
-    // Show if in time range OR if selected/active (in edit mode)
     return isInTimeRange || (!isPreviewMode && isSelectedOrActive);
   });
 
-  // Calculate hotspot index for empty indicators
   const assignedHotspots = hotspots.filter(h => h.productId);
   const unassignedHotspots = hotspots.filter(h => !h.productId);
   
@@ -287,18 +285,11 @@ const VideoPlayer = ({
     }
   };
 
-  // Debug logging
-  useEffect(() => {
-    console.log('[VideoPlayer] videoSrc changed:', videoSrc);
-    console.log('[VideoPlayer] isPreviewMode:', isPreviewMode);
-  }, [videoSrc, isPreviewMode]);
-
   return (
-    <div className="w-full max-w-[960px] mx-auto">
-      {/* Mode Controls - Above Video */}
-      {videoSrc && (
+    <div className={cn("w-full mx-auto", isMobile ? "max-w-full" : "max-w-[960px]")}>
+      {/* Mode Controls - Above Video (Desktop only) */}
+      {videoSrc && !isMobile && (
         <div className="flex flex-col items-center mb-6">
-          {/* Segmented Toggle */}
           <div className="inline-flex items-center rounded-lg bg-white border border-[rgba(0,0,0,0.12)] p-0.5 shadow-sm">
             <button
               onClick={() => isPreviewMode && onTogglePreviewMode()}
@@ -324,7 +315,6 @@ const VideoPlayer = ({
             </button>
           </div>
 
-          {/* Helper Text */}
           {!isPreviewMode && (
             <p className="text-[12px] text-[#6B7280] mt-3 text-center">
               ✎ Edit mode – click in the video to add a hotspot.
@@ -344,8 +334,8 @@ const VideoPlayer = ({
             videoSrc && !isPreviewMode && "ring-2 ring-[rgba(59,130,246,0.4)]"
           )}
         >
-          {/* Video CTA Settings Button */}
-          {videoSrc && (
+          {/* Video CTA Settings Button (Desktop only) */}
+          {videoSrc && !isMobile && (
             <button
               onClick={() => setShowCTASettings(true)}
               className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/90 hover:bg-white shadow-sm border border-[rgba(0,0,0,0.08)] transition-all"
@@ -359,7 +349,8 @@ const VideoPlayer = ({
             <video
               ref={videoRef}
               src={videoSrc}
-              controls
+              controls={!isMobile}
+              playsInline
               className="w-full max-w-full h-auto rounded-[12px] animate-video-enter"
               style={{ display: "block" }}
             />
@@ -367,7 +358,12 @@ const VideoPlayer = ({
             <VideoUploadZone onVideoLoad={onVideoLoad} />
           )}
 
-          {/* Click overlay for hotspot placement - covers video except controls (only in edit mode) */}
+          {/* Safe Zone Overlay - Edit mode only */}
+          {videoSrc && !isPreviewMode && showSafeZones && (
+            <SafeZoneOverlay safeZone={VERTICAL_SOCIAL_SAFE_ZONE} />
+          )}
+
+          {/* Click overlay for hotspot placement (edit mode only) */}
           {videoSrc && !isPreviewMode && (
             <div
               className="absolute inset-0 bottom-[50px] hotspot-placement-cursor z-[5]"
@@ -375,7 +371,7 @@ const VideoPlayer = ({
             />
           )}
 
-          {/* Full-Video Link Overlay - only in preview mode when enabled */}
+          {/* Full-Video Link Overlay (preview mode only) */}
           {videoSrc && isPreviewMode && videoCTA?.enabled && videoCTA.type === "full-video-link" && videoCTA.url && (
             <div
               className="absolute inset-0 bottom-[50px] cursor-pointer z-[4] hover:bg-[rgba(255,255,255,0.02)] transition-colors"
@@ -383,9 +379,7 @@ const VideoPlayer = ({
                 e.stopPropagation();
                 const normalizeUrl = (url: string): string => {
                   if (!url) return url;
-                  if (!/^https?:\/\//i.test(url)) {
-                    return `https://${url}`;
-                  }
+                  if (!/^https?:\/\//i.test(url)) return `https://${url}`;
                   return url;
                 };
                 window.open(normalizeUrl(videoCTA.url), "_blank");
@@ -393,7 +387,7 @@ const VideoPlayer = ({
             />
           )}
 
-          {/* Hotspots overlay - absolutely positioned over video */}
+          {/* Hotspots overlay */}
           {videoSrc && (
             <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 10 }}>
               {activeHotspots.map((hotspot) => {
