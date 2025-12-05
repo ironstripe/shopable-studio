@@ -33,6 +33,8 @@ interface VideoPlayerProps {
   onUpdateVideoCTA?: (cta: VideoCTAType) => void;
   showSafeZones?: boolean;
   isMobile?: boolean;
+  showPlacementHint?: boolean;
+  onPlacementHintDismiss?: () => void;
 }
 
 const VideoPlayer = ({
@@ -59,6 +61,8 @@ const VideoPlayer = ({
   onUpdateVideoCTA,
   showSafeZones = false,
   isMobile = false,
+  showPlacementHint = false,
+  onPlacementHintDismiss,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -132,6 +136,11 @@ const VideoPlayer = ({
     if (!isInSafeZone) {
       setSafeZoneTooltip({ x: e.clientX, y: e.clientY, show: true });
       setTimeout(() => setSafeZoneTooltip(prev => ({ ...prev, show: false })), 2500);
+    }
+
+    // Dismiss placement hint when hotspot is placed
+    if (showPlacementHint && onPlacementHintDismiss) {
+      onPlacementHintDismiss();
     }
 
     onAddHotspot(x, y, actualTime);
@@ -352,6 +361,16 @@ const VideoPlayer = ({
           {/* Safe Zone Overlay - Edit mode only */}
           {videoSrc && !isPreviewMode && showSafeZones && (
             <SafeZoneOverlay safeZone={VERTICAL_SOCIAL_SAFE_ZONE} />
+          )}
+
+          {/* Placement hint overlay */}
+          {videoSrc && !isPreviewMode && showPlacementHint && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[15]">
+              <div className="bg-black/80 text-white px-5 py-3 rounded-xl text-center animate-fade-in shadow-lg">
+                <p className="font-medium text-[15px]">Tap on the video</p>
+                <p className="text-[13px] text-white/70 mt-0.5">to place your hotspot</p>
+              </div>
+            </div>
           )}
 
           {/* Click overlay for hotspot placement (edit mode only) */}
