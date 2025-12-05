@@ -18,7 +18,7 @@ const AddHotspotFAB = ({ onClick, className, showHint = false, onHintDismiss }: 
   };
 
   return (
-    <div className="fixed z-40" style={{ bottom: 160, right: 16 }}>
+    <div className="fixed z-40" style={{ bottom: 180, right: 16 }}>
       {/* Tooltip hint */}
       {showHint && onHintDismiss && (
         <div className="absolute bottom-full right-0 mb-3">
@@ -35,15 +35,18 @@ const AddHotspotFAB = ({ onClick, className, showHint = false, onHintDismiss }: 
       <button
         onClick={handleClick}
         className={cn(
-          "flex items-center gap-2 px-4 py-3 rounded-full",
-          "bg-primary text-primary-foreground shadow-lg",
-          "hover:bg-primary/90 active:scale-95 transition-all",
-          "font-medium text-sm",
+          "flex items-center gap-2 px-5 py-3.5 rounded-full",
+          "bg-gradient-to-r from-primary to-[hsl(220,98%,58%)]",
+          "text-primary-foreground font-medium text-sm",
+          "shadow-[0_4px_20px_hsl(var(--primary)/0.4)]",
+          "hover:shadow-[0_6px_28px_hsl(var(--primary)/0.5)]",
+          "active:scale-95 transition-all duration-150",
+          "animate-fab-enter",
           className
         )}
       >
         <Plus className="w-5 h-5" />
-        <span>Hotspot</span>
+        <span>Add Hotspot</span>
       </button>
     </div>
   );

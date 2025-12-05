@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { RefreshCw, Download, HelpCircle } from "lucide-react";
+import { ChevronLeft, RefreshCw, Download, HelpCircle, Trash2, Settings, MoreVertical, Check } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,15 +15,9 @@ interface MobileHeaderProps {
   onReplaceVideo: () => void;
   onExport: () => void;
   hasVideo: boolean;
+  onBack?: () => void;
+  onDeleteVideo?: () => void;
 }
-
-// Two-dot menu icon component
-const TwoDotsIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="10" cy="6" r="1.5" fill="currentColor" />
-    <circle cx="10" cy="14" r="1.5" fill="currentColor" />
-  </svg>
-);
 
 const MobileHeader = ({
   videoTitle,
@@ -31,9 +25,12 @@ const MobileHeader = ({
   onReplaceVideo,
   onExport,
   hasVideo,
+  onBack,
+  onDeleteVideo,
 }: MobileHeaderProps) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(videoTitle);
+  const [showSavedCheck, setShowSavedCheck] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -48,18 +45,32 @@ const MobileHeader = ({
   }, [isEditingTitle]);
 
   const handleSaveTitle = () => {
-    onTitleChange(editedTitle.trim() || "Untitled Video");
+    const newTitle = editedTitle.trim() || "Untitled Video";
+    onTitleChange(newTitle);
     setIsEditingTitle(false);
+    
+    // Show saved checkmark animation
+    setShowSavedCheck(true);
+    setTimeout(() => setShowSavedCheck(false), 1500);
   };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-white/[0.06] backdrop-blur-xl border-b border-white/10">
       <div className="flex items-center justify-between h-full px-4">
-        {/* Left: Logo (slightly larger) */}
-        <img src={shopableLogo} alt="Shopable" className="h-[18px] w-auto" />
+        {/* Left: Back Arrow or Logo */}
+        {hasVideo && onBack ? (
+          <button 
+            onClick={onBack}
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors text-foreground -ml-1"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+        ) : (
+          <img src={shopableLogo} alt="Shopable" className="h-[18px] w-auto" />
+        )}
 
         {/* Center: Editable title */}
-        <div className="flex-1 mx-4 min-w-0">
+        <div className="flex-1 mx-3 min-w-0 flex items-center justify-center gap-1.5">
           {isEditingTitle ? (
             <input
               ref={inputRef}
@@ -74,35 +85,53 @@ const MobileHeader = ({
                   setIsEditingTitle(false);
                 }
               }}
-              className="w-full text-center text-sm font-medium bg-transparent border-b-2 border-primary outline-none px-2 py-0.5 text-foreground"
+              className="w-full max-w-[200px] text-center text-sm font-medium bg-transparent border-b-2 border-primary outline-none px-2 py-0.5 text-foreground"
             />
           ) : (
             <button
               onClick={() => setIsEditingTitle(true)}
-              className="w-full text-center text-sm font-medium text-foreground truncate hover:text-primary transition-colors"
+              className="text-sm font-medium text-foreground truncate max-w-[180px] hover:text-primary transition-colors"
             >
               {videoTitle}
             </button>
           )}
+          
+          {/* Saved checkmark animation */}
+          {showSavedCheck && (
+            <div className="animate-fade-in">
+              <Check className="w-4 h-4 text-green-500" />
+            </div>
+          )}
         </div>
 
-        {/* Right: Two-dot menu */}
+        {/* Right: Three-dot menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors text-muted-foreground">
-              <TwoDotsIcon />
+            <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors text-muted-foreground -mr-1">
+              <MoreVertical className="w-5 h-5" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48 bg-card border-border">
             {hasVideo && (
               <>
+                <DropdownMenuItem onClick={onExport} className="gap-2">
+                  <Download className="w-4 h-4" />
+                  Export
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={onReplaceVideo} className="gap-2">
                   <RefreshCw className="w-4 h-4" />
                   Replace video
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onExport} className="gap-2">
-                  <Download className="w-4 h-4" />
-                  Export project
+                {onDeleteVideo && (
+                  <DropdownMenuItem onClick={onDeleteVideo} className="gap-2 text-destructive focus:text-destructive">
+                    <Trash2 className="w-4 h-4" />
+                    Delete video
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled className="gap-2 opacity-50">
+                  <Settings className="w-4 h-4" />
+                  Video settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
               </>
