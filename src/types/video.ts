@@ -46,7 +46,9 @@ export type HotspotStyle =
   | "minimal-dot-pure-line" | "minimal-dot-soft-glass" | "minimal-dot-editorial-slim" | "minimal-dot-micro-dot"
   | "luxury-line-serif-whisper" | "luxury-line-gold-accent" | "luxury-line-glass-veil" | "luxury-line-dot-reveal"
   | "ecommerce-line-compact-price-tag" | "ecommerce-line-label-strip" | "ecommerce-line-cta-pill-focus" | "ecommerce-line-product-card-lite"
-  | "editorial-line-headline-tag" | "editorial-line-vertical-label" | "editorial-line-caption-frame" | "editorial-line-dash-marker";
+  | "editorial-line-headline-tag" | "editorial-line-vertical-label" | "editorial-line-caption-frame" | "editorial-line-dash-marker"
+  // Seasonal styles
+  | "seasonal-valentine" | "seasonal-easter" | "seasonal-black-friday";
 
 export type ClickBehavior = "show-card" | "direct-link" | "no-action";
 

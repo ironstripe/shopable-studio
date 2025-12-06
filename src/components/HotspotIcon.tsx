@@ -414,6 +414,43 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price 
     );
   }
 
+  // Seasonal variants
+  if (style === "seasonal-valentine") {
+    return (
+      <div 
+        className="flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-500 rounded-full px-3 py-1.5 shadow-[0_2px_12px_rgba(244,63,94,0.4)] animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '180ms' }}
+      >
+        <span className="text-white text-sm">♥</span>
+        <span className="text-white font-medium text-xs">{ctaLabel}</span>
+      </div>
+    );
+  }
+
+  if (style === "seasonal-easter") {
+    return (
+      <div 
+        className="flex items-center gap-2 bg-gradient-to-r from-violet-400 to-emerald-400 rounded-full px-3 py-1.5 shadow-[0_2px_12px_rgba(167,139,250,0.3)] animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '180ms' }}
+      >
+        <span className="text-white text-sm">🐣</span>
+        <span className="text-white font-medium text-xs drop-shadow-sm">{ctaLabel}</span>
+      </div>
+    );
+  }
+
+  if (style === "seasonal-black-friday") {
+    return (
+      <div 
+        className="flex items-center gap-2 bg-black rounded-full px-3 py-1.5 shadow-[0_2px_12px_rgba(0,0,0,0.5)] border border-amber-500/60 animate-fade-in"
+        style={{ ...baseStyle, animationDuration: '180ms' }}
+      >
+        <span className="text-amber-400 font-bold text-sm">%</span>
+        <span className="text-white font-medium text-xs">{ctaLabel}</span>
+      </div>
+    );
+  }
+
   return null;
 };
 
