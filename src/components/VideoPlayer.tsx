@@ -7,7 +7,6 @@ import VideoUploadZone from "./VideoUploadZone";
 import VideoCTA from "./VideoCTA";
 import SafeZoneOverlay from "./SafeZoneOverlay";
 import TapIndicator from "./TapIndicator";
-import GhostHotspot from "./GhostHotspot";
 import { cn } from "@/lib/utils";
 import { isPointInSafeZone, clampPositionToSafeZone } from "@/utils/safe-zone";
 
@@ -99,30 +98,14 @@ const VideoPlayer = ({
     y: number;
     hotspotCount: number;
   } | null>(null);
-  
-  // Ghost hotspot state for two-step placement
-  const [ghostHotspot, setGhostHotspot] = useState<{
-    x: number;
-    y: number;
-    time: number;
-    isDragging: boolean;
-  } | null>(null);
-  const autoCommitTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const ghostDragRef = useRef<{ offsetX: number; offsetY: number } | null>(null);
 
   const removeTapIndicator = useCallback((id: string) => {
     setTapIndicators(prev => prev.filter(t => t.id !== id));
   }, []);
 
-  // Clear ghost hotspot and related states when video is removed
+  // Clear states when video is removed
   useEffect(() => {
     if (!videoSrc) {
-      setGhostHotspot(null);
-      if (autoCommitTimerRef.current) {
-        clearTimeout(autoCommitTimerRef.current);
-        autoCommitTimerRef.current = null;
-      }
-      ghostDragRef.current = null;
       setDraggingHotspot(null);
       setSelectedProduct(null);
       setSelectedProductHotspot(null);
@@ -208,7 +191,7 @@ const VideoPlayer = ({
       );
       
       if (newHotspot && !draggingHotspot) {
-        console.log('[VideoPlayer] New hotspot detected, enabling immediate drag');
+        console.log('[VideoPlayer] New hotspot detected, enabling immediate drag:', newHotspot.id);
         setDraggingHotspot({ 
           id: newHotspot.id, 
           offsetX: 0, 
@@ -230,6 +213,9 @@ const VideoPlayer = ({
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
 
+    // Clamp to safe zone
+    const { x: safeX, y: safeY } = clampPositionToSafeZone(x, y, 1, 'vertical_social');
+
     // Add tap indicator at click position (pixel coords)
     const pixelX = e.clientX - rect.left;
     const pixelY = e.clientY - rect.top;
@@ -248,11 +234,12 @@ const VideoPlayer = ({
       onPlacementHintDismiss();
     }
 
-    onAddHotspot(x, y, actualTime);
+    // Create real hotspot immediately
+    onAddHotspot(safeX, safeY, actualTime);
     videoRef.current.pause();
   };
 
-  // iOS touch event handler for hotspot placement - two-step ghost placement
+  // iOS touch event handler for hotspot placement - create real hotspot immediately
   const handleOverlayTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     if (!videoRef.current || !containerRef.current) return;
     
@@ -263,7 +250,7 @@ const VideoPlayer = ({
     e.preventDefault();
     e.stopPropagation();
 
-    console.log('[VideoPlayer] TouchStart on overlay - creating ghost hotspot');
+    console.log('[VideoPlayer] TouchStart on overlay - creating real hotspot immediately');
     
     const actualTime = videoRef.current.currentTime;
     setCurrentTime(actualTime);
@@ -293,17 +280,15 @@ const VideoPlayer = ({
       onPlacementHintDismiss();
     }
 
-    // Create ghost hotspot for two-step placement
-    setGhostHotspot({
+    // Store position for immediate drag after hotspot is created
+    setPendingDragPosition({
       x: safeX,
       y: safeY,
-      time: actualTime,
-      isDragging: true,
+      hotspotCount: hotspots.length,
     });
-    
-    // Store offset for drag
-    ghostDragRef.current = { offsetX: 0, offsetY: 0 };
 
+    // Create real hotspot immediately (no ghost hotspot)
+    onAddHotspot(safeX, safeY, actualTime);
     videoRef.current.pause();
   };
 
@@ -343,30 +328,17 @@ const VideoPlayer = ({
     if (!draggingHotspot || !containerRef.current) return;
     
     const rect = containerRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width - draggingHotspot.offsetX));
-    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height - draggingHotspot.offsetY));
+    const rawX = (e.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
+    const rawY = (e.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
+    
+    // Clamp to safe zone during drag
+    const { x, y } = clampPositionToSafeZone(rawX, rawY, 1, 'vertical_social');
     
     onUpdateHotspotPosition(draggingHotspot.id, x, y);
     setDidDrag(true);
   };
 
   const handleTouchDragMove = (e: TouchEvent) => {
-    // Handle ghost hotspot dragging
-    if (ghostHotspot?.isDragging && containerRef.current) {
-      e.preventDefault();
-      const touch = e.touches[0];
-      if (!touch) return;
-      
-      const rect = containerRef.current.getBoundingClientRect();
-      const x = (touch.clientX - rect.left) / rect.width;
-      const y = (touch.clientY - rect.top) / rect.height;
-      
-      const { x: safeX, y: safeY } = clampPositionToSafeZone(x, y, 1, 'vertical_social');
-      
-      setGhostHotspot(prev => prev ? { ...prev, x: safeX, y: safeY } : null);
-      return;
-    }
-    
     if (!draggingHotspot || !containerRef.current) return;
     
     e.preventDefault(); // Prevent scroll while dragging
@@ -375,25 +347,17 @@ const VideoPlayer = ({
     if (!touch) return;
     
     const rect = containerRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width - draggingHotspot.offsetX));
-    const y = Math.max(0, Math.min(1, (touch.clientY - rect.top) / rect.height - draggingHotspot.offsetY));
+    const rawX = (touch.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
+    const rawY = (touch.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
+    
+    // Clamp to safe zone during drag
+    const { x, y } = clampPositionToSafeZone(rawX, rawY, 1, 'vertical_social');
     
     onUpdateHotspotPosition(draggingHotspot.id, x, y);
     setDidDrag(true);
   };
 
   const handleDragEnd = () => {
-    // Handle ghost hotspot finger lift
-    if (ghostHotspot?.isDragging) {
-      setGhostHotspot(prev => prev ? { ...prev, isDragging: false } : null);
-      
-      // Auto-commit after 200ms if no further interaction
-      autoCommitTimerRef.current = setTimeout(() => {
-        commitGhostHotspot();
-      }, 200);
-      return;
-    }
-    
     const draggedId = draggingHotspot?.id;
     setDraggingHotspot(null);
     setPendingDragPosition(null);
@@ -403,35 +367,6 @@ const VideoPlayer = ({
       onHotspotDragEnd(draggedId);
     }
   };
-  
-  // Commit ghost hotspot to real hotspot
-  const commitGhostHotspot = useCallback(() => {
-    if (!ghostHotspot) return;
-    
-    // Clear any pending timer
-    if (autoCommitTimerRef.current) {
-      clearTimeout(autoCommitTimerRef.current);
-      autoCommitTimerRef.current = null;
-    }
-    
-    // Create actual hotspot
-    onAddHotspot(ghostHotspot.x, ghostHotspot.y, ghostHotspot.time);
-    setGhostHotspot(null);
-    
-    // Haptic feedback
-    if (navigator.vibrate) {
-      navigator.vibrate(10);
-    }
-  }, [ghostHotspot, onAddHotspot]);
-  
-  // Cancel ghost hotspot
-  const cancelGhostHotspot = useCallback(() => {
-    if (autoCommitTimerRef.current) {
-      clearTimeout(autoCommitTimerRef.current);
-      autoCommitTimerRef.current = null;
-    }
-    setGhostHotspot(null);
-  }, []);
 
   const getDistanceFromCenter = (hotspot: Hotspot, clientX: number, clientY: number) => {
     const rect = containerRef.current?.getBoundingClientRect();
@@ -517,19 +452,6 @@ const VideoPlayer = ({
 
   // Event listeners for drag and resize (mouse + touch)
   useEffect(() => {
-    // Ghost hotspot dragging (touch placement)
-    if (ghostHotspot?.isDragging) {
-      document.addEventListener('touchmove', handleTouchDragMove, { passive: false });
-      document.addEventListener('touchend', handleDragEnd);
-      document.addEventListener('touchcancel', handleDragEnd);
-      
-      return () => {
-        document.removeEventListener('touchmove', handleTouchDragMove);
-        document.removeEventListener('touchend', handleDragEnd);
-        document.removeEventListener('touchcancel', handleDragEnd);
-      };
-    }
-    
     if (draggingHotspot) {
       // Mouse events
       document.addEventListener('mousemove', handleDragMove);
@@ -564,7 +486,7 @@ const VideoPlayer = ({
         document.removeEventListener('touchcancel', handleResizeEnd);
       };
     }
-  }, [draggingHotspot, resizingHotspot, hotspots, ghostHotspot?.isDragging]);
+  }, [draggingHotspot, resizingHotspot, hotspots]);
 
   const handleHotspotClick = (hotspot: Hotspot, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -782,18 +704,6 @@ const VideoPlayer = ({
             />
           )}
 
-          {/* Ghost hotspot for two-step placement */}
-          {ghostHotspot && (
-            <GhostHotspot
-              x={ghostHotspot.x}
-              y={ghostHotspot.y}
-              scale={1}
-              isDragging={ghostHotspot.isDragging}
-              onCommit={commitGhostHotspot}
-              onCancel={cancelGhostHotspot}
-            />
-          )}
-
           {/* Hotspots overlay */}
           {videoSrc && (
             <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 10 }}>
@@ -830,7 +740,7 @@ const VideoPlayer = ({
                       isHighlighted={highlightedHotspotId === hotspot.id}
                       isAnyEditing={isAnyHotspotEditing}
                     />
-                    {!isPreviewMode && isThisSelected && !draggingHotspot && !ghostHotspot && !isDeferringToolbar && (
+                    {!isPreviewMode && isThisSelected && !draggingHotspot && !isDeferringToolbar && (
                       <HotspotInlineEditor
                         hotspot={hotspot}
                         products={products}

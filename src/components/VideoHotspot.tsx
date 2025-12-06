@@ -74,6 +74,9 @@ const VideoHotspot = ({
   // Determine if this hotspot should be dimmed (another hotspot is being edited)
   const isDimmed = isAnyEditing && !isSelected;
 
+  // In Edit mode, use larger touch area wrapper for assigned hotspots
+  const editModeTouchWrapper = isEditMode && hasProduct;
+
   return (
     <div
       className={cn(
@@ -105,14 +108,38 @@ const VideoHotspot = ({
       onTouchStart={isEditMode && !isDimmed ? onTouchDragStart : undefined}
     >
       {!hasProduct ? (
+        // Unassigned hotspot - EmptyHotspotIndicator handles its own larger size in edit mode
         <EmptyHotspotIndicator
           index={hotspotIndex || 0}
           isSelected={isSelected}
           isDragging={isDragging}
           isResizing={isResizing}
           scale={hotspot.scale}
+          isEditMode={isEditMode}
         />
+      ) : editModeTouchWrapper ? (
+        // Assigned hotspot in Edit mode - wrap in larger touch area
+        <div 
+          className="relative flex items-center justify-center"
+          style={{ 
+            width: '48px', 
+            height: '48px',
+            minWidth: '44px',
+            minHeight: '44px',
+          }}
+        >
+          {/* Actual visual style renders at its normal size */}
+          <HotspotIcon
+            style={hotspot.style}
+            countdown={countdown}
+            ctaLabel={hotspot.ctaLabel}
+            isSelected={isSelected}
+            scale={hotspot.scale}
+            price={price}
+          />
+        </div>
       ) : (
+        // Assigned hotspot in Preview mode - render at actual style size
         <HotspotIcon
           style={hotspot.style}
           countdown={countdown}
