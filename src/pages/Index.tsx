@@ -136,6 +136,7 @@ const Index = () => {
       scale: defaultScale,
       clickBehavior: "show-card",
       cardStyle: "ecommerce-grid",
+      revision: 0, // Start at 0, incremented on every update
     };
     setHotspots(prevHotspots => [...prevHotspots, newHotspot]);
     setSelectedHotspot(newHotspot);
@@ -204,24 +205,42 @@ const Index = () => {
   }, [layoutEditingHotspot]);
 
   const handleUpdateHotspot = (updatedHotspot: Hotspot) => {
-    console.log('[Index.handleUpdateHotspot] BEFORE:', {
-      id: updatedHotspot.id,
-      style: updatedHotspot.style,
+    setHotspots(prevHotspots =>
+      prevHotspots.map(h => {
+        if (h.id !== updatedHotspot.id) return h;
+
+        // Always bump revision to force React re-mount via key change
+        const nextRevision = (h.revision ?? 0) + 1;
+
+        const merged: Hotspot = {
+          ...h,
+          ...updatedHotspot,
+          revision: nextRevision,
+        };
+
+        console.log('[Index.handleUpdateHotspot] Merged:', {
+          id: merged.id,
+          style: merged.style,
+          revision: merged.revision,
+        });
+
+        return merged;
+      })
+    );
+
+    // Update selected hotspot with incremented revision
+    setSelectedHotspot(prev => {
+      if (prev?.id === updatedHotspot.id) {
+        return { ...updatedHotspot, revision: (prev.revision ?? 0) + 1 };
+      }
+      return prev;
     });
-    
-    // Use functional update to ensure we have the latest hotspots state
-    setHotspots(prevHotspots => {
-      const newHotspots = prevHotspots.map((h) => (h.id === updatedHotspot.id ? updatedHotspot : h));
-      console.log('[Index.handleUpdateHotspot] AFTER setHotspots:', 
-        newHotspots.find(h => h.id === updatedHotspot.id)?.style
-      );
-      return newHotspots;
-    });
-    setSelectedHotspot(updatedHotspot);
-    
-    // Use REF to avoid stale closure - ref.current is always up-to-date
+
+    // Keep layout editing ref in sync
     if (layoutEditingHotspotRef.current?.id === updatedHotspot.id) {
-      setLayoutEditingHotspot(updatedHotspot);
+      const updated = { ...updatedHotspot, revision: (layoutEditingHotspotRef.current.revision ?? 0) + 1 };
+      layoutEditingHotspotRef.current = updated;
+      setLayoutEditingHotspot(updated);
     }
   };
 
