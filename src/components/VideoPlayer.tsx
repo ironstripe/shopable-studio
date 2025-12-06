@@ -114,6 +114,23 @@ const VideoPlayer = ({
     setTapIndicators(prev => prev.filter(t => t.id !== id));
   }, []);
 
+  // Clear ghost hotspot and related states when video is removed
+  useEffect(() => {
+    if (!videoSrc) {
+      setGhostHotspot(null);
+      if (autoCommitTimerRef.current) {
+        clearTimeout(autoCommitTimerRef.current);
+        autoCommitTimerRef.current = null;
+      }
+      ghostDragRef.current = null;
+      setDraggingHotspot(null);
+      setSelectedProduct(null);
+      setSelectedProductHotspot(null);
+      setTapIndicators([]);
+      setPendingDragPosition(null);
+    }
+  }, [videoSrc]);
+
   useEffect(() => {
     if (onVideoRef && videoRef.current) {
       onVideoRef(videoRef.current);
