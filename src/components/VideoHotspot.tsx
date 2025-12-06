@@ -134,6 +134,7 @@ const VideoHotspot = ({
             <HotspotIcon
               key={hotspot.style}
               style={hotspot.style}
+              source="video"
               countdown={countdown}
               ctaLabel={hotspot.ctaLabel}
               isSelected={isSelected}

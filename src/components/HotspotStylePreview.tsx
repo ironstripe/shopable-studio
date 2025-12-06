@@ -77,6 +77,7 @@ const HotspotStylePreview = ({
       >
         <HotspotIcon 
           style={hotspotStyle}
+          source="layout-preview"
           countdown={1}
           ctaLabel={ctaLabel}
           scale={1}

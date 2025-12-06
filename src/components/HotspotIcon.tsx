@@ -7,10 +7,11 @@ interface HotspotIconProps {
   isSelected?: boolean;
   scale?: number;
   price?: string;
+  source?: "video" | "layout-preview" | "unknown";
 }
 
-const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price }: HotspotIconProps) => {
-  console.log('[HotspotIcon] style prop:', style);
+const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price, source = "unknown" }: HotspotIconProps) => {
+  console.log('[HotspotIcon]', source, 'style:', style);
   
   const baseStyle = {
     transform: `scale(${scale})`,
