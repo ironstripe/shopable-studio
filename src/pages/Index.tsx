@@ -130,11 +130,11 @@ const Index = () => {
       x: safeX,
       y: safeY,
       productId: null,
-      style: "badge-bubble-classic",
-      ctaLabel: "Kaufen",
+      style: "ecommerce-line-compact-price-tag",
+      ctaLabel: "Shop Now",
       scale: defaultScale,
       clickBehavior: "show-card",
-      cardStyle: "retail-compact",
+      cardStyle: "ecommerce-grid",
     };
     setHotspots([...hotspots, newHotspot]);
     setSelectedHotspot(newHotspot);
