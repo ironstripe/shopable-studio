@@ -204,10 +204,19 @@ const Index = () => {
   }, [layoutEditingHotspot]);
 
   const handleUpdateHotspot = (updatedHotspot: Hotspot) => {
+    console.log('[Index.handleUpdateHotspot] BEFORE:', {
+      id: updatedHotspot.id,
+      style: updatedHotspot.style,
+    });
+    
     // Use functional update to ensure we have the latest hotspots state
-    setHotspots(prevHotspots =>
-      prevHotspots.map((h) => (h.id === updatedHotspot.id ? updatedHotspot : h))
-    );
+    setHotspots(prevHotspots => {
+      const newHotspots = prevHotspots.map((h) => (h.id === updatedHotspot.id ? updatedHotspot : h));
+      console.log('[Index.handleUpdateHotspot] AFTER setHotspots:', 
+        newHotspots.find(h => h.id === updatedHotspot.id)?.style
+      );
+      return newHotspots;
+    });
     setSelectedHotspot(updatedHotspot);
     
     // Use REF to avoid stale closure - ref.current is always up-to-date
