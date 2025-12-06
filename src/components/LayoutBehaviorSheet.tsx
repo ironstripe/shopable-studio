@@ -39,6 +39,7 @@ const FAMILY_CONFIG: Record<TemplateFamily, FamilyConfig> = {
     selectableStyles: [
       { id: "ecommerce-light-card", label: "Light Card", description: "Clean, minimal product card" },
       { id: "ecommerce-sale-boost", label: "Sale Boost", description: "Promo badge with price compare" },
+      { id: "ecommerce-minimal", label: "Minimal", description: "Frosted glass, ultra-light" },
     ],
   },
   luxury: {
