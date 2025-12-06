@@ -139,6 +139,7 @@ export interface Hotspot {
   cardStyle?: CardStyle; // Optional, defaults based on hotspot family
   toolbarOffset?: { x: number; y: number }; // Custom toolbar position offset for drag
   countdown?: HotspotCountdown; // Optional countdown timer configuration
+  revision?: number; // Optional: Increments on every update, forces React re-mount via key change
 }
 
 export interface Product {
