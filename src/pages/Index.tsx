@@ -27,16 +27,33 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useFTUX } from "@/hooks/use-ftux";
-import { clampPositionToSafeZone, getMaxScaleAtPosition, SafeZonePreset } from "@/utils/safe-zone";
+import { useHotspots } from "@/hooks/use-hotspots";
+import { clampPositionToSafeZone, SafeZonePreset } from "@/utils/safe-zone";
 import shopableLogo from "@/assets/shopable-logo.png";
 
 const Index = () => {
   const isMobile = useIsMobile();
   const { step: ftuxStep, isComplete: ftuxComplete, advanceStep, completeFTUX } = useFTUX();
+  
+  // Active safe zone preset
+  const activeSafeZonePreset: SafeZonePreset = 'vertical_social';
+  
+  // Centralized hotspot management via hook
+  const {
+    hotspots,
+    selectedHotspotId,
+    selectedHotspot, // Derived, always fresh!
+    addHotspot: addHotspotCore,
+    updateHotspot,
+    deleteHotspot: deleteHotspotCore,
+    selectHotspot,
+    clearHotspots,
+    updateHotspotPosition,
+    updateHotspotScale,
+    setHotspots,
+  } = useHotspots([], { safeZonePreset: activeSafeZonePreset });
+  
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
-  const [hotspots, setHotspots] = useState<Hotspot[]>([]);
-  const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
-  const [activeToolbarHotspotId, setActiveToolbarHotspotId] = useState<string | null>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>("edit");
   const [videoTitle, setVideoTitle] = useState<string>("Untitled Video");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -114,13 +131,8 @@ const Index = () => {
     }
   };
 
-  // Active safe zone preset
-  const activeSafeZonePreset: SafeZonePreset = 'vertical_social';
-
   const handleAddHotspot = (x: number, y: number, time: number) => {
-    const defaultScale = 1;
-    // Clamp to safe zone considering hotspot dimensions
-    const { x: safeX, y: safeY, wasConstrained } = clampPositionToSafeZone(x, y, defaultScale, activeSafeZonePreset);
+    const { x: safeX, y: safeY, wasConstrained } = clampPositionToSafeZone(x, y, 1, activeSafeZonePreset);
     
     if (wasConstrained) {
       toast.info("Hotspot snapped to safe area. Reserved zones are used by platform UI.", {
@@ -128,41 +140,25 @@ const Index = () => {
       });
     }
 
-    const newHotspot: Hotspot = {
-      id: `hotspot-${Date.now()}`,
-      timeStart: time,
-      timeEnd: time + 3,
-      x: safeX,
-      y: safeY,
-      productId: null,
-      style: "ecommerce-line-compact-price-tag",
-      ctaLabel: "Shop Now",
-      scale: defaultScale,
-      clickBehavior: "show-card",
-      cardStyle: "ecommerce-grid",
-      revision: 0, // Start at 0, incremented on every update
-    };
-    setHotspots(prevHotspots => [...prevHotspots, newHotspot]);
-    setSelectedHotspot(newHotspot);
+    // Use centralized addHotspot from hook (it handles safe zone clamping internally)
+    const newHotspot = addHotspotCore(safeX, safeY, time);
     
     // Defer toolbar and panel opening - allow drag first
     setIsDeferringToolbar(true);
     setPendingPanelHotspotId(newHotspot.id);
-    // Don't set activeToolbarHotspotId yet - wait for drag to end
     
     toast.success("Hotspot created!");
   };
 
   const handleHotspotSelect = (hotspotId: string) => {
-    setActiveToolbarHotspotId(hotspotId);
-    setSelectedHotspot(null);
+    selectHotspot(hotspotId);
   };
 
   // Called when drag ends - show toolbar and open panel now that finger is lifted
   const handleHotspotDragEnd = (hotspotId: string) => {
     // End deferring state - now show toolbar
     setIsDeferringToolbar(false);
-    setActiveToolbarHotspotId(hotspotId);
+    selectHotspot(hotspotId);
     
     if (pendingPanelHotspotId === hotspotId) {
       // Small delay before opening product panel to avoid race conditions
@@ -187,7 +183,7 @@ const Index = () => {
       const timer = setTimeout(() => {
         // If still deferring after 400ms, assume it's a click (not a drag)
         setIsDeferringToolbar(false);
-        setActiveToolbarHotspotId(pendingPanelHotspotId);
+        selectHotspot(pendingPanelHotspotId);
         
         // FTUX flow
         if (!ftuxComplete && ftuxStep === "hotspotPlacement") {
@@ -201,95 +197,31 @@ const Index = () => {
       
       return () => clearTimeout(timer);
     }
-  }, [pendingPanelHotspotId, isDeferringToolbar, ftuxComplete, ftuxStep, advanceStep]);
+  }, [pendingPanelHotspotId, isDeferringToolbar, ftuxComplete, ftuxStep, advanceStep, selectHotspot]);
 
   const handleUpdateHotspot = (updatedHotspot: Hotspot) => {
-    setHotspots(prevHotspots =>
-      prevHotspots.map(h => {
-        if (h.id !== updatedHotspot.id) return h;
-
-        // Always bump revision to force React re-mount via key change
-        const nextRevision = (h.revision ?? 0) + 1;
-
-        const merged: Hotspot = {
-          ...h,
-          ...updatedHotspot,
-          revision: nextRevision,
-        };
-
-        console.log('[Index.handleUpdateHotspot] Merged:', {
-          id: merged.id,
-          style: merged.style,
-          revision: merged.revision,
-        });
-
-        return merged;
-      })
-    );
-
-    // Update selectedHotspot if it's the same one being edited
-    if (selectedHotspot?.id === updatedHotspot.id) {
-      setSelectedHotspot(prev => prev ? {
-        ...prev,
-        ...updatedHotspot,
-        revision: (prev.revision ?? 0) + 1
-      } : null);
-    }
-    // Note: layoutEditingHotspot is now derived from hotspots array, no need to sync
+    updateHotspot(updatedHotspot);
+    console.log('[Index.handleUpdateHotspot] Updated:', {
+      id: updatedHotspot.id,
+      style: updatedHotspot.style,
+    });
   };
 
   const handleDeleteHotspot = (hotspotId: string) => {
-    setHotspots(prevHotspots => prevHotspots.filter((h) => h.id !== hotspotId));
-    setSelectedHotspot(null);
-    setActiveToolbarHotspotId(null);
+    deleteHotspotCore(hotspotId);
     toast.success("Hotspot deleted");
   };
 
   const handleUpdateHotspotPosition = (hotspotId: string, x: number, y: number) => {
-    setHotspots(prevHotspots => {
-      const hotspot = prevHotspots.find(h => h.id === hotspotId);
-      if (!hotspot) return prevHotspots;
-      
-      // Clamp to safe zone considering hotspot dimensions
-      const { x: safeX, y: safeY } = clampPositionToSafeZone(x, y, hotspot.scale, activeSafeZonePreset);
-      
-      const updated = prevHotspots.map((h) => (h.id === hotspotId ? { ...h, x: safeX, y: safeY } : h));
-      
-      // Update selectedHotspot outside of this callback
-      setTimeout(() => {
-        if (selectedHotspot?.id === hotspotId) {
-          setSelectedHotspot(prev => prev?.id === hotspotId ? { ...prev, x: safeX, y: safeY } : prev);
-        }
-      }, 0);
-      
-      return updated;
-    });
+    updateHotspotPosition(hotspotId, x, y);
   };
 
   const handleUpdateHotspotScale = (hotspotId: string, scale: number) => {
-    setHotspots(prevHotspots => {
-      const hotspot = prevHotspots.find(h => h.id === hotspotId);
-      if (!hotspot) return prevHotspots;
-      
-      // Calculate maximum allowed scale at current position
-      const maxScale = getMaxScaleAtPosition(hotspot.x, hotspot.y, activeSafeZonePreset);
-      const clampedScale = Math.min(scale, maxScale);
-      
-      const updated = prevHotspots.map((h) => (h.id === hotspotId ? { ...h, scale: clampedScale } : h));
-      
-      setTimeout(() => {
-        if (selectedHotspot?.id === hotspotId) {
-          setSelectedHotspot(prev => prev?.id === hotspotId ? { ...prev, scale: clampedScale } : prev);
-        }
-      }, 0);
-      
-      return updated;
-    });
+    updateHotspotScale(hotspotId, scale);
   };
 
   const handleSelectFromList = (hotspot: Hotspot) => {
-    setSelectedHotspot(hotspot);
-    setActiveToolbarHotspotId(hotspot.id);
+    selectHotspot(hotspot.id);
     setHighlightedHotspotId(hotspot.id);
     setTimeout(() => setHighlightedHotspotId(null), 1000);
     if (videoRef.current) {
@@ -305,8 +237,7 @@ const Index = () => {
     }
     setLayoutEditingHotspotId(hotspot.id);
     setLayoutBehaviorSheetOpen(true);
-    setSelectedHotspot(hotspot);
-    setActiveToolbarHotspotId(hotspot.id);
+    selectHotspot(hotspot.id);
     if (videoRef.current) {
       const seekTime = Math.max(0, hotspot.timeStart - 0.5);
       videoRef.current.currentTime = seekTime;
@@ -317,8 +248,7 @@ const Index = () => {
     // Open the new SelectProductSheet instead of inline panel
     setProductAssignmentHotspotId(hotspot.id);
     setSelectProductSheetOpen(true);
-    setSelectedHotspot(hotspot);
-    setActiveToolbarHotspotId(hotspot.id);
+    selectHotspot(hotspot.id);
     if (videoRef.current) {
       const seekTime = Math.max(0, hotspot.timeStart - 0.5);
       videoRef.current.currentTime = seekTime;
@@ -330,8 +260,7 @@ const Index = () => {
     setSelectProductSheetOpen(true);
     const hotspot = hotspots.find(h => h.id === hotspotId);
     if (hotspot) {
-      setSelectedHotspot(hotspot);
-      setActiveToolbarHotspotId(hotspotId);
+      selectHotspot(hotspotId);
       if (videoRef.current) {
         const seekTime = Math.max(0, hotspot.timeStart - 0.5);
         videoRef.current.currentTime = seekTime;
@@ -346,25 +275,12 @@ const Index = () => {
     const clickBehavior = overrideClickBehavior || product?.defaultClickBehavior;
     const targetHotspotId = productAssignmentHotspotId;
     
-    setHotspots(prevHotspots => {
-      const updatedHotspots = prevHotspots.map((h) => 
-        h.id === targetHotspotId 
-          ? { ...h, productId, ...(clickBehavior && { clickBehavior }) } 
-          : h
-      );
-      
-      // Update selectedHotspot with the new product assignment
-      const updatedHotspot = updatedHotspots.find(h => h.id === targetHotspotId);
-      if (updatedHotspot) {
-        setTimeout(() => {
-          setSelectedHotspot(updatedHotspot);
-        }, 0);
-      }
-      
-      return updatedHotspots;
+    // Use centralized updateHotspot
+    updateHotspot({
+      id: targetHotspotId,
+      productId,
+      ...(clickBehavior && { clickBehavior }),
     });
-    
-    // The selectedHotspot is already updated inside setHotspots callback
     
     setSelectProductSheetOpen(false);
     setProductAssignmentHotspotId(null);
@@ -422,8 +338,7 @@ const Index = () => {
   const handleToggleMode = () => {
     if (editorMode === "edit") {
       // Switching to preview: close panels, clear selection
-      setSelectedHotspot(null);
-      setActiveToolbarHotspotId(null);
+      selectHotspot(null);
       setHotspotDrawerOpen(false);
       setVideoCTASheetOpen(false);
     }
@@ -433,9 +348,7 @@ const Index = () => {
   const handleReplaceVideo = () => {
     // Clear all video-related state
     setVideoSrc(null);
-    setHotspots([]);
-    setSelectedHotspot(null);
-    setActiveToolbarHotspotId(null);
+    clearHotspots(); // Use centralized clear
     setHighlightedHotspotId(null);
     setPendingPanelHotspotId(null);
     setIsDeferringToolbar(false);
@@ -551,14 +464,13 @@ const Index = () => {
             videoSrc={videoSrc}
             hotspots={hotspots}
             products={products}
-            selectedHotspot={selectedHotspot}
-            activeToolbarHotspotId={activeToolbarHotspotId}
+            selectedHotspotId={selectedHotspotId}
             isPreviewMode={isPreviewMode}
             onTogglePreviewMode={handleToggleMode}
             onAddHotspot={handleAddHotspot}
             onUpdateHotspot={handleUpdateHotspot}
             onDeleteHotspot={handleDeleteHotspot}
-            onHotspotSelect={handleHotspotSelect}
+            onSelectHotspot={handleHotspotSelect}
             onUpdateHotspotPosition={handleUpdateHotspotPosition}
             onUpdateHotspotScale={handleUpdateHotspotScale}
             onOpenProductSelection={handleOpenProductSelection}
@@ -617,7 +529,7 @@ const Index = () => {
           onOpenChange={setHotspotDrawerOpen}
           hotspots={hotspots}
           products={products}
-          selectedHotspotId={selectedHotspot?.id || null}
+          selectedHotspotId={selectedHotspotId}
           onSelectHotspot={handleSelectFromList}
           onOpenProductSelection={handleOpenProductSelection}
           onOpenLayoutSheet={handleOpenLayoutSheet}
@@ -760,14 +672,13 @@ const Index = () => {
             videoSrc={videoSrc}
             hotspots={hotspots}
             products={products}
-            selectedHotspot={selectedHotspot}
-            activeToolbarHotspotId={activeToolbarHotspotId}
+            selectedHotspotId={selectedHotspotId}
             isPreviewMode={isPreviewMode}
             onTogglePreviewMode={handleToggleMode}
             onAddHotspot={handleAddHotspot}
             onUpdateHotspot={handleUpdateHotspot}
             onDeleteHotspot={handleDeleteHotspot}
-            onHotspotSelect={handleHotspotSelect}
+            onSelectHotspot={handleHotspotSelect}
             onUpdateHotspotPosition={handleUpdateHotspotPosition}
             onUpdateHotspotScale={handleUpdateHotspotScale}
             onOpenProductSelection={handleOpenProductSelection}
@@ -792,7 +703,7 @@ const Index = () => {
             <HotspotSidebar
               hotspots={hotspots}
               products={products}
-              selectedHotspotId={selectedHotspot?.id || null}
+              selectedHotspotId={selectedHotspotId}
               onSelectHotspot={handleSelectFromList}
               onOpenProductSelection={handleOpenProductSelection}
               onOpenLayoutSheet={handleOpenLayoutSheet}
