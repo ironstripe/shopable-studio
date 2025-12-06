@@ -38,6 +38,7 @@ interface VideoPlayerProps {
   showPlacementHint?: boolean;
   onPlacementHintDismiss?: () => void;
   onHotspotDragEnd?: (hotspotId: string) => void;
+  isDeferringToolbar?: boolean;
 }
 
 const VideoPlayer = ({
@@ -67,6 +68,7 @@ const VideoPlayer = ({
   showPlacementHint = false,
   onPlacementHintDismiss,
   onHotspotDragEnd,
+  isDeferringToolbar = false,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -798,7 +800,7 @@ const VideoPlayer = ({
                       isHighlighted={highlightedHotspotId === hotspot.id}
                       isAnyEditing={isAnyHotspotEditing}
                     />
-                    {!isPreviewMode && isThisSelected && !draggingHotspot && (
+                    {!isPreviewMode && isThisSelected && !draggingHotspot && !ghostHotspot && !isDeferringToolbar && (
                       <HotspotInlineEditor
                         hotspot={hotspot}
                         products={products}

@@ -51,6 +51,7 @@ const Index = () => {
   const [layoutBehaviorSheetOpen, setLayoutBehaviorSheetOpen] = useState(false);
   const [layoutEditingHotspot, setLayoutEditingHotspot] = useState<Hotspot | null>(null);
   const [pendingPanelHotspotId, setPendingPanelHotspotId] = useState<string | null>(null);
+  const [isDeferringToolbar, setIsDeferringToolbar] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -136,11 +137,12 @@ const Index = () => {
       cardStyle: "retail-compact",
     };
     setHotspots([...hotspots, newHotspot]);
-    setActiveToolbarHotspotId(newHotspot.id);
     setSelectedHotspot(newHotspot);
     
-    // Don't open panel immediately - defer until drag ends (for touch) or timeout (for click)
+    // Defer toolbar and panel opening - allow drag first
+    setIsDeferringToolbar(true);
     setPendingPanelHotspotId(newHotspot.id);
+    // Don't set activeToolbarHotspotId yet - wait for drag to end
     
     toast.success("Hotspot created!");
   };
@@ -150,26 +152,37 @@ const Index = () => {
     setSelectedHotspot(null);
   };
 
-  // Called when drag ends - open panel now that finger is lifted
+  // Called when drag ends - show toolbar and open panel now that finger is lifted
   const handleHotspotDragEnd = (hotspotId: string) => {
+    // End deferring state - now show toolbar
+    setIsDeferringToolbar(false);
+    setActiveToolbarHotspotId(hotspotId);
+    
     if (pendingPanelHotspotId === hotspotId) {
-      setPendingPanelHotspotId(null);
-      
-      // FTUX flow
-      if (!ftuxComplete && ftuxStep === "hotspotPlacement") {
-        advanceStep("productSelect");
-      }
-      
-      // Open product selection
-      setProductAssignmentHotspotId(hotspotId);
-      setSelectProductSheetOpen(true);
+      // Small delay before opening product panel to avoid race conditions
+      setTimeout(() => {
+        setPendingPanelHotspotId(null);
+        
+        // FTUX flow
+        if (!ftuxComplete && ftuxStep === "hotspotPlacement") {
+          advanceStep("productSelect");
+        }
+        
+        // Open product selection
+        setProductAssignmentHotspotId(hotspotId);
+        setSelectProductSheetOpen(true);
+      }, 150);
     }
   };
 
   // Fallback for desktop clicks (no drag) - open panel after short delay
   useEffect(() => {
-    if (pendingPanelHotspotId) {
+    if (pendingPanelHotspotId && isDeferringToolbar) {
       const timer = setTimeout(() => {
+        // If still deferring after 400ms, assume it's a click (not a drag)
+        setIsDeferringToolbar(false);
+        setActiveToolbarHotspotId(pendingPanelHotspotId);
+        
         // FTUX flow
         if (!ftuxComplete && ftuxStep === "hotspotPlacement") {
           advanceStep("productSelect");
@@ -182,7 +195,7 @@ const Index = () => {
       
       return () => clearTimeout(timer);
     }
-  }, [pendingPanelHotspotId, ftuxComplete, ftuxStep, advanceStep]);
+  }, [pendingPanelHotspotId, isDeferringToolbar, ftuxComplete, ftuxStep, advanceStep]);
 
   const handleUpdateHotspot = (updatedHotspot: Hotspot) => {
     setHotspots(
@@ -369,11 +382,20 @@ const Index = () => {
   };
 
   const handleReplaceVideo = () => {
+    // Clear all video-related state
     setVideoSrc(null);
     setHotspots([]);
     setSelectedHotspot(null);
     setActiveToolbarHotspotId(null);
     setHighlightedHotspotId(null);
+    setPendingPanelHotspotId(null);
+    setIsDeferringToolbar(false);
+    setProductAssignmentHotspotId(null);
+    setLayoutEditingHotspot(null);
+    setLayoutBehaviorSheetOpen(false);
+    setSelectProductSheetOpen(false);
+    setNewProductSheetOpen(false);
+    setHotspotDrawerOpen(false);
     setVideoCTA({
       label: "Shop Now",
       url: "",
@@ -511,6 +533,7 @@ const Index = () => {
             showPlacementHint={showPlacementHint}
             onPlacementHintDismiss={() => advanceStep("productSelect")}
             onHotspotDragEnd={handleHotspotDragEnd}
+            isDeferringToolbar={isDeferringToolbar}
           />
         </main>
 
@@ -711,6 +734,7 @@ const Index = () => {
             showPlacementHint={showPlacementHint}
             onPlacementHintDismiss={() => advanceStep("productSelect")}
             onHotspotDragEnd={handleHotspotDragEnd}
+            isDeferringToolbar={isDeferringToolbar}
           />
         </div>
 
