@@ -486,6 +486,22 @@ All colors MUST be HSL.
   animation: toolbar-enter 150ms ease-out forwards;
 }
 
+/* E-Commerce Light Card entrance animation */
+@keyframes ecommerce-card-enter {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-ecommerce-card-enter {
+  animation: ecommerce-card-enter 150ms ease-out forwards;
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   .animate-hotspot-pop-in,

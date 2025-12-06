@@ -24,27 +24,49 @@ const HotspotIcon = ({
 }: HotspotIconProps) => {
   
   // E-Commerce Light Card
-  // White rounded pill, light shadow, product index, CTA, arrow
+  // Vertical layout: CTA on top, price + arrow on bottom
   if (style === "ecommerce-light-card") {
     return (
       <div
-        className="flex items-center gap-2 px-3 py-2 rounded-full bg-white shadow-md border border-border/30"
-        style={{ transform: `scale(${scale})` }}
+        className="flex flex-col items-start gap-1 bg-white animate-ecommerce-card-enter"
+        style={{ 
+          transform: `scale(${scale})`,
+          padding: "12px 16px",
+          borderRadius: "16px",
+          border: "1px solid rgba(0,0,0,0.05)",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+          minWidth: "160px",
+        }}
       >
-        {/* Product index circle */}
-        <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
-          <span className="text-[11px] font-semibold text-primary">
-            {productIndex}
-          </span>
-        </div>
-        
-        {/* CTA Label */}
-        <span className="text-[13px] font-medium text-foreground whitespace-nowrap">
+        {/* CTA Label (top line) */}
+        <span 
+          className="font-semibold whitespace-nowrap truncate max-w-[200px]"
+          style={{ 
+            fontSize: "16px", 
+            lineHeight: "20px",
+            color: "#1A1A1A" 
+          }}
+        >
           {ctaLabel}
         </span>
         
-        {/* Arrow */}
-        <ArrowRight className="w-3.5 h-3.5 text-primary" />
+        {/* Price row (bottom line) */}
+        <div className="flex items-center gap-1.5">
+          <span 
+            className="font-medium"
+            style={{ 
+              fontSize: "16px", 
+              color: "#1A73E8" 
+            }}
+          >
+            {price || "$0"}
+          </span>
+          <ArrowRight 
+            className="w-4 h-4" 
+            style={{ color: "#1A73E8" }} 
+            strokeWidth={1.5}
+          />
+        </div>
       </div>
     );
   }
