@@ -26,6 +26,16 @@ interface SeasonalTheme {
 
 const getSeasonalTheme = (style: CardStyle): SeasonalTheme => {
   switch (style) {
+    case "seasonal-valentine":
+      return {
+        cardBg: "bg-white",
+        stripBg: "bg-gradient-to-r from-pink-400 to-rose-500",
+        stripText: "Valentine Special",
+        ctaBg: "bg-pink-500 hover:bg-pink-600",
+        ctaTextColor: "text-white",
+        textColor: "text-foreground",
+        priceColor: "text-pink-600",
+      };
     case "seasonal-easter":
       return {
         cardBg: "bg-white",
@@ -35,16 +45,6 @@ const getSeasonalTheme = (style: CardStyle): SeasonalTheme => {
         ctaTextColor: "text-white",
         textColor: "text-foreground",
         priceColor: "text-amber-600",
-      };
-    case "seasonal-mothers-day":
-      return {
-        cardBg: "bg-white",
-        stripBg: "bg-gradient-to-r from-pink-400 to-rose-500",
-        stripText: "Mother's Day",
-        ctaBg: "bg-pink-600 hover:bg-pink-700",
-        ctaTextColor: "text-white",
-        textColor: "text-foreground",
-        priceColor: "text-pink-600",
       };
     case "seasonal-black-friday":
       return {
@@ -56,7 +56,7 @@ const getSeasonalTheme = (style: CardStyle): SeasonalTheme => {
         textColor: "text-white",
         priceColor: "text-yellow-400",
       };
-    default: // seasonal-standard
+    default:
       return {
         cardBg: "bg-white",
         stripBg: "bg-gradient-to-r from-blue-500 to-blue-600",

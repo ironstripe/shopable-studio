@@ -37,13 +37,12 @@ export type HotspotStyle =
   | "ecommerce-sale-boost"
   | "ecommerce-minimal"
   // Luxury family
-  | "luxury-black-glass"
   | "luxury-fine-line"
-  | "luxury-editorial"
+  | "luxury-elegance-card"
+  | "luxury-dot"
   // Seasonal family (all selectable in MVP)
-  | "seasonal-standard"
+  | "seasonal-valentine"
   | "seasonal-easter"
-  | "seasonal-mothers-day"
   | "seasonal-black-friday";
 
 export type ClickBehavior = "show-card" | "direct-link" | "no-action";
@@ -98,12 +97,11 @@ export type CardStyle =
   | "ecommerce-light-card"
   | "ecommerce-sale-boost"
   | "ecommerce-minimal"
-  | "luxury-black-glass"
   | "luxury-fine-line"
-  | "luxury-editorial"
-  | "seasonal-standard"
+  | "luxury-elegance-card"
+  | "luxury-dot"
+  | "seasonal-valentine"
   | "seasonal-easter"
-  | "seasonal-mothers-day"
   | "seasonal-black-friday";
 
 export interface Hotspot {
