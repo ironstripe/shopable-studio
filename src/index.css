@@ -2,6 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Style selection animations */
+@keyframes select-pulse {
+  0% { transform: scale(1.02); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1.02); }
+}
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 200ms ease-out forwards;
+}
+
+.animate-select-pulse {
+  animation: select-pulse 300ms ease-out;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */

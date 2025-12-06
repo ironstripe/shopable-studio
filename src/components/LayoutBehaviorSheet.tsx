@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Hotspot, ClickBehavior } from "@/types/video";
+import { Hotspot, ClickBehavior, HotspotStyle } from "@/types/video";
 import {
   Sheet,
   SheetContent,
@@ -10,26 +10,30 @@ import { Slider } from "@/components/ui/slider";
 import { X, Check, ShoppingBag, Sparkles, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import HotspotStylePreview from "./HotspotStylePreview";
 
 // Template families
 type TemplateFamily = "ecommerce" | "luxury" | "seasonal";
 
-// Style definitions per family
-const FAMILY_STYLES: Record<TemplateFamily, { id: string; label: string; preview: string }[]> = {
+// Style definitions per family with actual HotspotStyle mappings
+const FAMILY_STYLES: Record<TemplateFamily, { id: string; label: string; hotspotStyle: HotspotStyle }[]> = {
   ecommerce: [
-    { id: "light-card", label: "Light Card", preview: "Clean white card" },
-    { id: "sale-boost", label: "Sale Boost", preview: "Promo badge style" },
-    { id: "minimal", label: "Minimal", preview: "Ultra-clean" },
+    { id: "light-card", label: "Light Card", hotspotStyle: "ecommerce-line-compact-price-tag" },
+    { id: "sale-boost", label: "Sale Boost", hotspotStyle: "ecommerce-line-cta-pill-focus" },
+    { id: "minimal", label: "Minimal", hotspotStyle: "ecommerce-line-label-strip" },
+    { id: "product-lite", label: "Product Lite", hotspotStyle: "ecommerce-line-product-card-lite" },
   ],
   luxury: [
-    { id: "ultra-clean", label: "Ultra-Clean", preview: "Premium white" },
-    { id: "serif-premium", label: "Serif Premium", preview: "Gold accents" },
-    { id: "monochrome", label: "Monochrome", preview: "Black & white" },
+    { id: "ultra-clean", label: "Ultra-Clean", hotspotStyle: "luxury-line-serif-whisper" },
+    { id: "serif-premium", label: "Serif Premium", hotspotStyle: "luxury-line-gold-accent" },
+    { id: "glass-veil", label: "Glass Veil", hotspotStyle: "luxury-line-glass-veil" },
+    { id: "monochrome", label: "Monochrome", hotspotStyle: "luxury-line-dot-reveal" },
   ],
   seasonal: [
-    { id: "easter", label: "Easter", preview: "Pastel colors" },
-    { id: "mothers-day", label: "Mother's Day", preview: "Pink & rose" },
-    { id: "black-friday", label: "Black Friday", preview: "Bold contrast" },
+    { id: "classic", label: "Classic", hotspotStyle: "badge-bubble-classic" },
+    { id: "outline", label: "Outline", hotspotStyle: "badge-bubble-outline" },
+    { id: "ghost", label: "Ghost", hotspotStyle: "badge-bubble-ghost" },
+    { id: "accent-split", label: "Accent Split", hotspotStyle: "badge-bubble-accent-split" },
   ],
 };
 
@@ -124,24 +128,13 @@ const LayoutBehaviorSheet = ({
   const handleSave = () => {
     if (!hotspot || isPreviewMode) return;
     
-    const legacyStyleMap: Record<string, string> = {
-      "ecommerce-light-card": "ecommerce-line-compact-price-tag",
-      "ecommerce-sale-boost": "ecommerce-line-cta-pill-focus",
-      "ecommerce-minimal": "ecommerce-line-label-strip",
-      "luxury-ultra-clean": "luxury-line-serif-whisper",
-      "luxury-serif-premium": "luxury-line-gold-accent",
-      "luxury-monochrome": "luxury-line-glass-veil",
-      "seasonal-easter": "badge-bubble-classic",
-      "seasonal-mothers-day": "badge-bubble-ghost",
-      "seasonal-black-friday": "badge-bubble-accent-split",
-    };
-
-    const styleKey = `${selectedFamily}-${selectedStyle}`;
-    const legacyStyle = legacyStyleMap[styleKey] || "badge-bubble-classic";
+    // Get the hotspotStyle from the selected style definition
+    const selectedStyleDef = FAMILY_STYLES[selectedFamily].find(s => s.id === selectedStyle);
+    const hotspotStyle = selectedStyleDef?.hotspotStyle || "badge-bubble-classic";
 
     onUpdateHotspot({
       ...hotspot,
-      style: legacyStyle as Hotspot["style"],
+      style: hotspotStyle as Hotspot["style"],
       ctaLabel,
       clickBehavior,
       timeEnd: hotspot.timeStart + duration,
@@ -208,7 +201,7 @@ const LayoutBehaviorSheet = ({
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto px-5 pt-5 pb-32 space-y-8">
+        <div className="flex-1 overflow-y-auto px-6 pt-6 pb-32 space-y-10">
           {/* Section 1: Template Family */}
           <section>
             <h3 className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
@@ -259,13 +252,13 @@ const LayoutBehaviorSheet = ({
             </div>
           </section>
 
-          {/* Section 2: Style Variants (fade-in after family selected) */}
+          {/* Section 2: Style Variants with Real Visual Previews */}
           {selectedFamily && (
-            <section className="animate-fade-in-up">
-              <h3 className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
+            <section className="animate-fade-in-up pt-2">
+              <h3 className="text-[12px] font-semibold text-[#888888] uppercase tracking-wider mb-4 px-1">
                 Style
               </h3>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {FAMILY_STYLES[selectedFamily].map((style) => {
                   const isActive = selectedStyle === style.id;
                   
@@ -275,43 +268,35 @@ const LayoutBehaviorSheet = ({
                       onClick={() => !isDisabled && setSelectedStyle(style.id)}
                       disabled={isDisabled}
                       className={cn(
-                        "relative flex flex-col items-center p-3 rounded-2xl border-2 transition-all duration-120",
+                        "relative flex flex-col rounded-2xl border-2 overflow-hidden transition-all duration-150",
                         isActive
-                          ? "border-primary bg-primary/5 shadow-[0_0_0_3px_rgba(14,118,253,0.15)]"
-                          : "border-[#E5E5E5] bg-white hover:border-primary/40",
+                          ? "border-primary shadow-lg scale-[1.02]"
+                          : "border-[#E5E5E5] shadow-md hover:border-primary/40 hover:shadow-lg",
                         isDisabled && "opacity-50 cursor-not-allowed"
                       )}
                     >
-                      {/* 64×64 Preview Thumbnail */}
-                      <div className={cn(
-                        "w-16 h-16 rounded-xl mb-2.5 overflow-hidden flex items-center justify-center",
-                        selectedFamily === "ecommerce" && "bg-gradient-to-br from-blue-50 to-blue-100",
-                        selectedFamily === "luxury" && "bg-gradient-to-br from-amber-50 to-amber-100",
-                        selectedFamily === "seasonal" && style.id === "easter" && "bg-gradient-to-br from-pink-50 to-purple-100",
-                        selectedFamily === "seasonal" && style.id === "mothers-day" && "bg-gradient-to-br from-rose-50 to-pink-100",
-                        selectedFamily === "seasonal" && style.id === "black-friday" && "bg-gradient-to-br from-gray-800 to-gray-900",
-                      )}>
-                        <div className={cn(
-                          "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
-                          selectedFamily === "seasonal" && style.id === "black-friday"
-                            ? "bg-red-500 text-white"
-                            : "bg-white shadow-sm text-[#333333]"
-                        )}>
-                          1
-                        </div>
-                      </div>
+                      {/* Real hotspot preview with blurred video background */}
+                      <HotspotStylePreview 
+                        family={selectedFamily}
+                        hotspotStyle={style.hotspotStyle}
+                        isActive={isActive}
+                        ctaLabel={ctaLabel || "Shop"}
+                      />
                       
-                      <span className={cn(
-                        "text-[12px] font-medium text-center transition-colors",
-                        isActive ? "text-primary" : "text-[#444444]"
-                      )}>
-                        {style.label}
-                      </span>
+                      {/* Label below preview */}
+                      <div className="px-3 py-2.5 bg-white">
+                        <span className={cn(
+                          "text-[13px] font-medium transition-colors",
+                          isActive ? "text-primary" : "text-[#444444]"
+                        )}>
+                          {style.label}
+                        </span>
+                      </div>
 
                       {/* Checkmark badge */}
                       {isActive && (
-                        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                          <Check className="w-3 h-3 text-white" />
+                        <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-md">
+                          <Check className="w-3.5 h-3.5 text-white" />
                         </div>
                       )}
                     </button>
