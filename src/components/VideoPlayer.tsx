@@ -548,7 +548,7 @@ const VideoPlayer = ({
   });
 
   console.log('[VideoPlayer] activeHotspots:', 
-    activeHotspots.map(h => ({ id: h.id, style: h.style }))
+    activeHotspots.map(h => ({ id: h.id, style: h.style, revision: h.revision }))
   );
 
   const assignedHotspots = hotspots.filter(h => h.productId);
@@ -733,7 +733,7 @@ const VideoPlayer = ({
                 
                 return (
                   <div
-                    key={`${hotspot.id}-${hotspot.revision ?? 0}`}
+                    key={`hotspot-${hotspot.id}-rev${hotspot.revision ?? 0}-style${hotspot.style}`}
                     className="pointer-events-auto"
                     onClick={(e) => {
                       e.stopPropagation();

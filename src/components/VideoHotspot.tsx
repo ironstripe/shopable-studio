@@ -44,7 +44,7 @@ const VideoHotspot = ({
   isNew = false,
   isAnyEditing = false,
 }: VideoHotspotProps) => {
-  console.log('[VideoHotspot] render:', hotspot.id, 'style:', hotspot.style);
+  console.log('[VideoHotspot] render:', hotspot.id, 'style:', hotspot.style, 'revision:', hotspot.revision);
   const countdown = Math.ceil(hotspot.timeEnd - currentTime);
   const isActive = currentTime >= hotspot.timeStart && currentTime <= hotspot.timeEnd;
   
