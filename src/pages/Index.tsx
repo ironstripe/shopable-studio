@@ -202,6 +202,11 @@ const Index = () => {
       hotspots.map((h) => (h.id === updatedHotspot.id ? updatedHotspot : h))
     );
     setSelectedHotspot(updatedHotspot);
+    
+    // Also update layoutEditingHotspot if it's the same hotspot
+    if (layoutEditingHotspot?.id === updatedHotspot.id) {
+      setLayoutEditingHotspot(updatedHotspot);
+    }
   };
 
   const handleDeleteHotspot = (hotspotId: string) => {
