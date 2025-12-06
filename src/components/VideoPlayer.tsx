@@ -733,7 +733,7 @@ const VideoPlayer = ({
                 
                 return (
                   <div
-                    key={`${hotspot.id}-${hotspot.style}`}
+                    key={hotspot.id}
                     className="pointer-events-auto"
                     onClick={(e) => {
                       e.stopPropagation();

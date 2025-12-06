@@ -132,6 +132,7 @@ const VideoHotspot = ({
           {/* Hotspot card wrapper with resize handle */}
           <div className="relative">
             <HotspotIcon
+              key={hotspot.style}
               style={hotspot.style}
               countdown={countdown}
               ctaLabel={hotspot.ctaLabel}
