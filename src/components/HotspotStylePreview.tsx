@@ -17,14 +17,24 @@ const HotspotStylePreview = ({
   isActive,
   ctaLabel = "Shop"
 }: HotspotStylePreviewProps) => {
-  // Family-specific blurred video backgrounds
+  // Family-specific blurred video backgrounds with seasonal style awareness
   const getPreviewBackground = (): string => {
     switch (family) {
       case "ecommerce":
         return "bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800";
       case "luxury":
-        return "bg-gradient-to-br from-amber-900/90 via-stone-800 to-stone-900";
+        return "bg-gradient-to-br from-neutral-900 via-stone-800 to-neutral-900";
       case "seasonal":
+        // Dynamic based on hotspotStyle for seasonal
+        if (hotspotStyle.includes("valentine")) {
+          return "bg-gradient-to-br from-rose-600/80 via-pink-600/80 to-rose-700/80";
+        }
+        if (hotspotStyle.includes("easter")) {
+          return "bg-gradient-to-br from-violet-400/70 via-emerald-400/70 to-cyan-400/70";
+        }
+        if (hotspotStyle.includes("black-friday")) {
+          return "bg-gradient-to-br from-neutral-900 via-black to-neutral-900";
+        }
         return "bg-gradient-to-br from-rose-500/70 via-purple-600/70 to-indigo-700/70";
       default:
         return "bg-gradient-to-br from-gray-600 to-gray-800";
