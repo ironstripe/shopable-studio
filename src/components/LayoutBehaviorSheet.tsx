@@ -34,8 +34,12 @@ interface FamilyConfig {
 const FAMILY_CONFIG: Record<TemplateFamily, FamilyConfig> = {
   ecommerce: {
     label: "E-Commerce",
-    description: "Clean card for classic shop setups",
+    description: "Clean cards for classic shop setups",
     mainStyle: "ecommerce-light-card",
+    selectableStyles: [
+      { id: "ecommerce-light-card", label: "Light Card", description: "Clean, minimal product card" },
+      { id: "ecommerce-sale-boost", label: "Sale Boost", description: "Promo badge with price compare" },
+    ],
   },
   luxury: {
     label: "Luxury Line",
@@ -287,8 +291,8 @@ const LayoutBehaviorSheet = ({
               Style
             </h3>
             
-            {/* For E-Commerce and Luxury - just show main style preview */}
-            {(selectedFamily === "ecommerce" || selectedFamily === "luxury") && (
+            {/* For Luxury - just show main style preview */}
+            {selectedFamily === "luxury" && (
               <div className="relative aspect-[2/1] rounded-xl overflow-hidden border-2 border-primary shadow-md">
                 <HotspotStylePreview
                   family={selectedFamily}
@@ -304,8 +308,8 @@ const LayoutBehaviorSheet = ({
               </div>
             )}
 
-            {/* For Seasonal - show grid of all selectable styles */}
-            {selectedFamily === "seasonal" && currentFamilyConfig.selectableStyles && (
+            {/* For E-Commerce and Seasonal - show grid of selectable styles */}
+            {(selectedFamily === "ecommerce" || selectedFamily === "seasonal") && currentFamilyConfig.selectableStyles && (
               <div className="grid grid-cols-2 gap-3">
                 {currentFamilyConfig.selectableStyles.map((styleOption) => {
                   const isSelected = selectedStyle === styleOption.id;
