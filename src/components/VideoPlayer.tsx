@@ -807,8 +807,7 @@ const VideoPlayer = ({
                         onOpenProductSelection={onOpenProductSelection}
                         onOpenLayoutSheet={onOpenLayoutSheet}
                         autoOpenProductPanel={shouldAutoOpenProductPanel && !hotspot.productId}
-                        containerWidth={containerRef.current?.clientWidth || 400}
-                        containerHeight={containerRef.current?.clientHeight || 600}
+                        containerRef={containerRef}
                       />
                     )}
                   </div>
