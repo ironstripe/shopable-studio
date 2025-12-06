@@ -1,6 +1,19 @@
 // Editor mode
 export type EditorMode = "edit" | "preview";
 
+// Countdown configuration types
+export type CountdownMode = "fixed-end" | "evergreen";
+export type CountdownStyle = "light" | "bold";
+export type CountdownPosition = "above" | "below" | "top-right";
+
+export interface HotspotCountdown {
+  active: boolean;
+  mode: CountdownMode;
+  endTime?: string; // ISO timestamp for fixed-end mode
+  style: CountdownStyle;
+  position: CountdownPosition;
+}
+
 // Safe zone configuration for social platforms
 export interface SafeZone {
   id: string;
@@ -128,6 +141,7 @@ export interface Hotspot {
   clickBehavior: ClickBehavior;
   cardStyle?: CardStyle; // Optional, defaults based on hotspot family
   toolbarOffset?: { x: number; y: number }; // Custom toolbar position offset for drag
+  countdown?: HotspotCountdown; // Optional countdown timer configuration
 }
 
 export interface Product {
