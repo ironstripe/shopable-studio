@@ -13,26 +13,38 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import HotspotStylePreview from "./HotspotStylePreview";
 
-// Template families
+// Template families - simplified to 3
 type TemplateFamily = "ecommerce" | "luxury" | "seasonal";
 
-// Style definitions per family with actual HotspotStyle mappings
-const FAMILY_STYLES: Record<TemplateFamily, { id: string; label: string; hotspotStyle: HotspotStyle }[]> = {
-  ecommerce: [
-    { id: "light-card", label: "Light Card", hotspotStyle: "ecommerce-line-compact-price-tag" },
-    { id: "sale-boost", label: "Sale Boost", hotspotStyle: "ecommerce-line-cta-pill-focus" },
-    { id: "minimal", label: "Minimal", hotspotStyle: "ecommerce-line-label-strip" },
-  ],
-  luxury: [
-    { id: "black-glass", label: "Black Glass", hotspotStyle: "luxury-line-glass-veil" },
-    { id: "fine-line", label: "Fine Line", hotspotStyle: "luxury-line-serif-whisper" },
-    { id: "editorial", label: "Editorial", hotspotStyle: "editorial-line-headline-tag" },
-  ],
-  seasonal: [
-    { id: "valentine", label: "Valentine", hotspotStyle: "seasonal-valentine" },
-    { id: "easter", label: "Easter", hotspotStyle: "seasonal-easter" },
-    { id: "black-friday", label: "Black Friday", hotspotStyle: "seasonal-black-friday" },
-  ],
+// Family configuration with main style and locked specials
+interface FamilyConfig {
+  label: string;
+  description: string;
+  mainStyle: HotspotStyle;
+  lockedStyles?: { id: HotspotStyle; label: string }[];
+}
+
+const FAMILY_CONFIG: Record<TemplateFamily, FamilyConfig> = {
+  ecommerce: {
+    label: "E-Commerce",
+    description: "Clean card for classic shop setups",
+    mainStyle: "ecommerce-light-card",
+  },
+  luxury: {
+    label: "Luxury Line",
+    description: "Ultra-clean, subtle, for premium brands",
+    mainStyle: "luxury-fine-line",
+  },
+  seasonal: {
+    label: "Seasonal Specials",
+    description: "Designed for campaigns",
+    mainStyle: "seasonal-standard",
+    lockedStyles: [
+      { id: "seasonal-valentine", label: "Valentine" },
+      { id: "seasonal-easter", label: "Easter" },
+      { id: "seasonal-black-friday", label: "Black Friday" },
+    ],
+  },
 };
 
 // Default CTA labels per family
@@ -68,42 +80,17 @@ const LayoutBehaviorSheet = ({
 }: LayoutBehaviorSheetProps) => {
   const { toast } = useToast();
 
-  // Parse current style into family and variant
-  const parseStyle = (style: string): { family: TemplateFamily; variant: string } => {
-    // First, find which family and variant matches this hotspotStyle
-    for (const [familyKey, variants] of Object.entries(FAMILY_STYLES)) {
-      const matchedVariant = variants.find(v => v.hotspotStyle === style);
-      if (matchedVariant) {
-        return { 
-          family: familyKey as TemplateFamily, 
-          variant: matchedVariant.id 
-        };
-      }
-    }
-    
-    // Fallback: try prefix matching for migrated/legacy styles
-    if (style.startsWith("ecommerce-line") || style.startsWith("badge-bubble")) {
-      return { family: "ecommerce", variant: "light-card" };
-    }
-    if (style.startsWith("luxury-line")) {
-      return { family: "luxury", variant: "black-glass" };
-    }
-    if (style.startsWith("editorial-line") || style.startsWith("minimal-dot")) {
-      return { family: "luxury", variant: "fine-line" };
-    }
-    if (style.startsWith("seasonal-")) {
-      if (style.includes("valentine")) return { family: "seasonal", variant: "valentine" };
-      if (style.includes("easter")) return { family: "seasonal", variant: "easter" };
-      if (style.includes("black-friday")) return { family: "seasonal", variant: "black-friday" };
-    }
-    
-    return { family: "ecommerce", variant: "light-card" };
+  // Parse current style into family
+  const parseFamily = (style: HotspotStyle): TemplateFamily => {
+    if (style.startsWith("ecommerce")) return "ecommerce";
+    if (style.startsWith("luxury")) return "luxury";
+    if (style.startsWith("seasonal")) return "seasonal";
+    return "ecommerce";
   };
 
-  const initialParsed = hotspot ? parseStyle(hotspot.style) : { family: "ecommerce" as TemplateFamily, variant: "light-card" };
+  const initialFamily = hotspot ? parseFamily(hotspot.style) : "ecommerce";
   
-  const [selectedFamily, setSelectedFamily] = useState<TemplateFamily>(initialParsed.family);
-  const [selectedStyle, setSelectedStyle] = useState<string>(initialParsed.variant);
+  const [selectedFamily, setSelectedFamily] = useState<TemplateFamily>(initialFamily);
   const [ctaLabel, setCtaLabel] = useState(hotspot?.ctaLabel || "Shop Now");
   const [clickBehavior, setClickBehavior] = useState<ClickBehavior>(hotspot?.clickBehavior || "show-card");
   const [duration, setDuration] = useState(hotspot ? hotspot.timeEnd - hotspot.timeStart : 3);
@@ -127,14 +114,13 @@ const LayoutBehaviorSheet = ({
     }
   }, [open, hasProductAssigned, toast, onOpenChange]);
 
-  // Reset form when hotspot changes or when sheet opens with updated hotspot data
+  // Reset form when hotspot changes or when sheet opens
   useEffect(() => {
     if (hotspot && open) {
-      const parsed = parseStyle(hotspot.style);
-      setSelectedFamily(parsed.family);
-      setSelectedStyle(parsed.variant);
-      setCtaLabel(hotspot.ctaLabel || FAMILY_CTA_DEFAULTS[parsed.family]);
-      setClickBehavior(hotspot.clickBehavior || FAMILY_CLICK_DEFAULTS[parsed.family]);
+      const family = parseFamily(hotspot.style);
+      setSelectedFamily(family);
+      setCtaLabel(hotspot.ctaLabel || FAMILY_CTA_DEFAULTS[family]);
+      setClickBehavior(hotspot.clickBehavior || FAMILY_CLICK_DEFAULTS[family]);
       setDuration(hotspot.timeEnd - hotspot.timeStart);
       // Reset countdown state
       setCountdownActive(hotspot.countdown?.active ?? false);
@@ -149,31 +135,30 @@ const LayoutBehaviorSheet = ({
   const handleFamilyChange = (family: TemplateFamily) => {
     if (isPreviewMode) return;
     setSelectedFamily(family);
-    setSelectedStyle(FAMILY_STYLES[family][0].id);
     setCtaLabel(FAMILY_CTA_DEFAULTS[family]);
     setClickBehavior(FAMILY_CLICK_DEFAULTS[family]);
+  };
+
+  const handleLockedStyleClick = (label: string) => {
+    toast({
+      title: `${label} template`,
+      description: "This seasonal template will be available in a future update.",
+    });
   };
 
   const handleSave = () => {
     if (!hotspot || isPreviewMode) return;
     
-    // Get the hotspotStyle from the selected style definition
-    const selectedStyleDef = FAMILY_STYLES[selectedFamily].find(s => s.id === selectedStyle);
-    const hotspotStyle = selectedStyleDef?.hotspotStyle || "ecommerce-line-compact-price-tag";
-
-    console.log('[LayoutBehaviorSheet] handleSave:', {
-      hotspotId: hotspot.id,
-      selectedFamily,
-      selectedStyle,
-      hotspotStyle,
-    });
+    // Get the main style from the selected family
+    const hotspotStyle = FAMILY_CONFIG[selectedFamily].mainStyle;
 
     onUpdateHotspot({
       ...hotspot,
-      style: hotspotStyle as Hotspot["style"],
+      style: hotspotStyle,
       ctaLabel,
       clickBehavior,
       timeEnd: hotspot.timeStart + duration,
+      cardStyle: hotspotStyle as Hotspot["cardStyle"],
       countdown: {
         active: countdownActive,
         mode: countdownMode,
@@ -185,16 +170,9 @@ const LayoutBehaviorSheet = ({
     onOpenChange(false);
   };
 
-  const isValid = selectedFamily && selectedStyle;
   const isDisabled = isPreviewMode;
-
-  const familyLabels = {
-    ecommerce: "E-Commerce",
-    luxury: "Luxury",
-    seasonal: "Seasonal",
-  };
-
   const endTime = (hotspot?.timeStart || 0) + duration;
+  const currentFamilyConfig = FAMILY_CONFIG[selectedFamily];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -224,7 +202,7 @@ const LayoutBehaviorSheet = ({
           <Button
             size="sm"
             onClick={handleSave}
-            disabled={!isValid || isDisabled}
+            disabled={isDisabled}
             className="h-9 px-5 rounded-full bg-primary text-white text-[14px] font-medium hover:bg-primary/90 disabled:opacity-50"
           >
             Save
@@ -233,87 +211,122 @@ const LayoutBehaviorSheet = ({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto overscroll-contain px-5 pt-5 pb-40 space-y-6">
-          {/* Section 1: Template Family - Compact Segmented Control */}
+          
+          {/* Section 1: Template Family */}
           <section>
             <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
               Template Family
             </h3>
-            <div className="flex p-1 rounded-full bg-muted border border-border">
-              {(["ecommerce", "luxury", "seasonal"] as TemplateFamily[]).map((family) => (
-                <button
-                  key={family}
-                  onClick={() => handleFamilyChange(family)}
-                  disabled={isDisabled}
-                  className={cn(
-                    "flex-1 py-2.5 text-[14px] font-medium rounded-full transition-all duration-150 min-h-[44px]",
-                    selectedFamily === family
-                      ? "bg-background text-primary font-semibold shadow-sm"
-                      : "text-muted-foreground hover:text-foreground",
-                    isDisabled && "opacity-50 cursor-not-allowed"
-                  )}
-                >
-                  {familyLabels[family]}
-                </button>
-              ))}
+            
+            <div className="space-y-2">
+              {(Object.keys(FAMILY_CONFIG) as TemplateFamily[]).map((family) => {
+                const config = FAMILY_CONFIG[family];
+                const isActive = selectedFamily === family;
+                
+                return (
+                  <button
+                    key={family}
+                    onClick={() => handleFamilyChange(family)}
+                    disabled={isDisabled}
+                    className={cn(
+                      "w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-150",
+                      isActive
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/40",
+                      isDisabled && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    {/* Preview thumbnail */}
+                    <div className="w-16 h-12 flex-shrink-0 rounded-lg overflow-hidden">
+                      <HotspotStylePreview
+                        family={family}
+                        hotspotStyle={config.mainStyle}
+                        isActive={isActive}
+                        ctaLabel={ctaLabel || "Shop"}
+                      />
+                    </div>
+                    
+                    {/* Text */}
+                    <div className="flex-1 text-left">
+                      <div className={cn(
+                        "text-[15px] font-medium",
+                        isActive ? "text-primary" : "text-foreground"
+                      )}>
+                        {config.label}
+                      </div>
+                      <div className="text-[13px] text-muted-foreground">
+                        {config.description}
+                      </div>
+                    </div>
+                    
+                    {/* Checkmark */}
+                    {isActive && (
+                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="w-3.5 h-3.5 text-primary-foreground" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </section>
 
-          {/* Section 2: Style Variants with Real Visual Previews */}
-          {selectedFamily && (
-            <section className="animate-fade-in-up">
-              <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                Style
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {FAMILY_STYLES[selectedFamily].map((style) => {
-                  const isActive = selectedStyle === style.id;
-                  
-                  return (
+          {/* Section 2: Style - Main style + Locked Specials */}
+          <section>
+            <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              Style
+            </h3>
+            
+            {/* Main Style Preview (large) */}
+            <div className="mb-4">
+              <div className="relative aspect-[2/1] rounded-xl overflow-hidden border-2 border-primary shadow-md">
+                <HotspotStylePreview
+                  family={selectedFamily}
+                  hotspotStyle={currentFamilyConfig.mainStyle}
+                  isActive={true}
+                  ctaLabel={ctaLabel || "Shop"}
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+                  <span className="text-white text-[13px] font-medium">
+                    {currentFamilyConfig.label} Style
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Locked Specials (only for seasonal family) */}
+            {currentFamilyConfig.lockedStyles && currentFamilyConfig.lockedStyles.length > 0 && (
+              <div>
+                <p className="text-[12px] text-muted-foreground mb-3">
+                  More styles coming soon:
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  {currentFamilyConfig.lockedStyles.map((locked) => (
                     <button
-                      key={style.id}
-                      onClick={() => !isDisabled && setSelectedStyle(style.id)}
-                      disabled={isDisabled}
-                      className={cn(
-                        "relative flex flex-col overflow-hidden transition-all duration-150 min-h-[120px]",
-                        "rounded-xl border-2",
-                        isActive
-                          ? "border-primary shadow-[0_0_0_2px_hsl(var(--primary)/0.2)] scale-[1.02]"
-                          : "border-border shadow-md hover:border-primary/40 hover:shadow-lg",
-                        isDisabled && "opacity-50 cursor-not-allowed"
-                      )}
+                      key={locked.id}
+                      onClick={() => handleLockedStyleClick(locked.label)}
+                      className="relative flex flex-col overflow-hidden rounded-lg border border-border opacity-70 hover:opacity-90 transition-opacity"
                     >
-                      {/* Real hotspot preview with blurred video background */}
-                      <div className="flex-1">
-                        <HotspotStylePreview 
+                      <div className="aspect-[1.2/1]">
+                        <HotspotStylePreview
                           family={selectedFamily}
-                          hotspotStyle={style.hotspotStyle}
-                          isActive={isActive}
+                          hotspotStyle={locked.id}
+                          isActive={false}
                           ctaLabel={ctaLabel || "Shop"}
+                          isLocked={true}
                         />
                       </div>
-                      
-                      {/* Label below preview */}
-                      <div className="px-3 py-2 bg-background border-t border-border/50">
-                        <span className={cn(
-                          "text-[13px] font-medium transition-colors",
-                          isActive ? "text-primary" : "text-foreground"
-                        )}>
-                          {style.label}
+                      <div className="px-2 py-1.5 bg-muted/50 border-t border-border">
+                        <span className="text-[11px] font-medium text-muted-foreground">
+                          {locked.label}
                         </span>
                       </div>
-
-                      {/* Checkmark badge */}
-                      {isActive && (
-                        <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-md">
-                          <Check className="w-3.5 h-3.5 text-primary-foreground" />
-                        </div>
-                      )}
                     </button>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
-            </section>
-          )}
+            )}
+          </section>
 
           {/* Section 3: CTA Label */}
           <section>
@@ -429,108 +442,106 @@ const LayoutBehaviorSheet = ({
           {/* Section 6: Countdown */}
           <section>
             <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-              Countdown
+              Countdown Timer
             </h3>
             
             {/* Toggle */}
             <div className="flex items-center justify-between py-3 border-b border-border">
-              <span className="text-[14px] text-foreground">Enable Countdown</span>
-              <Switch 
-                checked={countdownActive} 
+              <div>
+                <span className="text-[14px] font-medium text-foreground">Enable Countdown</span>
+                <p className="text-[12px] text-muted-foreground">Show urgency timer on hotspot</p>
+              </div>
+              <Switch
+                checked={countdownActive}
                 onCheckedChange={setCountdownActive}
                 disabled={isDisabled}
               />
             </div>
-            
-            {/* Conditional fields - fade in when enabled */}
-            {countdownActive && (
-              <div className="animate-fade-in space-y-4 pt-4">
-                {/* Mode Selection */}
-                <div>
-                  <span className="text-[13px] font-medium text-foreground mb-2 block">Mode</span>
-                  <div className="flex flex-col gap-2">
-                    <label className="flex items-center gap-3 min-h-[44px] cursor-pointer">
-                      <input 
-                        type="radio" 
-                        name="countdown-mode" 
-                        value="fixed-end" 
-                        checked={countdownMode === "fixed-end"} 
-                        onChange={() => setCountdownMode("fixed-end")}
-                        disabled={isDisabled}
-                        className="w-4 h-4 text-primary"
-                      />
-                      <span className="text-[14px] text-foreground">Fixed end time</span>
-                    </label>
-                    
-                    {countdownMode === "fixed-end" && (
-                      <div className="ml-7 animate-fade-in">
-                        <input 
-                          type="datetime-local" 
-                          value={countdownEndTime} 
-                          onChange={(e) => setCountdownEndTime(e.target.value)}
-                          disabled={isDisabled}
-                          className="w-full h-12 px-3 text-[14px] bg-background border border-border rounded-xl text-foreground focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none"
-                        />
-                      </div>
-                    )}
-                    
-                    <label className="flex items-center gap-3 min-h-[44px] cursor-pointer">
-                      <input 
-                        type="radio" 
-                        name="countdown-mode" 
-                        value="evergreen" 
-                        checked={countdownMode === "evergreen"} 
-                        onChange={() => setCountdownMode("evergreen")}
-                        disabled={isDisabled}
-                        className="w-4 h-4 text-primary"
-                      />
-                      <span className="text-[14px] text-foreground">Evergreen</span>
-                    </label>
-                  </div>
-                </div>
 
-                {/* Style Selection */}
+            {countdownActive && (
+              <div className="space-y-4 pt-4 animate-fade-in-up">
+                {/* Mode */}
                 <div>
-                  <span className="text-[13px] font-medium text-foreground mb-2 block">Style</span>
+                  <label className="text-[13px] font-medium text-foreground mb-2 block">Mode</label>
                   <div className="flex p-1 rounded-full bg-muted border border-border">
-                    {(["light", "bold"] as CountdownStyle[]).map((style) => (
+                    {[
+                      { value: "fixed-end" as CountdownMode, label: "Fixed End" },
+                      { value: "evergreen" as CountdownMode, label: "Evergreen" },
+                    ].map((option) => (
                       <button
-                        key={style}
-                        onClick={() => !isDisabled && setCountdownStyle(style)}
+                        key={option.value}
+                        onClick={() => !isDisabled && setCountdownMode(option.value)}
                         disabled={isDisabled}
                         className={cn(
-                          "flex-1 py-2.5 text-[13px] font-medium rounded-full transition-all duration-150 min-h-[44px] capitalize",
-                          countdownStyle === style
-                            ? "bg-background text-primary font-semibold shadow-sm"
-                            : "text-muted-foreground hover:text-foreground",
-                          isDisabled && "opacity-50 cursor-not-allowed"
+                          "flex-1 py-2 text-[13px] font-medium rounded-full transition-all",
+                          countdownMode === option.value
+                            ? "bg-background text-primary shadow-sm"
+                            : "text-muted-foreground"
                         )}
                       >
-                        {style}
+                        {option.label}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Position Selection */}
+                {/* Fixed End Time input */}
+                {countdownMode === "fixed-end" && (
+                  <div>
+                    <label className="text-[13px] font-medium text-foreground mb-2 block">End Date & Time</label>
+                    <Input
+                      type="datetime-local"
+                      value={countdownEndTime}
+                      onChange={(e) => setCountdownEndTime(e.target.value)}
+                      disabled={isDisabled}
+                      className="h-12 bg-background border-border rounded-xl"
+                    />
+                  </div>
+                )}
+
+                {/* Style */}
                 <div>
-                  <span className="text-[13px] font-medium text-foreground mb-2 block">Position</span>
+                  <label className="text-[13px] font-medium text-foreground mb-2 block">Style</label>
                   <div className="flex p-1 rounded-full bg-muted border border-border">
-                    {([
-                      { value: "below" as CountdownPosition, label: "Below" },
+                    {[
+                      { value: "light" as CountdownStyle, label: "Light" },
+                      { value: "bold" as CountdownStyle, label: "Bold" },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => !isDisabled && setCountdownStyle(option.value)}
+                        disabled={isDisabled}
+                        className={cn(
+                          "flex-1 py-2 text-[13px] font-medium rounded-full transition-all",
+                          countdownStyle === option.value
+                            ? "bg-background text-primary shadow-sm"
+                            : "text-muted-foreground"
+                        )}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Position */}
+                <div>
+                  <label className="text-[13px] font-medium text-foreground mb-2 block">Position</label>
+                  <div className="flex p-1 rounded-full bg-muted border border-border">
+                    {[
                       { value: "above" as CountdownPosition, label: "Above" },
-                      { value: "top-right" as CountdownPosition, label: "Top-right" },
-                    ]).map((option) => (
+                      { value: "below" as CountdownPosition, label: "Below" },
+                      { value: "top-right" as CountdownPosition, label: "Corner" },
+                    ].map((option) => (
                       <button
                         key={option.value}
                         onClick={() => !isDisabled && setCountdownPosition(option.value)}
                         disabled={isDisabled}
                         className={cn(
-                          "flex-1 py-2.5 text-[13px] font-medium rounded-full transition-all duration-150 min-h-[44px]",
+                          "flex-1 py-2 text-[13px] font-medium rounded-full transition-all",
                           countdownPosition === option.value
-                            ? "bg-background text-primary font-semibold shadow-sm"
-                            : "text-muted-foreground hover:text-foreground",
-                          isDisabled && "opacity-50 cursor-not-allowed"
+                            ? "bg-background text-primary shadow-sm"
+                            : "text-muted-foreground"
                         )}
                       >
                         {option.label}
@@ -541,10 +552,11 @@ const LayoutBehaviorSheet = ({
               </div>
             )}
           </section>
+
         </div>
 
-        {/* Sticky Footer with Shadow */}
-        <div className="sticky bottom-0 px-5 py-4 bg-background border-t border-border shadow-[0_-4px_16px_rgba(0,0,0,0.08)] pb-safe-plus">
+        {/* Sticky Footer */}
+        <div className="sticky bottom-0 left-0 right-0 p-5 bg-white border-t border-[#EBEBEB] safe-area-bottom">
           <div className="flex gap-3">
             <Button
               variant="outline"
@@ -555,8 +567,8 @@ const LayoutBehaviorSheet = ({
             </Button>
             <Button
               onClick={handleSave}
-              disabled={!isValid || isDisabled}
-              className="flex-1 h-12 rounded-xl text-[15px] font-medium"
+              disabled={isDisabled}
+              className="flex-1 h-12 rounded-xl text-[15px] font-medium bg-primary hover:bg-primary/90"
             >
               Save Changes
             </Button>

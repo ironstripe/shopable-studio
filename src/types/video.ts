@@ -30,35 +30,16 @@ export const VERTICAL_SOCIAL_SAFE_ZONE: SafeZone = {
   bottom: 0.18, // 18% reserved for captions/controls
 };
 
-// Top-level hotspot types
-export type HotspotType = "minimal-dot" | "luxury-line" | "ecommerce-line" | "editorial-line";
-
-// Unified variants (same for all types)
-export type HotspotVariant = "small" | "large" | "light" | "strong";
-
-// Badge Bubble specific variants (style-based, not size-based)
-export type BadgeBubbleVariant = "classic" | "outline" | "ghost" | "accent-split";
-
-// Fine Line specific variants (style-based creative variants)
-export type FineLineVariant = "pure-line" | "soft-glass" | "editorial-slim" | "micro-dot";
-
-// Luxury Line specific variants
-export type LuxuryLineVariant = "serif-whisper" | "gold-accent" | "glass-veil" | "dot-reveal";
-
-// E-Commerce Line specific variants
-export type ECommerceLineVariant = "compact-price-tag" | "label-strip" | "cta-pill-focus" | "product-card-lite";
-
-// Editorial Line specific variants
-export type EditorialLineVariant = "headline-tag" | "vertical-label" | "caption-frame" | "dash-marker";
-
-// Combined style (type + variant for storage)
+// Simplified hotspot style system - 3 main styles + locked seasonal specials
 export type HotspotStyle = 
-  | "minimal-dot-pure-line" | "minimal-dot-soft-glass" | "minimal-dot-editorial-slim" | "minimal-dot-micro-dot"
-  | "luxury-line-serif-whisper" | "luxury-line-gold-accent" | "luxury-line-glass-veil" | "luxury-line-dot-reveal"
-  | "ecommerce-line-compact-price-tag" | "ecommerce-line-label-strip" | "ecommerce-line-cta-pill-focus" | "ecommerce-line-product-card-lite"
-  | "editorial-line-headline-tag" | "editorial-line-vertical-label" | "editorial-line-caption-frame" | "editorial-line-dash-marker"
-  // Seasonal styles
-  | "seasonal-valentine" | "seasonal-easter" | "seasonal-black-friday";
+  // Main MVP styles (1 per family)
+  | "ecommerce-light-card"
+  | "luxury-fine-line"
+  | "seasonal-standard"
+  // Locked seasonal specials (for upsell UI)
+  | "seasonal-valentine"
+  | "seasonal-easter"
+  | "seasonal-black-friday";
 
 export type ClickBehavior = "show-card" | "direct-link" | "no-action";
 
@@ -104,26 +85,14 @@ export interface VideoCTA {
   position?: { x: number; y: number }; // Position as percentage (0-1), default bottom-right
 }
 
-// Product Card Family System (Extensible Architecture)
-export type CardFamily = "retail" | "luxury" | "editorial" | "fineline" | "ecommerce";
+// Product Card Family System - simplified to match hotspot families
+export type CardFamily = "ecommerce" | "luxury" | "seasonal";
 
-// Retail Card variants (E-Commerce focused, maps to badge-bubble hotspot family)
-export type RetailCardVariant = "retail-compact" | "retail-split" | "retail-media" | "retail-price-focus";
-
-// Fine Line Card variants (maps to minimal-dot hotspot family)
-export type FineLineCardVariant = "fineline-text-underline" | "fineline-text-baseline" | "fineline-subtle-caption" | "fineline-micro-line";
-
-// Luxury Card variants (maps to luxury-line hotspot family)
-export type LuxuryCardVariant = "luxury-minimal" | "luxury-image-focus" | "luxury-split" | "luxury-price-highlight";
-
-// E-Commerce Card variants (maps to ecommerce-line hotspot family)
-export type ECommerceCardVariant = "ecommerce-grid" | "ecommerce-badge" | "ecommerce-price-tag" | "ecommerce-retail-promo";
-
-// Editorial Card variants (maps to editorial-line hotspot family)
-export type EditorialCardVariant = "editorial-article" | "editorial-caption" | "editorial-quote" | "editorial-minimal-info";
-
-// Combined card style (family-variant)
-export type CardStyle = RetailCardVariant | FineLineCardVariant | LuxuryCardVariant | ECommerceCardVariant | EditorialCardVariant;
+// Simplified card styles to match hotspot families
+export type CardStyle = 
+  | "ecommerce-light-card"
+  | "luxury-fine-line"
+  | "seasonal-standard";
 
 export interface Hotspot {
   id: string;
