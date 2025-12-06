@@ -71,6 +71,74 @@ const HotspotIcon = ({
     );
   }
 
+  // E-Commerce Sale Boost
+  // Promo badge, strikethrough old price, bold new price, full-width CTA
+  if (style === "ecommerce-sale-boost") {
+    return (
+      <div
+        className="flex flex-col items-stretch bg-white animate-sale-boost-enter"
+        style={{ 
+          transform: `scale(${scale})`,
+          padding: "14px 16px",
+          borderRadius: "16px",
+          border: "1px solid rgba(0,0,0,0.05)",
+          boxShadow: "0 6px 16px rgba(0,0,0,0.16)",
+          minWidth: "180px",
+          maxWidth: "240px",
+        }}
+      >
+        {/* Promo Badge */}
+        <div 
+          className="self-start mb-2 px-2.5 py-1 rounded-[12px]"
+          style={{ backgroundColor: "#1A73E8" }}
+        >
+          <span 
+            className="text-[12px] font-bold text-white uppercase"
+            style={{ letterSpacing: "0.01em" }}
+          >
+            SALE
+          </span>
+        </div>
+        
+        {/* Product Title */}
+        <span 
+          className="font-semibold truncate mb-1"
+          style={{ fontSize: "15px", color: "#1A1A1A" }}
+        >
+          {ctaLabel}
+        </span>
+        
+        {/* Price Section */}
+        <div className="flex items-baseline gap-2 mb-3">
+          {/* Old Price with strikethrough */}
+          <span 
+            className="line-through font-medium"
+            style={{ fontSize: "14px", color: "rgba(0,0,0,0.35)" }}
+          >
+            $89
+          </span>
+          {/* New Price */}
+          <span 
+            className="font-bold"
+            style={{ fontSize: "18px", color: "#E53935" }}
+          >
+            {price || "$49"}
+          </span>
+        </div>
+        
+        {/* CTA Button */}
+        <div
+          className="w-full h-10 rounded-[12px] flex items-center justify-center"
+          style={{ backgroundColor: "#1A73E8" }}
+        >
+          <span className="text-[15px] font-semibold text-white">
+            Shop Now
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   // Luxury Fine Line
   // Minimal thin outline, off-white/light grey, refined aesthetic
   if (style === "luxury-fine-line") {

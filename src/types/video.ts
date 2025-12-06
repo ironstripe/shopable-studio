@@ -34,6 +34,7 @@ export const VERTICAL_SOCIAL_SAFE_ZONE: SafeZone = {
 export type HotspotStyle = 
   // E-Commerce family
   | "ecommerce-light-card"
+  | "ecommerce-sale-boost"
   // Luxury family
   | "luxury-fine-line"
   // Seasonal family (all selectable in MVP)
@@ -92,6 +93,7 @@ export type CardFamily = "ecommerce" | "luxury" | "seasonal";
 // Card styles matching hotspot families
 export type CardStyle = 
   | "ecommerce-light-card"
+  | "ecommerce-sale-boost"
   | "luxury-fine-line"
   | "seasonal-standard"
   | "seasonal-easter"
