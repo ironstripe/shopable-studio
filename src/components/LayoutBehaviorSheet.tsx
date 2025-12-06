@@ -143,7 +143,7 @@ const LayoutBehaviorSheet = ({
       setCountdownStyle(hotspot.countdown?.style ?? "light");
       setCountdownPosition(hotspot.countdown?.position ?? "below");
     }
-  }, [hotspot?.id, hotspot?.style, open]);
+  }, [hotspot?.id, hotspot?.style, hotspot?.revision, open]);
 
   // Update defaults when family changes
   const handleFamilyChange = (family: TemplateFamily) => {
