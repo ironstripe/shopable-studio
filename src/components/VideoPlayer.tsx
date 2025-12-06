@@ -780,7 +780,7 @@ const VideoPlayer = ({
           <ProductCard
             product={selectedProduct}
             showShopButton={showShopButton}
-            cardStyle={selectedProductHotspot.cardStyle || "retail-compact"}
+            cardStyle={selectedProductHotspot.cardStyle || "ecommerce-light-card"}
             hotspotPosition={{ x: selectedProductHotspot.x, y: selectedProductHotspot.y }}
             containerRef={containerRef}
             onClose={() => {

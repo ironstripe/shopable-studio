@@ -31,7 +31,7 @@ export interface UseHotspotsReturn {
 
 const DEFAULT_OPTIONS: Required<UseHotspotsOptions> = {
   safeZonePreset: 'vertical_social',
-  defaultStyle: "ecommerce-line-compact-price-tag",
+  defaultStyle: "ecommerce-light-card",
   defaultDuration: 3,
 };
 
@@ -70,7 +70,7 @@ export function useHotspots(
       ctaLabel: "Shop Now",
       scale: defaultScale,
       clickBehavior: "show-card",
-      cardStyle: "ecommerce-grid",
+      cardStyle: "ecommerce-light-card",
       revision: 0,
     };
 
