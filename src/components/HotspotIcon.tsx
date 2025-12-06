@@ -191,26 +191,162 @@ const HotspotIcon = ({
     );
   }
 
+  // Luxury Black Glass
+  // Dark frosted glass with white text
+  if (style === "luxury-black-glass") {
+    return (
+      <div
+        className="flex flex-col items-start animate-luxury-enter"
+        style={{ 
+          transform: `scale(${scale})`,
+          padding: "14px 20px",
+          borderRadius: "18px",
+          background: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(255,255,255,0.12)",
+          boxShadow: "0 4px 18px rgba(0,0,0,0.45)",
+          minWidth: "160px",
+        }}
+      >
+        {/* Title */}
+        <span 
+          className="font-semibold truncate w-full"
+          style={{ 
+            fontSize: "15px", 
+            color: "#FFFFFF",
+            lineHeight: "1.3"
+          }}
+        >
+          {ctaLabel}
+        </span>
+        
+        {/* Price row with arrow */}
+        <div className="flex items-center justify-between w-full mt-1">
+          <span 
+            className="font-medium"
+            style={{ 
+              fontSize: "14px", 
+              color: "rgba(255,255,255,0.85)" 
+            }}
+          >
+            {price || "$0"}
+          </span>
+          <ArrowRight 
+            className="w-4 h-4 ml-2" 
+            style={{ color: "#FFFFFF" }} 
+            strokeWidth={1.5}
+          />
+        </div>
+      </div>
+    );
+  }
+
   // Luxury Fine Line
-  // Minimal thin outline, off-white/light grey, refined aesthetic
+  // Minimal thin outline, transparent background
   if (style === "luxury-fine-line") {
     return (
       <div
-        className="group flex items-center gap-2 px-3 py-2 rounded-lg border border-white/30 bg-white/5 backdrop-blur-sm transition-all duration-200 hover:bg-white/10 hover:border-white/50"
-        style={{ transform: `scale(${scale})` }}
+        className="flex flex-col items-start animate-luxury-enter"
+        style={{ 
+          transform: `scale(${scale})`,
+          padding: "10px 14px",
+          borderRadius: "12px",
+          background: "rgba(255,255,255,0.12)",
+          border: "1px solid rgba(255,255,255,0.28)",
+          minWidth: "150px",
+        }}
       >
-        {/* Small number */}
-        <span className="text-[11px] font-light text-white/80 tracking-wide">
-          {productIndex}
-        </span>
-        
-        {/* Divider */}
-        <div className="w-px h-3 bg-white/30" />
-        
-        {/* Label - refined sans-serif */}
-        <span className="text-[12px] font-light text-white/90 tracking-wide whitespace-nowrap">
+        {/* Title */}
+        <span 
+          className="font-medium truncate w-full"
+          style={{ 
+            fontSize: "15px", 
+            color: "#FFFFFF",
+            lineHeight: "1.3"
+          }}
+        >
           {ctaLabel}
         </span>
+        
+        {/* Price row with thin chevron */}
+        <div className="flex items-center justify-between w-full mt-0.5">
+          <span 
+            className="font-medium"
+            style={{ 
+              fontSize: "15px", 
+              color: "rgba(255,255,255,0.85)" 
+            }}
+          >
+            {price || "$0"}
+          </span>
+          <ChevronRight 
+            className="w-3 h-3 ml-1.5" 
+            style={{ color: "rgba(255,255,255,0.6)" }} 
+            strokeWidth={1.5}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Luxury Editorial
+  // White background with serif typography
+  if (style === "luxury-editorial") {
+    return (
+      <div
+        className="flex flex-col items-start animate-luxury-enter"
+        style={{ 
+          transform: `scale(${scale})`,
+          padding: "12px 16px",
+          borderRadius: "12px",
+          background: "rgba(255,255,255,0.85)",
+          minWidth: "160px",
+        }}
+      >
+        {/* Title - Playfair Display */}
+        <span 
+          className="truncate w-full"
+          style={{ 
+            fontFamily: "'Playfair Display', serif",
+            fontWeight: 500,
+            fontSize: "16px", 
+            color: "#000000",
+            lineHeight: "1.3"
+          }}
+        >
+          {ctaLabel}
+        </span>
+        
+        {/* Price row with arrow */}
+        <div className="flex items-center justify-between w-full mt-1">
+          <span 
+            className="font-medium"
+            style={{ 
+              fontSize: "15px", 
+              color: "#111111" 
+            }}
+          >
+            {price || "$0"}
+          </span>
+          <div className="flex items-center gap-1">
+            <span 
+              style={{ 
+                fontFamily: "'Playfair Display', serif",
+                fontStyle: "italic",
+                fontSize: "14px", 
+                color: "#000000" 
+              }}
+            >
+              Shop Now
+            </span>
+            <ArrowRight 
+              className="w-3.5 h-3.5" 
+              style={{ color: "#000000" }} 
+              strokeWidth={1.5}
+            />
+          </div>
+        </div>
       </div>
     );
   }
