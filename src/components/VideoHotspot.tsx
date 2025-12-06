@@ -154,14 +154,14 @@ const VideoHotspot = ({
             {isEditMode && isSelected && (
               <div
                 className={cn(
-                  "absolute w-5 h-5 bg-white/90 border border-neutral-300 rounded-full cursor-se-resize flex items-center justify-center transition-all hover:border-neutral-400 hover:shadow-sm hotspot-resize-handle",
+                  "absolute w-5 h-5 bg-white/90 border border-neutral-300 rounded-full cursor-se-resize flex items-center justify-center transition-all hover:border-neutral-400 hover:shadow-sm hotspot-resize-handle pointer-events-auto",
                   isResizing && "animate-resize-pulse"
                 )}
                 style={{ 
                   bottom: '-10px', 
                   right: '-10px',
                   touchAction: 'none',
-                  zIndex: 60,
+                  zIndex: 120,
                 }}
                 onMouseDown={(e) => {
                   e.stopPropagation();
