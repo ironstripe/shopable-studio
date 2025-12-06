@@ -340,22 +340,73 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price 
     );
   }
 
+  // Sale Boost - Promo card with badge, strikethrough price, CTA button
   if (style === "ecommerce-line-cta-pill-focus") {
+    // Parse price: support "newPrice|oldPrice" format
+    const [newPrice, oldPrice] = (price || "$29.99").split("|");
+    const hasOldPrice = !!oldPrice;
+    
     return (
       <div 
-        className="flex items-center gap-2 animate-fade-in"
-        style={{ ...baseStyle, animationDuration: '180ms' }}
+        className="flex flex-col items-stretch bg-white rounded-2xl animate-scale-in"
+        style={{ 
+          ...baseStyle, 
+          border: '1px solid rgba(0,0,0,0.05)',
+          boxShadow: '0 6px 16px rgba(0,0,0,0.16)',
+          padding: '14px 16px',
+          minWidth: '180px',
+          maxWidth: '240px',
+        }}
       >
-        <div className="w-8 h-8 rounded-full bg-white/95 backdrop-blur-sm border border-[#E0E0E0] flex items-center justify-center">
-          <span className="text-[#111111] text-[13px] font-medium">{countdown}</span>
+        {/* Promo Badge */}
+        <div 
+          className="self-start bg-[#1A73E8] rounded-xl px-2.5 flex items-center justify-center mb-2"
+          style={{ height: '24px' }}
+        >
+          <span 
+            className="text-white text-[12px] font-bold uppercase"
+            style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '0.01em' }}
+          >
+            SALE
+          </span>
         </div>
-        <div className="flex flex-col items-start">
-          <div className="bg-[#3B82F6] hover:bg-[#2563EB] rounded-full px-3 py-1.5 transition-colors duration-150 flex items-center justify-center">
-            <span className="text-white text-[13px] font-medium">{ctaLabel}</span>
-          </div>
-          {price && (
-            <span className="text-[#6B7280] text-[11px] mt-0.5 ml-1">{price}</span>
+        
+        {/* Product Title */}
+        <span 
+          className="text-[#1A1A1A] text-[15px] font-semibold leading-5 truncate mb-2"
+          style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+        >
+          {ctaLabel}
+        </span>
+        
+        {/* Price Section */}
+        <div className="flex items-baseline gap-2 mb-3">
+          <span 
+            className="text-[#E53935] text-[18px] font-bold"
+            style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+          >
+            {newPrice}
+          </span>
+          {hasOldPrice && (
+            <span 
+              className="text-[14px] font-medium line-through"
+              style={{ fontFamily: 'Inter, system-ui, sans-serif', color: 'rgba(0,0,0,0.35)' }}
+            >
+              {oldPrice}
+            </span>
           )}
+        </div>
+        
+        {/* CTA Button */}
+        <div 
+          className="w-full h-10 bg-[#1A73E8] rounded-xl flex items-center justify-center"
+        >
+          <span 
+            className="text-white text-[15px] font-semibold"
+            style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+          >
+            Shop Now
+          </span>
         </div>
       </div>
     );
