@@ -70,15 +70,33 @@ const LayoutBehaviorSheet = ({
 
   // Parse current style into family and variant
   const parseStyle = (style: string): { family: TemplateFamily; variant: string } => {
+    // First, find which family and variant matches this hotspotStyle
+    for (const [familyKey, variants] of Object.entries(FAMILY_STYLES)) {
+      const matchedVariant = variants.find(v => v.hotspotStyle === style);
+      if (matchedVariant) {
+        return { 
+          family: familyKey as TemplateFamily, 
+          variant: matchedVariant.id 
+        };
+      }
+    }
+    
+    // Fallback: try prefix matching for migrated/legacy styles
     if (style.startsWith("ecommerce-line") || style.startsWith("badge-bubble")) {
       return { family: "ecommerce", variant: "light-card" };
     }
     if (style.startsWith("luxury-line")) {
-      return { family: "luxury", variant: "ultra-clean" };
+      return { family: "luxury", variant: "black-glass" };
     }
     if (style.startsWith("editorial-line") || style.startsWith("minimal-dot")) {
-      return { family: "luxury", variant: "monochrome" };
+      return { family: "luxury", variant: "fine-line" };
     }
+    if (style.startsWith("seasonal-")) {
+      if (style.includes("valentine")) return { family: "seasonal", variant: "valentine" };
+      if (style.includes("easter")) return { family: "seasonal", variant: "easter" };
+      if (style.includes("black-friday")) return { family: "seasonal", variant: "black-friday" };
+    }
+    
     return { family: "ecommerce", variant: "light-card" };
   };
 
