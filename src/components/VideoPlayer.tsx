@@ -14,14 +14,13 @@ interface VideoPlayerProps {
   videoSrc: string | null;
   hotspots: Hotspot[];
   products: Record<string, Product>;
-  selectedHotspot: Hotspot | null;
-  activeToolbarHotspotId: string | null;
+  selectedHotspotId: string | null; // Unified selection state (ID only)
   isPreviewMode: boolean;
   onTogglePreviewMode: () => void;
   onAddHotspot: (x: number, y: number, time: number) => void;
   onUpdateHotspot: (hotspot: Hotspot) => void;
   onDeleteHotspot: (hotspotId: string) => void;
-  onHotspotSelect: (hotspotId: string) => void;
+  onSelectHotspot: (hotspotId: string | null) => void; // Renamed from onHotspotSelect
   onUpdateHotspotPosition: (hotspotId: string, x: number, y: number) => void;
   onUpdateHotspotScale: (hotspotId: string, scale: number) => void;
   onOpenProductSelection: (hotspotId: string) => void;
@@ -44,14 +43,13 @@ const VideoPlayer = ({
   videoSrc,
   hotspots,
   products,
-  selectedHotspot,
-  activeToolbarHotspotId,
+  selectedHotspotId,
   isPreviewMode,
   onTogglePreviewMode,
   onAddHotspot,
   onUpdateHotspot,
   onDeleteHotspot,
-  onHotspotSelect,
+  onSelectHotspot,
   onUpdateHotspotPosition,
   onUpdateHotspotScale,
   onOpenProductSelection,
@@ -534,17 +532,17 @@ const VideoPlayer = ({
           break;
       }
     } else {
-      onHotspotSelect(hotspot.id);
+      onSelectHotspot(hotspot.id);
     }
   };
 
   const activeHotspots = hotspots.filter((h) => {
     const isInTimeRange = currentTime >= h.timeStart && currentTime <= h.timeEnd;
-    const isSelectedOrActive = selectedHotspot?.id === h.id || activeToolbarHotspotId === h.id;
+    const isSelected = selectedHotspotId === h.id;
     
     if (isPreviewMode && !h.productId) return false;
     
-    return isInTimeRange || (!isPreviewMode && isSelectedOrActive);
+    return isInTimeRange || (!isPreviewMode && isSelected);
   });
 
   console.log('[VideoPlayer] activeHotspots:', 
@@ -728,8 +726,8 @@ const VideoPlayer = ({
               {activeHotspots.map((hotspot) => {
                 const product = hotspot.productId ? products[hotspot.productId] : null;
                 const price = product?.price;
-                const isThisSelected = selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id;
-                const isAnyHotspotEditing = activeToolbarHotspotId !== null || selectedHotspot !== null;
+                const isThisSelected = selectedHotspotId === hotspot.id;
+                const isAnyHotspotEditing = selectedHotspotId !== null;
                 
                 return (
                   <div
