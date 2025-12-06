@@ -45,7 +45,12 @@ const FAMILY_CONFIG: Record<TemplateFamily, FamilyConfig> = {
   luxury: {
     label: "Luxury Line",
     description: "Ultra-clean, subtle, for premium brands",
-    mainStyle: "luxury-fine-line",
+    mainStyle: "luxury-black-glass",
+    selectableStyles: [
+      { id: "luxury-black-glass", label: "Black Glass", description: "Dark frosted, premium" },
+      { id: "luxury-fine-line", label: "Fine Line", description: "Minimal thin outline" },
+      { id: "luxury-editorial", label: "Editorial", description: "Serif type, magazine feel" },
+    ],
   },
   seasonal: {
     label: "Seasonal Specials",
@@ -292,25 +297,8 @@ const LayoutBehaviorSheet = ({
               Style
             </h3>
             
-            {/* For Luxury - just show main style preview */}
-            {selectedFamily === "luxury" && (
-              <div className="relative aspect-[2/1] rounded-xl overflow-hidden border-2 border-primary shadow-md">
-                <HotspotStylePreview
-                  family={selectedFamily}
-                  hotspotStyle={currentFamilyConfig.mainStyle}
-                  isActive={true}
-                  ctaLabel={ctaLabel || "Shop"}
-                />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
-                  <span className="text-white text-[13px] font-medium">
-                    {currentFamilyConfig.label} Style
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* For E-Commerce and Seasonal - show grid of selectable styles */}
-            {(selectedFamily === "ecommerce" || selectedFamily === "seasonal") && currentFamilyConfig.selectableStyles && (
+            {/* For E-Commerce, Luxury, and Seasonal - show grid of selectable styles */}
+            {currentFamilyConfig.selectableStyles && (
               <div className="grid grid-cols-2 gap-3">
                 {currentFamilyConfig.selectableStyles.map((styleOption) => {
                   const isSelected = selectedStyle === styleOption.id;
