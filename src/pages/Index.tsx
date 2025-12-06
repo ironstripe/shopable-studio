@@ -49,7 +49,7 @@ const Index = () => {
   const [newProductSheetOpen, setNewProductSheetOpen] = useState(false);
   const [productAssignmentHotspotId, setProductAssignmentHotspotId] = useState<string | null>(null);
   const [layoutBehaviorSheetOpen, setLayoutBehaviorSheetOpen] = useState(false);
-  const [layoutEditingHotspot, setLayoutEditingHotspot] = useState<Hotspot | null>(null);
+  const [layoutEditingHotspotId, setLayoutEditingHotspotId] = useState<string | null>(null);
   const [pendingPanelHotspotId, setPendingPanelHotspotId] = useState<string | null>(null);
   const [isDeferringToolbar, setIsDeferringToolbar] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -69,7 +69,11 @@ const Index = () => {
   });
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
-  const layoutEditingHotspotRef = useRef<Hotspot | null>(null);
+
+  // Derive layoutEditingHotspot from the hotspots array (always fresh!)
+  const layoutEditingHotspot = layoutEditingHotspotId 
+    ? hotspots.find(h => h.id === layoutEditingHotspotId) ?? null 
+    : null;
 
   // Demo products
   const [products, setProducts] = useState<Record<string, Product>>({
@@ -199,11 +203,6 @@ const Index = () => {
     }
   }, [pendingPanelHotspotId, isDeferringToolbar, ftuxComplete, ftuxStep, advanceStep]);
 
-  // Keep ref in sync with layoutEditingHotspot state to avoid stale closures
-  useEffect(() => {
-    layoutEditingHotspotRef.current = layoutEditingHotspot;
-  }, [layoutEditingHotspot]);
-
   const handleUpdateHotspot = (updatedHotspot: Hotspot) => {
     setHotspots(prevHotspots =>
       prevHotspots.map(h => {
@@ -228,26 +227,15 @@ const Index = () => {
       })
     );
 
-    // Derive selectedHotspot and layoutEditingHotspot from the updated hotspots array
-    // Use setTimeout to ensure we read the updated state after React processes setHotspots
-    setTimeout(() => {
-      setHotspots(currentHotspots => {
-        const updatedFromArray = currentHotspots.find(h => h.id === updatedHotspot.id);
-        if (updatedFromArray) {
-          console.log('[Index.handleUpdateHotspot] Syncing from array:', {
-            id: updatedFromArray.id,
-            style: updatedFromArray.style,
-            revision: updatedFromArray.revision,
-          });
-          setSelectedHotspot(updatedFromArray);
-          if (layoutEditingHotspotRef.current?.id === updatedHotspot.id) {
-            layoutEditingHotspotRef.current = updatedFromArray;
-            setLayoutEditingHotspot(updatedFromArray);
-          }
-        }
-        return currentHotspots; // Return unchanged
-      });
-    }, 0);
+    // Update selectedHotspot if it's the same one being edited
+    if (selectedHotspot?.id === updatedHotspot.id) {
+      setSelectedHotspot(prev => prev ? {
+        ...prev,
+        ...updatedHotspot,
+        revision: (prev.revision ?? 0) + 1
+      } : null);
+    }
+    // Note: layoutEditingHotspot is now derived from hotspots array, no need to sync
   };
 
   const handleDeleteHotspot = (hotspotId: string) => {
@@ -315,7 +303,7 @@ const Index = () => {
       handleOpenProductPanel(hotspot);
       return;
     }
-    setLayoutEditingHotspot(hotspot);
+    setLayoutEditingHotspotId(hotspot.id);
     setLayoutBehaviorSheetOpen(true);
     setSelectedHotspot(hotspot);
     setActiveToolbarHotspotId(hotspot.id);
@@ -452,7 +440,7 @@ const Index = () => {
     setPendingPanelHotspotId(null);
     setIsDeferringToolbar(false);
     setProductAssignmentHotspotId(null);
-    setLayoutEditingHotspot(null);
+    setLayoutEditingHotspotId(null);
     setLayoutBehaviorSheetOpen(false);
     setSelectProductSheetOpen(false);
     setNewProductSheetOpen(false);
