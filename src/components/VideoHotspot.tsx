@@ -23,6 +23,7 @@ interface VideoHotspotProps {
   isHighlighted?: boolean;
   isNew?: boolean;
   isAnyEditing?: boolean; // True when ANY hotspot has toolbar/sheet open
+  forceVisible?: boolean; // When true, always render even if outside time range
 }
 
 const VideoHotspot = ({ 
@@ -43,6 +44,7 @@ const VideoHotspot = ({
   isHighlighted = false,
   isNew = false,
   isAnyEditing = false,
+  forceVisible = false,
 }: VideoHotspotProps) => {
   console.log('[VideoHotspot] render:', hotspot.id, 'style:', hotspot.style, 'revision:', hotspot.revision);
   const countdown = Math.ceil(hotspot.timeEnd - currentTime);
@@ -71,7 +73,8 @@ const VideoHotspot = ({
     prevSelectedRef.current = isSelected;
   }, [isSelected]);
 
-  if (!isActive || countdown <= 0) return null;
+  // Allow forced visibility when selected/editing (even if outside time range)
+  if (!forceVisible && (!isActive || countdown <= 0)) return null;
 
   // Determine if this hotspot should be dimmed (another hotspot is being edited)
   const isDimmed = isAnyEditing && !isSelected;
