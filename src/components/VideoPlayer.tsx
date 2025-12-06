@@ -368,7 +368,7 @@ const VideoPlayer = ({
     }
   };
 
-  const getDistanceFromCenter = (hotspot: Hotspot, clientX: number, clientY: number) => {
+  const getDistanceFromCenter = useCallback((hotspot: Hotspot, clientX: number, clientY: number) => {
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return 0;
     
@@ -379,7 +379,7 @@ const VideoPlayer = ({
       Math.pow(clientX - centerX, 2) + 
       Math.pow(clientY - centerY, 2)
     );
-  };
+  }, []);
 
   // Mouse resize handlers
   const handleResizeStart = (hotspot: Hotspot, e: React.MouseEvent) => {
@@ -415,48 +415,60 @@ const VideoPlayer = ({
     });
   };
 
-  const handleResizeMove = (e: MouseEvent) => {
-    if (!resizingHotspot) return;
+  // Use refs to avoid stale closures in event handlers
+  const resizingHotspotRef = useRef(resizingHotspot);
+  const hotspotsRef = useRef(hotspots);
+  
+  useEffect(() => {
+    resizingHotspotRef.current = resizingHotspot;
+  }, [resizingHotspot]);
+  
+  useEffect(() => {
+    hotspotsRef.current = hotspots;
+  }, [hotspots]);
+
+  const handleResizeMove = useCallback((e: MouseEvent) => {
+    const currentResizing = resizingHotspotRef.current;
+    if (!currentResizing) return;
     
-    const hotspot = hotspots.find(h => h.id === resizingHotspot.id);
+    const hotspot = hotspotsRef.current.find(h => h.id === currentResizing.id);
     if (!hotspot) return;
     
     const currentDistance = getDistanceFromCenter(hotspot, e.clientX, e.clientY);
-    const scaleRatio = currentDistance / resizingHotspot.initialDistance;
-    const newScale = Math.min(2, Math.max(0.5, resizingHotspot.initialScale * scaleRatio));
+    const scaleRatio = currentDistance / currentResizing.initialDistance;
+    const newScale = Math.min(2, Math.max(0.5, currentResizing.initialScale * scaleRatio));
     
-    onUpdateHotspotScale(resizingHotspot.id, newScale);
-  };
+    onUpdateHotspotScale(currentResizing.id, newScale);
+  }, [onUpdateHotspotScale, getDistanceFromCenter]);
 
-  const handleTouchResizeMove = (e: TouchEvent) => {
-    if (!resizingHotspot) return;
+  const handleTouchResizeMove = useCallback((e: TouchEvent) => {
+    const currentResizing = resizingHotspotRef.current;
+    if (!currentResizing) return;
     
     e.preventDefault();
     
     const touch = e.touches[0];
     if (!touch) return;
     
-    const hotspot = hotspots.find(h => h.id === resizingHotspot.id);
+    const hotspot = hotspotsRef.current.find(h => h.id === currentResizing.id);
     if (!hotspot) return;
     
     const currentDistance = getDistanceFromCenter(hotspot, touch.clientX, touch.clientY);
-    const scaleRatio = currentDistance / resizingHotspot.initialDistance;
-    const newScale = Math.min(2, Math.max(0.5, resizingHotspot.initialScale * scaleRatio));
+    const scaleRatio = currentDistance / currentResizing.initialDistance;
+    const newScale = Math.min(2, Math.max(0.5, currentResizing.initialScale * scaleRatio));
     
-    onUpdateHotspotScale(resizingHotspot.id, newScale);
-  };
+    onUpdateHotspotScale(currentResizing.id, newScale);
+  }, [onUpdateHotspotScale, getDistanceFromCenter]);
 
-  const handleResizeEnd = () => {
+  const handleResizeEnd = useCallback(() => {
     setResizingHotspot(null);
-  };
+  }, []);
 
-  // Event listeners for drag and resize (mouse + touch)
+  // Event listeners for drag (mouse + touch)
   useEffect(() => {
     if (draggingHotspot) {
-      // Mouse events
       document.addEventListener('mousemove', handleDragMove);
       document.addEventListener('mouseup', handleDragEnd);
-      // Touch events (iOS)
       document.addEventListener('touchmove', handleTouchDragMove, { passive: false });
       document.addEventListener('touchend', handleDragEnd);
       document.addEventListener('touchcancel', handleDragEnd);
@@ -469,11 +481,13 @@ const VideoPlayer = ({
         document.removeEventListener('touchcancel', handleDragEnd);
       };
     }
+  }, [draggingHotspot, handleDragMove, handleTouchDragMove, handleDragEnd]);
+
+  // Event listeners for resize (mouse + touch) - separate effect to avoid stale closures
+  useEffect(() => {
     if (resizingHotspot) {
-      // Mouse events
       document.addEventListener('mousemove', handleResizeMove);
       document.addEventListener('mouseup', handleResizeEnd);
-      // Touch events (iOS)
       document.addEventListener('touchmove', handleTouchResizeMove, { passive: false });
       document.addEventListener('touchend', handleResizeEnd);
       document.addEventListener('touchcancel', handleResizeEnd);
@@ -486,7 +500,7 @@ const VideoPlayer = ({
         document.removeEventListener('touchcancel', handleResizeEnd);
       };
     }
-  }, [draggingHotspot, resizingHotspot, hotspots]);
+  }, [resizingHotspot, handleResizeMove, handleTouchResizeMove, handleResizeEnd]);
 
   const handleHotspotClick = (hotspot: Hotspot, e: React.MouseEvent) => {
     e.stopPropagation();

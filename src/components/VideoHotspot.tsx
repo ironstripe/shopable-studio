@@ -74,8 +74,6 @@ const VideoHotspot = ({
   // Determine if this hotspot should be dimmed (another hotspot is being edited)
   const isDimmed = isAnyEditing && !isSelected;
 
-  // In Edit mode, use larger touch area wrapper for assigned hotspots
-  const editModeTouchWrapper = isEditMode && hasProduct;
 
   return (
     <div
@@ -117,18 +115,9 @@ const VideoHotspot = ({
           scale={hotspot.scale}
           isEditMode={isEditMode}
         />
-      ) : editModeTouchWrapper ? (
-        // Assigned hotspot in Edit mode - wrap in larger touch area
-        <div 
-          className="relative flex items-center justify-center"
-          style={{ 
-            width: '48px', 
-            height: '48px',
-            minWidth: '44px',
-            minHeight: '44px',
-          }}
-        >
-          {/* Actual visual style renders at its normal size */}
+      ) : (
+        // Assigned hotspot - render HotspotIcon with resize handle positioned relative to card
+        <div className="relative">
           <HotspotIcon
             style={hotspot.style}
             countdown={countdown}
@@ -137,52 +126,47 @@ const VideoHotspot = ({
             scale={hotspot.scale}
             price={price}
           />
+          
+          {/* Resize handle - positioned at bottom-right corner of actual card */}
+          {isEditMode && isSelected && (
+            <div
+              className={cn(
+                "absolute w-5 h-5 bg-white/90 border border-neutral-300 rounded-full cursor-se-resize flex items-center justify-center transition-all hover:border-neutral-400 hover:shadow-sm hotspot-resize-handle",
+                isResizing && "animate-resize-pulse"
+              )}
+              style={{ 
+                bottom: '-10px', 
+                right: '-10px',
+                touchAction: 'none',
+                zIndex: 60,
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                onResizeStart(e);
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+                onTouchResizeStart?.(e);
+              }}
+            >
+              <svg 
+                width="8" 
+                height="8" 
+                viewBox="0 0 10 10" 
+                className="text-neutral-500"
+              >
+                <path 
+                  d="M9 1L1 9M9 5L5 9" 
+                  stroke="currentColor" 
+                  strokeWidth="1.5" 
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+          )}
         </div>
-      ) : (
-        // Assigned hotspot in Preview mode - render at actual style size
-        <HotspotIcon
-          style={hotspot.style}
-          countdown={countdown}
-          ctaLabel={hotspot.ctaLabel}
-          isSelected={isSelected}
-          scale={hotspot.scale}
-          price={price}
-        />
       )}
       
-      {/* Resize handle - only visible in edit mode when selected */}
-      {isEditMode && isSelected && (
-        <div
-          className={cn(
-            "absolute -bottom-2 -right-2 w-6 h-6 bg-white/85 border border-[#D0D0D0] rounded-full cursor-se-resize flex items-center justify-center transition-all hover:border-neutral-400 hover:shadow-sm hotspot-resize-handle",
-            isResizing && "animate-resize-pulse"
-          )}
-          style={{ touchAction: 'none' }}
-          onMouseDown={(e) => {
-            e.stopPropagation();
-            onResizeStart(e);
-          }}
-          onTouchStart={(e) => {
-            e.stopPropagation();
-            onTouchResizeStart?.(e);
-          }}
-        >
-          {/* Diagonal resize icon */}
-          <svg 
-            width="10" 
-            height="10" 
-            viewBox="0 0 10 10" 
-            className="text-neutral-500"
-          >
-            <path 
-              d="M9 1L1 9M9 5L5 9" 
-              stroke="currentColor" 
-              strokeWidth="1.5" 
-              strokeLinecap="round"
-            />
-          </svg>
-        </div>
-      )}
     </div>
   );
 };
