@@ -517,6 +517,19 @@ const VideoPlayer = ({
 
   // Event listeners for drag and resize (mouse + touch)
   useEffect(() => {
+    // Ghost hotspot dragging (touch placement)
+    if (ghostHotspot?.isDragging) {
+      document.addEventListener('touchmove', handleTouchDragMove, { passive: false });
+      document.addEventListener('touchend', handleDragEnd);
+      document.addEventListener('touchcancel', handleDragEnd);
+      
+      return () => {
+        document.removeEventListener('touchmove', handleTouchDragMove);
+        document.removeEventListener('touchend', handleDragEnd);
+        document.removeEventListener('touchcancel', handleDragEnd);
+      };
+    }
+    
     if (draggingHotspot) {
       // Mouse events
       document.addEventListener('mousemove', handleDragMove);
@@ -551,7 +564,7 @@ const VideoPlayer = ({
         document.removeEventListener('touchcancel', handleResizeEnd);
       };
     }
-  }, [draggingHotspot, resizingHotspot, hotspots]);
+  }, [draggingHotspot, resizingHotspot, hotspots, ghostHotspot?.isDragging]);
 
   const handleHotspotClick = (hotspot: Hotspot, e: React.MouseEvent) => {
     e.stopPropagation();
