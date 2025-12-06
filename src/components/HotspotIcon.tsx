@@ -1,5 +1,5 @@
 import { HotspotStyle } from "@/types/video";
-import { ArrowRight, Gift, Heart, Sparkles, Percent } from "lucide-react";
+import { ArrowRight, Gift, Heart, Sparkles, Percent, ChevronRight } from "lucide-react";
 
 interface HotspotIconProps {
   style: HotspotStyle;
@@ -134,6 +134,58 @@ const HotspotIcon = ({
           <span className="text-[15px] font-semibold text-white">
             Shop Now
           </span>
+        </div>
+      </div>
+    );
+  }
+
+  // E-Commerce Minimal
+  // Frosted glass, title + price + chevron, ultra-light
+  if (style === "ecommerce-minimal") {
+    return (
+      <div
+        className="flex flex-col items-start animate-ecommerce-minimal-enter"
+        style={{ 
+          transform: `scale(${scale})`,
+          padding: "10px 14px",
+          borderRadius: "14px",
+          background: "rgba(255,255,255,0.78)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          border: "1px solid rgba(255,255,255,0.45)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+          minWidth: "180px",
+          maxWidth: "220px",
+        }}
+      >
+        {/* Title */}
+        <span 
+          className="font-medium truncate w-full"
+          style={{ 
+            fontSize: "15px", 
+            color: "rgba(0,0,0,0.85)",
+            lineHeight: "1.3"
+          }}
+        >
+          {ctaLabel}
+        </span>
+        
+        {/* Price row with chevron */}
+        <div className="flex items-center justify-between w-full mt-1">
+          <span 
+            className="font-semibold"
+            style={{ 
+              fontSize: "15px", 
+              color: "rgba(0,0,0,0.70)" 
+            }}
+          >
+            {price || "$0"}
+          </span>
+          <ChevronRight 
+            className="w-3.5 h-3.5 ml-1.5" 
+            style={{ color: "rgba(0,0,0,0.55)" }} 
+            strokeWidth={2}
+          />
         </div>
       </div>
     );

@@ -35,6 +35,7 @@ export type HotspotStyle =
   // E-Commerce family
   | "ecommerce-light-card"
   | "ecommerce-sale-boost"
+  | "ecommerce-minimal"
   // Luxury family
   | "luxury-fine-line"
   // Seasonal family (all selectable in MVP)
@@ -94,6 +95,7 @@ export type CardFamily = "ecommerce" | "luxury" | "seasonal";
 export type CardStyle = 
   | "ecommerce-light-card"
   | "ecommerce-sale-boost"
+  | "ecommerce-minimal"
   | "luxury-fine-line"
   | "seasonal-standard"
   | "seasonal-easter"
