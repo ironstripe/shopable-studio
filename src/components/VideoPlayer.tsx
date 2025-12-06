@@ -7,8 +7,9 @@ import VideoUploadZone from "./VideoUploadZone";
 import VideoCTA from "./VideoCTA";
 import SafeZoneOverlay from "./SafeZoneOverlay";
 import TapIndicator from "./TapIndicator";
+import GhostHotspot from "./GhostHotspot";
 import { cn } from "@/lib/utils";
-import { isPointInSafeZone } from "@/utils/safe-zone";
+import { isPointInSafeZone, clampPositionToSafeZone } from "@/utils/safe-zone";
 
 interface VideoPlayerProps {
   videoSrc: string | null;
@@ -96,6 +97,16 @@ const VideoPlayer = ({
     y: number;
     hotspotCount: number;
   } | null>(null);
+  
+  // Ghost hotspot state for two-step placement
+  const [ghostHotspot, setGhostHotspot] = useState<{
+    x: number;
+    y: number;
+    time: number;
+    isDragging: boolean;
+  } | null>(null);
+  const autoCommitTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const ghostDragRef = useRef<{ offsetX: number; offsetY: number } | null>(null);
 
   const removeTapIndicator = useCallback((id: string) => {
     setTapIndicators(prev => prev.filter(t => t.id !== id));
@@ -222,7 +233,7 @@ const VideoPlayer = ({
     videoRef.current.pause();
   };
 
-  // iOS touch event handler for hotspot placement - triggered on touchStart for immediate feedback
+  // iOS touch event handler for hotspot placement - two-step ghost placement
   const handleOverlayTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     if (!videoRef.current || !containerRef.current) return;
     
@@ -233,7 +244,7 @@ const VideoPlayer = ({
     e.preventDefault();
     e.stopPropagation();
 
-    console.log('[VideoPlayer] TouchStart on overlay - creating hotspot');
+    console.log('[VideoPlayer] TouchStart on overlay - creating ghost hotspot');
     
     const actualTime = videoRef.current.currentTime;
     setCurrentTime(actualTime);
@@ -242,7 +253,10 @@ const VideoPlayer = ({
     const x = (touch.clientX - rect.left) / rect.width;
     const y = (touch.clientY - rect.top) / rect.height;
 
-    // Add tap indicator at touch position IMMEDIATELY (pixel coords)
+    // Clamp to safe zone
+    const { x: safeX, y: safeY } = clampPositionToSafeZone(x, y, 1, 'vertical_social');
+
+    // Add tap indicator at touch position with offset above thumb
     const pixelX = touch.clientX - rect.left;
     const pixelY = touch.clientY - rect.top;
     const indicatorId = `tap-${Date.now()}`;
@@ -260,14 +274,17 @@ const VideoPlayer = ({
       onPlacementHintDismiss();
     }
 
-    // Store pending drag position to enable immediate drag after creation
-    setPendingDragPosition({
-      x,
-      y,
-      hotspotCount: hotspots.length,
+    // Create ghost hotspot for two-step placement
+    setGhostHotspot({
+      x: safeX,
+      y: safeY,
+      time: actualTime,
+      isDragging: true,
     });
+    
+    // Store offset for drag
+    ghostDragRef.current = { offsetX: 0, offsetY: 0 };
 
-    onAddHotspot(x, y, actualTime);
     videoRef.current.pause();
   };
 
@@ -315,6 +332,22 @@ const VideoPlayer = ({
   };
 
   const handleTouchDragMove = (e: TouchEvent) => {
+    // Handle ghost hotspot dragging
+    if (ghostHotspot?.isDragging && containerRef.current) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      if (!touch) return;
+      
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = (touch.clientX - rect.left) / rect.width;
+      const y = (touch.clientY - rect.top) / rect.height;
+      
+      const { x: safeX, y: safeY } = clampPositionToSafeZone(x, y, 1, 'vertical_social');
+      
+      setGhostHotspot(prev => prev ? { ...prev, x: safeX, y: safeY } : null);
+      return;
+    }
+    
     if (!draggingHotspot || !containerRef.current) return;
     
     e.preventDefault(); // Prevent scroll while dragging
@@ -331,6 +364,17 @@ const VideoPlayer = ({
   };
 
   const handleDragEnd = () => {
+    // Handle ghost hotspot finger lift
+    if (ghostHotspot?.isDragging) {
+      setGhostHotspot(prev => prev ? { ...prev, isDragging: false } : null);
+      
+      // Auto-commit after 200ms if no further interaction
+      autoCommitTimerRef.current = setTimeout(() => {
+        commitGhostHotspot();
+      }, 200);
+      return;
+    }
+    
     const draggedId = draggingHotspot?.id;
     setDraggingHotspot(null);
     setPendingDragPosition(null);
@@ -340,6 +384,35 @@ const VideoPlayer = ({
       onHotspotDragEnd(draggedId);
     }
   };
+  
+  // Commit ghost hotspot to real hotspot
+  const commitGhostHotspot = useCallback(() => {
+    if (!ghostHotspot) return;
+    
+    // Clear any pending timer
+    if (autoCommitTimerRef.current) {
+      clearTimeout(autoCommitTimerRef.current);
+      autoCommitTimerRef.current = null;
+    }
+    
+    // Create actual hotspot
+    onAddHotspot(ghostHotspot.x, ghostHotspot.y, ghostHotspot.time);
+    setGhostHotspot(null);
+    
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+  }, [ghostHotspot, onAddHotspot]);
+  
+  // Cancel ghost hotspot
+  const cancelGhostHotspot = useCallback(() => {
+    if (autoCommitTimerRef.current) {
+      clearTimeout(autoCommitTimerRef.current);
+      autoCommitTimerRef.current = null;
+    }
+    setGhostHotspot(null);
+  }, []);
 
   const getDistanceFromCenter = (hotspot: Hotspot, clientX: number, clientY: number) => {
     const rect = containerRef.current?.getBoundingClientRect();
@@ -677,12 +750,26 @@ const VideoPlayer = ({
             />
           )}
 
+          {/* Ghost hotspot for two-step placement */}
+          {ghostHotspot && (
+            <GhostHotspot
+              x={ghostHotspot.x}
+              y={ghostHotspot.y}
+              scale={1}
+              isDragging={ghostHotspot.isDragging}
+              onCommit={commitGhostHotspot}
+              onCancel={cancelGhostHotspot}
+            />
+          )}
+
           {/* Hotspots overlay */}
           {videoSrc && (
             <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 10 }}>
               {activeHotspots.map((hotspot) => {
                 const product = hotspot.productId ? products[hotspot.productId] : null;
                 const price = product?.price;
+                const isThisSelected = selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id;
+                const isAnyHotspotEditing = activeToolbarHotspotId !== null || selectedHotspot !== null;
                 
                 return (
                   <div
@@ -696,7 +783,7 @@ const VideoPlayer = ({
                     <VideoHotspot
                       hotspot={hotspot}
                       currentTime={currentTime}
-                      isSelected={selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id}
+                      isSelected={isThisSelected}
                       isDragging={draggingHotspot?.id === hotspot.id}
                       isResizing={resizingHotspot?.id === hotspot.id}
                       isEditMode={!isPreviewMode}
@@ -709,8 +796,9 @@ const VideoPlayer = ({
                       hotspotIndex={getHotspotIndex(hotspot)}
                       hasProduct={!!hotspot.productId}
                       isHighlighted={highlightedHotspotId === hotspot.id}
+                      isAnyEditing={isAnyHotspotEditing}
                     />
-                    {!isPreviewMode && (selectedHotspot?.id === hotspot.id || activeToolbarHotspotId === hotspot.id) && !draggingHotspot && (
+                    {!isPreviewMode && isThisSelected && !draggingHotspot && (
                       <HotspotInlineEditor
                         hotspot={hotspot}
                         products={products}
@@ -719,6 +807,8 @@ const VideoPlayer = ({
                         onOpenProductSelection={onOpenProductSelection}
                         onOpenLayoutSheet={onOpenLayoutSheet}
                         autoOpenProductPanel={shouldAutoOpenProductPanel && !hotspot.productId}
+                        containerWidth={containerRef.current?.clientWidth || 400}
+                        containerHeight={containerRef.current?.clientHeight || 600}
                       />
                     )}
                   </div>
