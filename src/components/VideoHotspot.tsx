@@ -21,6 +21,7 @@ interface VideoHotspotProps {
   hasProduct: boolean;
   isHighlighted?: boolean;
   isNew?: boolean;
+  isAnyEditing?: boolean; // True when ANY hotspot has toolbar/sheet open
 }
 
 const VideoHotspot = ({ 
@@ -40,6 +41,7 @@ const VideoHotspot = ({
   hasProduct,
   isHighlighted = false,
   isNew = false,
+  isAnyEditing = false,
 }: VideoHotspotProps) => {
   const countdown = Math.ceil(hotspot.timeEnd - currentTime);
   const isActive = currentTime >= hotspot.timeStart && currentTime <= hotspot.timeEnd;
@@ -69,27 +71,38 @@ const VideoHotspot = ({
 
   if (!isActive || countdown <= 0) return null;
 
+  // Determine if this hotspot should be dimmed (another hotspot is being edited)
+  const isDimmed = isAnyEditing && !isSelected;
+
   return (
     <div
       className={cn(
         "absolute select-none pointer-events-auto hotspot-draggable",
         isDragging ? "" : "transition-all duration-150",
-        isSelected ? "hotspot-pulse scale-110" : "hotspot-pulse",
+        isSelected ? "hotspot-pulse" : "hotspot-pulse",
         isDragging ? "cursor-grabbing opacity-80" : isEditMode ? "cursor-grab" : "cursor-pointer",
         showPopIn && "animate-hotspot-pop-in",
         showSelectionHalo && "animate-selection-halo",
-        isHighlighted && "hotspot-highlight-halo"
+        isHighlighted && "hotspot-highlight-halo",
+        // Active editing state
+        isSelected && isAnyEditing && "hotspot-editing-active",
+        // Dimmed state when another hotspot is being edited
+        isDimmed && "hotspot-editing-dimmed"
       )}
       style={{
         left: `${hotspot.x * 100}%`,
         top: `${hotspot.y * 100}%`,
-        transform: showPopIn ? undefined : "translate(-50%, -50%)",
-        zIndex: isDragging || isResizing ? 100 : 10,
+        transform: showPopIn 
+          ? undefined 
+          : isSelected && isAnyEditing 
+            ? "translate(-50%, -50%) scale(1.06)" 
+            : "translate(-50%, -50%)",
+        zIndex: isDragging || isResizing ? 100 : isSelected ? 50 : 10,
         touchAction: isEditMode ? 'none' : 'auto',
       }}
-      onClick={onClick}
-      onMouseDown={isEditMode ? onDragStart : undefined}
-      onTouchStart={isEditMode ? onTouchDragStart : undefined}
+      onClick={isDimmed ? undefined : onClick}
+      onMouseDown={isEditMode && !isDimmed ? onDragStart : undefined}
+      onTouchStart={isEditMode && !isDimmed ? onTouchDragStart : undefined}
     >
       {!hasProduct ? (
         <EmptyHotspotIndicator
