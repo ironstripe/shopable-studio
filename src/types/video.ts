@@ -30,15 +30,16 @@ export const VERTICAL_SOCIAL_SAFE_ZONE: SafeZone = {
   bottom: 0.18, // 18% reserved for captions/controls
 };
 
-// Simplified hotspot style system - 3 main styles + locked seasonal specials
+// Simplified hotspot style system - 3 main families with selectable styles
 export type HotspotStyle = 
-  // Main MVP styles (1 per family)
+  // E-Commerce family
   | "ecommerce-light-card"
+  // Luxury family
   | "luxury-fine-line"
+  // Seasonal family (all selectable in MVP)
   | "seasonal-standard"
-  // Locked seasonal specials (for upsell UI)
-  | "seasonal-valentine"
   | "seasonal-easter"
+  | "seasonal-mothers-day"
   | "seasonal-black-friday";
 
 export type ClickBehavior = "show-card" | "direct-link" | "no-action";
@@ -88,11 +89,14 @@ export interface VideoCTA {
 // Product Card Family System - simplified to match hotspot families
 export type CardFamily = "ecommerce" | "luxury" | "seasonal";
 
-// Simplified card styles to match hotspot families
+// Card styles matching hotspot families
 export type CardStyle = 
   | "ecommerce-light-card"
   | "luxury-fine-line"
-  | "seasonal-standard";
+  | "seasonal-standard"
+  | "seasonal-easter"
+  | "seasonal-mothers-day"
+  | "seasonal-black-friday";
 
 export interface Hotspot {
   id: string;

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, RefObject } from "react";
 import { createPortal } from "react-dom";
-import { Product, CardStyle, HotspotStyle } from "@/types/video";
-import { X, ArrowRight, ExternalLink } from "lucide-react";
+import { Product, CardStyle } from "@/types/video";
+import { X, ArrowRight } from "lucide-react";
 import { useSmartPosition } from "@/hooks/use-smart-position";
 
 interface ProductCardProps {
@@ -12,6 +12,62 @@ interface ProductCardProps {
   hotspotPosition?: { x: number; y: number };
   containerRef?: RefObject<HTMLDivElement>;
 }
+
+// Seasonal theme configuration
+interface SeasonalTheme {
+  cardBg: string;
+  stripBg: string;
+  stripText: string;
+  ctaBg: string;
+  ctaTextColor: string;
+  textColor: string;
+  priceColor: string;
+}
+
+const getSeasonalTheme = (style: CardStyle): SeasonalTheme => {
+  switch (style) {
+    case "seasonal-easter":
+      return {
+        cardBg: "bg-white",
+        stripBg: "bg-gradient-to-r from-amber-400 to-orange-400",
+        stripText: "Easter Special",
+        ctaBg: "bg-amber-500 hover:bg-amber-600",
+        ctaTextColor: "text-white",
+        textColor: "text-foreground",
+        priceColor: "text-amber-600",
+      };
+    case "seasonal-mothers-day":
+      return {
+        cardBg: "bg-white",
+        stripBg: "bg-gradient-to-r from-pink-400 to-rose-500",
+        stripText: "Mother's Day",
+        ctaBg: "bg-pink-600 hover:bg-pink-700",
+        ctaTextColor: "text-white",
+        textColor: "text-foreground",
+        priceColor: "text-pink-600",
+      };
+    case "seasonal-black-friday":
+      return {
+        cardBg: "bg-neutral-900",
+        stripBg: "bg-gradient-to-r from-yellow-500 to-amber-500",
+        stripText: "BLACK FRIDAY",
+        ctaBg: "bg-yellow-400 hover:bg-yellow-300",
+        ctaTextColor: "text-black",
+        textColor: "text-white",
+        priceColor: "text-yellow-400",
+      };
+    default: // seasonal-standard
+      return {
+        cardBg: "bg-white",
+        stripBg: "bg-gradient-to-r from-blue-500 to-blue-600",
+        stripText: "Special Offer",
+        ctaBg: "bg-primary hover:brightness-110",
+        ctaTextColor: "text-primary-foreground",
+        textColor: "text-foreground",
+        priceColor: "text-primary",
+      };
+  }
+};
 
 const ProductCard = ({
   product,
@@ -34,6 +90,7 @@ const ProductCard = ({
 
   const family = getCardFamily(cardStyle);
   const isLuxuryFamily = family === "luxury";
+  const isBlackFriday = cardStyle === "seasonal-black-friday";
 
   // Smart positioning - luxury cards get more margin
   const position = useSmartPosition({
@@ -136,42 +193,46 @@ const ProductCard = ({
     </div>
   );
 
-  // Seasonal Standard Card
-  const renderSeasonalCard = () => (
-    <div className="p-5 pt-4">
-      {/* Accent strip */}
-      <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1.5 rounded-lg text-white font-medium text-[11px] tracking-wide text-center mb-3">
-        Special Offer
-      </div>
-      <div className="flex gap-3 mb-3">
-        {product.thumbnail && (
-          <img
-            src={product.thumbnail}
-            alt={product.title}
-            className="w-16 h-16 rounded-lg object-cover flex-shrink-0 shadow-sm"
-          />
-        )}
-        <div className="flex-1 min-w-0">
-          <h3 className="text-[15px] font-semibold text-foreground leading-tight mb-1">
-            {product.title}
-          </h3>
-          <span className="text-[16px] font-bold text-primary">
-            {product.price}
-          </span>
+  // Seasonal Card (with variant-specific themes)
+  const renderSeasonalCard = () => {
+    const theme = getSeasonalTheme(cardStyle);
+    
+    return (
+      <div className={`p-5 pt-4 ${isBlackFriday ? "" : ""}`}>
+        {/* Accent strip */}
+        <div className={`${theme.stripBg} px-3 py-1.5 rounded-lg text-white font-semibold text-[11px] tracking-wide text-center mb-3 uppercase`}>
+          {theme.stripText}
         </div>
+        <div className="flex gap-3 mb-3">
+          {product.thumbnail && (
+            <img
+              src={product.thumbnail}
+              alt={product.title}
+              className="w-16 h-16 rounded-lg object-cover flex-shrink-0 shadow-sm"
+            />
+          )}
+          <div className="flex-1 min-w-0">
+            <h3 className={`text-[15px] font-semibold leading-tight mb-1 ${theme.textColor}`}>
+              {product.title}
+            </h3>
+            <span className={`text-[16px] font-bold ${theme.priceColor}`}>
+              {product.price}
+            </span>
+          </div>
+        </div>
+        {showShopButton && (
+          <a
+            href={product.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`block w-full px-4 py-2.5 ${theme.ctaBg} ${theme.ctaTextColor} rounded-[10px] transition-all duration-150 font-medium text-[14px] text-center`}
+          >
+            {product.ctaLabel || "Get the Deal"}
+          </a>
+        )}
       </div>
-      {showShopButton && (
-        <a
-          href={product.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block w-full px-4 py-2.5 bg-primary text-primary-foreground rounded-[10px] hover:brightness-110 transition-all duration-150 font-medium text-[14px] text-center"
-        >
-          {product.ctaLabel || "Get the Deal"}
-        </a>
-      )}
-    </div>
-  );
+    );
+  };
 
   // Render card content based on family
   const renderCardContent = () => {
@@ -185,14 +246,21 @@ const ProductCard = ({
     }
   };
 
+  // Get card wrapper classes based on style
+  const getCardWrapperClasses = () => {
+    if (isLuxuryFamily) {
+      return "fixed z-[9999] w-[320px] max-w-[320px] bg-[rgba(26,26,26,0.95)] backdrop-blur-md border border-white/10 rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.24)] animate-card-enter";
+    }
+    if (isBlackFriday) {
+      return "fixed z-[9999] w-[320px] max-w-[320px] bg-neutral-900 backdrop-blur-sm border border-yellow-500/30 rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.3)] animate-card-enter";
+    }
+    return "fixed z-[9999] w-[320px] max-w-[320px] bg-card/95 backdrop-blur-sm border border-border rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.18)] animate-card-enter";
+  };
+
   const cardElement = (
     <div
       ref={cardRef}
-      className={
-        isLuxuryFamily
-          ? "fixed z-[9999] w-[320px] max-w-[320px] bg-[rgba(26,26,26,0.95)] backdrop-blur-md border border-white/10 rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.24)] animate-card-enter"
-          : "fixed z-[9999] w-[320px] max-w-[320px] bg-card/95 backdrop-blur-sm border border-border rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.18)] animate-card-enter"
-      }
+      className={getCardWrapperClasses()}
       style={{
         top: position.top !== undefined ? `${position.top}px` : undefined,
         left: position.left !== undefined ? `${position.left}px` : undefined,
@@ -204,14 +272,14 @@ const ProductCard = ({
       <button
         onClick={onClose}
         className={
-          isLuxuryFamily
+          isLuxuryFamily || isBlackFriday
             ? "absolute top-3 right-3 w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
             : "absolute top-3 right-3 w-7 h-7 rounded-full bg-muted/40 hover:bg-muted/60 flex items-center justify-center transition-colors"
         }
         aria-label="Close"
       >
         <X className={
-          isLuxuryFamily 
+          isLuxuryFamily || isBlackFriday
             ? "w-3 h-3 text-white" 
             : "w-3.5 h-3.5 text-foreground"
         } />
