@@ -30,7 +30,6 @@ const HotspotIcon = ({
       <div
         className="flex flex-col items-start gap-1 bg-white animate-ecommerce-card-enter"
         style={{ 
-          transform: `scale(${scale})`,
           padding: "12px 16px",
           borderRadius: "16px",
           border: "1px solid rgba(0,0,0,0.05)",
@@ -78,7 +77,6 @@ const HotspotIcon = ({
       <div
         className="flex flex-col items-stretch bg-white animate-sale-boost-enter"
         style={{ 
-          transform: `scale(${scale})`,
           padding: "14px 16px",
           borderRadius: "16px",
           border: "1px solid rgba(0,0,0,0.05)",
@@ -146,7 +144,6 @@ const HotspotIcon = ({
       <div
         className="flex flex-col items-start animate-ecommerce-minimal-enter"
         style={{ 
-          transform: `scale(${scale})`,
           padding: "10px 14px",
           borderRadius: "14px",
           background: "rgba(255,255,255,0.78)",
@@ -198,7 +195,6 @@ const HotspotIcon = ({
       <div
         className="flex flex-col items-start animate-luxury-enter"
         style={{ 
-          transform: `scale(${scale})`,
           padding: "10px 14px",
           borderRadius: "12px",
           background: "rgba(255,255,255,0.12)",
@@ -246,7 +242,6 @@ const HotspotIcon = ({
       <div
         className="flex flex-col items-start animate-luxury-enter"
         style={{ 
-          transform: `scale(${scale})`,
           padding: "14px 18px",
           borderRadius: "14px",
           background: "rgba(255,252,248,0.95)",
@@ -310,9 +305,6 @@ const HotspotIcon = ({
     return (
       <div
         className="flex items-center gap-2 animate-luxury-enter"
-        style={{ 
-          transform: `scale(${scale})`,
-        }}
       >
         {/* Pulsing dot */}
         <div 
@@ -351,7 +343,6 @@ const HotspotIcon = ({
       <div
         className="flex items-center gap-2 px-3 py-2 rounded-full shadow-md"
         style={{ 
-          transform: `scale(${scale})`,
           backgroundColor: "#FFF0F3",
           border: "1px solid rgba(236,72,153,0.2)"
         }}
@@ -382,7 +373,6 @@ const HotspotIcon = ({
       <div
         className="flex items-center gap-2 px-3 py-2 rounded-full shadow-md"
         style={{ 
-          transform: `scale(${scale})`,
           backgroundColor: "#FFF8E9",
           border: "1px solid rgba(0,0,0,0.04)"
         }}
@@ -413,7 +403,6 @@ const HotspotIcon = ({
       <div
         className="flex items-center gap-2 px-3 py-2 rounded-full shadow-md"
         style={{ 
-          transform: `scale(${scale})`,
           backgroundColor: "#111111",
           border: "1px solid #333333"
         }}
@@ -441,7 +430,6 @@ const HotspotIcon = ({
   return (
     <div
       className="w-8 h-8 rounded-full bg-white/90 shadow-md border border-border/50 flex items-center justify-center"
-      style={{ transform: `scale(${scale})` }}
     >
       <span className="text-[11px] font-semibold text-muted-foreground">
         {productIndex}
