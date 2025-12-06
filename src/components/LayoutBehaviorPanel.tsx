@@ -19,18 +19,31 @@ interface LayoutBehaviorPanelProps {
 // Migration map for old styles to new unified variants
 const migrateOldStyle = (style: string): HotspotStyle => {
   const migrationMap: Record<string, HotspotStyle> = {
-    "icon-only-filled": "icon-only-small",
-    "icon-only-outline": "icon-only-light",
-    "icon-only-glow": "icon-only-strong",
-    "icon-cta-pill-standard": "icon-cta-pill-small",
-    "icon-cta-pill-compact": "icon-cta-pill-light",
-    // Badge Bubble old variants migration
-    "badge-bubble-small": "badge-bubble-classic",
-    "badge-bubble-large": "badge-bubble-classic",
-    "badge-bubble-light": "badge-bubble-outline",
-    "badge-bubble-light-shadow": "badge-bubble-outline",
-    "badge-bubble-strong": "badge-bubble-classic",
-    "badge-bubble-strong-shadow": "badge-bubble-classic",
+    // Migrate removed orange styles to ecommerce
+    "icon-only-filled": "ecommerce-line-compact-price-tag",
+    "icon-only-outline": "ecommerce-line-compact-price-tag",
+    "icon-only-glow": "ecommerce-line-compact-price-tag",
+    "icon-only-small": "ecommerce-line-compact-price-tag",
+    "icon-only-large": "ecommerce-line-compact-price-tag",
+    "icon-only-light": "ecommerce-line-compact-price-tag",
+    "icon-only-strong": "ecommerce-line-compact-price-tag",
+    "icon-cta-pill-standard": "ecommerce-line-compact-price-tag",
+    "icon-cta-pill-compact": "ecommerce-line-compact-price-tag",
+    "icon-cta-pill-small": "ecommerce-line-compact-price-tag",
+    "icon-cta-pill-large": "ecommerce-line-compact-price-tag",
+    "icon-cta-pill-light": "ecommerce-line-compact-price-tag",
+    "icon-cta-pill-strong": "ecommerce-line-compact-price-tag",
+    // Badge Bubble old variants migration to ecommerce
+    "badge-bubble-small": "ecommerce-line-compact-price-tag",
+    "badge-bubble-large": "ecommerce-line-compact-price-tag",
+    "badge-bubble-light": "ecommerce-line-label-strip",
+    "badge-bubble-light-shadow": "ecommerce-line-label-strip",
+    "badge-bubble-strong": "ecommerce-line-cta-pill-focus",
+    "badge-bubble-strong-shadow": "ecommerce-line-cta-pill-focus",
+    "badge-bubble-classic": "ecommerce-line-compact-price-tag",
+    "badge-bubble-outline": "ecommerce-line-label-strip",
+    "badge-bubble-ghost": "ecommerce-line-label-strip",
+    "badge-bubble-accent-split": "ecommerce-line-cta-pill-focus",
     // Fine Line (minimal-dot) old variants migration to new creative styles
     "minimal-dot-small": "minimal-dot-pure-line",
     "minimal-dot-large": "minimal-dot-soft-glass",
@@ -55,13 +68,12 @@ const migrateOldStyle = (style: string): HotspotStyle => {
 
 // Helper to extract type from combined style
 const getTypeFromStyle = (style: HotspotStyle): HotspotType => {
-  if (style.startsWith("icon-only")) return "icon-only";
-  if (style.startsWith("icon-cta-pill")) return "icon-cta-pill";
-  if (style.startsWith("badge-bubble")) return "badge-bubble";
   if (style.startsWith("luxury-line")) return "luxury-line";
   if (style.startsWith("ecommerce-line")) return "ecommerce-line";
   if (style.startsWith("editorial-line")) return "editorial-line";
-  return "minimal-dot";
+  if (style.startsWith("minimal-dot")) return "minimal-dot";
+  // Default to ecommerce for any unrecognized styles
+  return "ecommerce-line";
 };
 
 // Helper to extract variant from combined style
@@ -135,10 +147,7 @@ const LayoutBehaviorPanel = ({
   const handleTypeChange = (type: HotspotType) => {
     setSelectedType(type);
     // Auto-select appropriate default variant and card style when switching families
-    if (type === "badge-bubble") {
-      setSelectedVariant("classic");
-      setCardStyle("retail-compact");
-    } else if (type === "minimal-dot") {
+    if (type === "minimal-dot") {
       setSelectedVariant("pure-line");
       setCardStyle("fineline-text-underline");
     } else if (type === "luxury-line") {
@@ -151,8 +160,8 @@ const LayoutBehaviorPanel = ({
       setSelectedVariant("headline-tag");
       setCardStyle("editorial-article");
     } else {
-      setSelectedVariant("small");
-      setCardStyle("retail-compact");
+      setSelectedVariant("compact-price-tag");
+      setCardStyle("ecommerce-grid");
     }
   };
 
@@ -196,9 +205,9 @@ const LayoutBehaviorPanel = ({
   // Hotspot families
   const styleFamilies = [
     {
-      id: "badge-bubble" as HotspotType,
-      label: "Badge bubble",
-      description: "Broader bubble with number and CTA, good for prominent calls.",
+      id: "ecommerce-line" as HotspotType,
+      label: "E-Commerce",
+      description: "Conversion-focused, clean hotspots for retail and product videos.",
     },
     {
       id: "minimal-dot" as HotspotType,
@@ -211,11 +220,6 @@ const LayoutBehaviorPanel = ({
       description: "Elegant, typography-focused hotspots for high-end luxury brands.",
     },
     {
-      id: "ecommerce-line" as HotspotType,
-      label: "E-Commerce Line",
-      description: "Conversion-focused, clean hotspots for retail and product videos.",
-    },
-    {
       id: "editorial-line" as HotspotType,
       label: "Editorial Line",
       description: "Magazine-inspired, typographic hotspots with cinematic motion.",
@@ -224,12 +228,13 @@ const LayoutBehaviorPanel = ({
 
   // Render larger preview for family cards
   const renderFamilyPreview = (family: HotspotType) => {
-    if (family === "badge-bubble") {
+    if (family === "ecommerce-line") {
       return (
-        <div className="bg-[#FF6A00] rounded-full px-4 py-2 flex items-center gap-2 shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
-          <span className="text-white text-sm font-bold">3</span>
-          <span className="text-white/60 text-sm">•</span>
-          <span className="text-white text-sm font-medium">Shop</span>
+        <div className="bg-white border border-[#E0E0E0] rounded-lg px-3 py-1.5 flex items-center gap-2 shadow-sm">
+          <span className="text-[#111111] text-sm font-medium">Product</span>
+          <span className="text-[#9CA3AF] text-sm">·</span>
+          <span className="text-[#111111] text-sm font-medium">349.–</span>
+          <span className="text-[#3B82F6] text-sm">→</span>
         </div>
       );
     }
@@ -252,18 +257,16 @@ const LayoutBehaviorPanel = ({
         </div>
       );
     }
-    // ecommerce-line
-    if (family === "ecommerce-line") {
-      return (
-        <div className="bg-white border border-[#E0E0E0] rounded-lg px-3 py-1.5 flex items-center gap-2 shadow-sm">
-          <span className="text-[#111111] text-sm font-medium">3</span>
-          <span className="text-[#9CA3AF] text-sm">·</span>
-          <span className="text-[#111111] text-sm font-medium">349.–</span>
-          <span className="text-[#3B82F6] text-sm">→</span>
-        </div>
-      );
-    }
     // editorial-line
+    return (
+      <div className="bg-[#1A1A1A] rounded-lg px-3 py-2 flex flex-col items-start gap-0.5">
+        <span className="font-playfair text-sm font-light text-white tracking-wide">
+          Product Name
+        </span>
+        <div className="w-16 h-[0.5px] bg-white/70" />
+      </div>
+    );
+  };
     return (
       <div className="bg-[#1A1A1A] rounded-lg px-3 py-2 flex flex-col items-start gap-0.5">
         <span className="font-playfair text-sm font-light text-white tracking-wide">
@@ -542,38 +545,14 @@ const LayoutBehaviorPanel = ({
     const borderWeight = variant === "light" ? "border" : variant === "strong" ? "border-2" : "border-2";
     const shadowIntensity = variant === "light" ? "shadow-sm" : variant === "strong" ? "shadow-lg" : "shadow-md";
 
-    if (family === "icon-only") {
+    // E-Commerce Line preview
+    if (family === "ecommerce-line") {
       return (
-        <div className="flex items-center justify-center" style={{ transform: `scale(${baseScale})` }}>
-          <div className={`w-8 h-8 rounded-full bg-[#FF6A00] ${borderWeight} border-white ${shadowIntensity} flex items-center justify-center`}>
-            <span className="text-white text-xs font-bold">3</span>
-          </div>
-        </div>
-      );
-    }
-
-    if (family === "icon-cta-pill") {
-      return (
-        <div className="flex items-center gap-1.5" style={{ transform: `scale(${baseScale})` }}>
-          <div className={`w-6 h-6 rounded-full bg-[#FF6A00] ${borderWeight} border-white ${shadowIntensity} flex items-center justify-center`}>
-            <span className="text-white text-[10px] font-bold">3</span>
-          </div>
-          <div className={`bg-[#FF6A00] ${borderWeight} border-white rounded-full px-2 py-0.5 ${shadowIntensity}`}>
-            <span className="text-white text-[9px] font-medium">Shop</span>
-          </div>
-        </div>
-      );
-    }
-
-    if (family === "badge-bubble") {
-      const borderColor = variant === "light" ? "border-black/40" : "border-black";
-      return (
-        <div className="flex items-center justify-center" style={{ transform: `scale(${baseScale})` }}>
-          <div className={`bg-[#FF6A00] ${borderWeight} ${borderColor} rounded-full px-3 py-1 ${shadowIntensity} flex items-center gap-1.5`}>
-            <span className="text-white text-[10px] font-bold">3</span>
-            <span className="text-white/60 text-[10px]">•</span>
-            <span className="text-white text-[10px] font-medium">Shop</span>
-          </div>
+        <div className="bg-white border border-[#E0E0E0] rounded-lg px-2.5 py-1 flex items-center gap-1.5 shadow-sm" style={{ transform: `scale(${baseScale})` }}>
+          <span className="text-[#111111] text-[10px] font-medium">Product</span>
+          <span className="text-[#9CA3AF] text-[10px]">·</span>
+          <span className="text-[#111111] text-[10px] font-medium">$99</span>
+          <span className="text-[#3B82F6] text-[10px]">→</span>
         </div>
       );
     }
@@ -695,12 +674,11 @@ const LayoutBehaviorPanel = ({
 
   // Determine which variants to show based on selected family
   const currentVariants = 
-    selectedType === "badge-bubble" ? badgeBubbleVariants :
     selectedType === "minimal-dot" ? fineLineVariants :
     selectedType === "luxury-line" ? luxuryLineVariants : 
     selectedType === "ecommerce-line" ? ecommerceLineVariants : 
     selectedType === "editorial-line" ? editorialLineVariants :
-    unifiedVariants;
+    ecommerceLineVariants;
 
   // Product Card Preview Renderers - Unique visuals for each variant
   const getRetailCardPreview = (variant: string) => {
@@ -1072,9 +1050,7 @@ const LayoutBehaviorPanel = ({
                 `}
               >
                 <div className="flex items-center justify-center h-9">
-                  {selectedType === "badge-bubble"
-                    ? getBadgeBubbleVariantPreview(variant.value)
-                    : selectedType === "minimal-dot"
+                  {selectedType === "minimal-dot"
                     ? getFineLineVariantPreview(variant.value)
                     : selectedType === "luxury-line" 
                     ? getLuxuryLineVariantPreview(variant.value)
@@ -1102,7 +1078,6 @@ const LayoutBehaviorPanel = ({
               Product Card Style
             </Label>
             <div className="text-xs text-[#6B7280] mt-1">
-              {selectedType === "badge-bubble" && "Retail card layouts"}
               {selectedType === "minimal-dot" && "Fine Line card layouts"}
               {selectedType === "luxury-line" && "Luxury card layouts"}
               {selectedType === "ecommerce-line" && "E-Commerce card layouts"}
@@ -1111,32 +1086,6 @@ const LayoutBehaviorPanel = ({
           </div>
           
           <div className="grid grid-cols-2 gap-2.5">
-            {/* Badge Bubble → Retail Cards */}
-            {selectedType === "badge-bubble" && [
-              { value: "retail-compact", label: "Retail Compact", desc: "Title + Price inline" },
-              { value: "retail-split", label: "Retail Split", desc: "Two-row layout" },
-              { value: "retail-media", label: "Retail Media", desc: "With thumbnail" },
-              { value: "retail-price-focus", label: "Retail Price Focus", desc: "Large centered price" },
-            ].map((variant) => (
-              <button
-                key={variant.value}
-                onClick={() => setCardStyle(variant.value as RetailCardVariant)}
-                className={`
-                  flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all
-                  ${cardStyle === variant.value 
-                    ? 'border-[#3B82F6] bg-[#EFF6FF]' 
-                    : 'border-[#E1E4E8] bg-white hover:border-[#D1D5DB]'}
-                `}
-              >
-                <div className="h-12 flex items-center justify-center w-full">
-                  {getRetailCardPreview(variant.value)}
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-semibold text-[#374151]">{variant.label}</div>
-                  <div className="text-[10px] text-[#6B7280] mt-0.5 leading-tight">{variant.desc}</div>
-                </div>
-              </button>
-            ))}
 
             {/* Fine Line → Fine Line Cards */}
             {selectedType === "minimal-dot" && [
@@ -1248,8 +1197,8 @@ const LayoutBehaviorPanel = ({
           </div>
         </div>
 
-        {/* 4) CTA LABEL Section - For Badge bubble, E-Commerce Line, and Editorial Line */}
-        {(selectedType === "badge-bubble" || selectedType === "ecommerce-line" || selectedType === "editorial-line") && (
+        {/* 4) CTA LABEL Section - For E-Commerce Line and Editorial Line */}
+        {(selectedType === "ecommerce-line" || selectedType === "editorial-line") && (
           <div className="space-y-2">
             <Label htmlFor="cta-input" className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">
               CTA Label

@@ -141,7 +141,7 @@ const LayoutBehaviorSheet = ({
     
     // Get the hotspotStyle from the selected style definition
     const selectedStyleDef = FAMILY_STYLES[selectedFamily].find(s => s.id === selectedStyle);
-    const hotspotStyle = selectedStyleDef?.hotspotStyle || "badge-bubble-classic";
+    const hotspotStyle = selectedStyleDef?.hotspotStyle || "ecommerce-line-compact-price-tag";
 
     onUpdateHotspot({
       ...hotspot,

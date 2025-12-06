@@ -31,7 +31,7 @@ export const VERTICAL_SOCIAL_SAFE_ZONE: SafeZone = {
 };
 
 // Top-level hotspot types
-export type HotspotType = "icon-only" | "icon-cta-pill" | "badge-bubble" | "minimal-dot" | "luxury-line" | "ecommerce-line" | "editorial-line";
+export type HotspotType = "minimal-dot" | "luxury-line" | "ecommerce-line" | "editorial-line";
 
 // Unified variants (same for all types)
 export type HotspotVariant = "small" | "large" | "light" | "strong";
@@ -53,9 +53,6 @@ export type EditorialLineVariant = "headline-tag" | "vertical-label" | "caption-
 
 // Combined style (type + variant for storage)
 export type HotspotStyle = 
-  | "icon-only-small" | "icon-only-large" | "icon-only-light" | "icon-only-strong"
-  | "icon-cta-pill-small" | "icon-cta-pill-large" | "icon-cta-pill-light" | "icon-cta-pill-strong"
-  | "badge-bubble-classic" | "badge-bubble-outline" | "badge-bubble-ghost" | "badge-bubble-accent-split"
   | "minimal-dot-pure-line" | "minimal-dot-soft-glass" | "minimal-dot-editorial-slim" | "minimal-dot-micro-dot"
   | "luxury-line-serif-whisper" | "luxury-line-gold-accent" | "luxury-line-glass-veil" | "luxury-line-dot-reveal"
   | "ecommerce-line-compact-price-tag" | "ecommerce-line-label-strip" | "ecommerce-line-cta-pill-focus" | "ecommerce-line-product-card-lite"
