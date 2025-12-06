@@ -132,15 +132,20 @@ const VideoHotspot = ({
             />
           )}
           
-          {/* Hotspot card wrapper with resize handle */}
-          <div className="relative">
+          {/* Hotspot card wrapper with resize handle - SCALE APPLIED HERE */}
+          <div 
+            className="relative"
+            style={{ 
+              transform: `scale(${hotspot.scale})`,
+              transformOrigin: 'center center'
+            }}
+          >
             <HotspotIcon
               style={hotspot.style}
               source="video"
               countdown={countdown}
               ctaLabel={hotspot.ctaLabel}
               isSelected={isSelected}
-              scale={hotspot.scale}
               price={price}
             />
             
