@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Hotspot, ClickBehavior, HotspotStyle } from "@/types/video";
+import { Hotspot, ClickBehavior, HotspotStyle, CountdownMode, CountdownStyle, CountdownPosition } from "@/types/video";
 import {
   Sheet,
   SheetContent,
@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -88,6 +89,13 @@ const LayoutBehaviorSheet = ({
   const [ctaLabel, setCtaLabel] = useState(hotspot?.ctaLabel || "Shop Now");
   const [clickBehavior, setClickBehavior] = useState<ClickBehavior>(hotspot?.clickBehavior || "show-card");
   const [duration, setDuration] = useState(hotspot ? hotspot.timeEnd - hotspot.timeStart : 3);
+  
+  // Countdown state
+  const [countdownActive, setCountdownActive] = useState(hotspot?.countdown?.active ?? false);
+  const [countdownMode, setCountdownMode] = useState<CountdownMode>(hotspot?.countdown?.mode ?? "fixed-end");
+  const [countdownEndTime, setCountdownEndTime] = useState<string>(hotspot?.countdown?.endTime ?? "");
+  const [countdownStyle, setCountdownStyle] = useState<CountdownStyle>(hotspot?.countdown?.style ?? "light");
+  const [countdownPosition, setCountdownPosition] = useState<CountdownPosition>(hotspot?.countdown?.position ?? "below");
 
   // Check if product is assigned when opening
   useEffect(() => {
@@ -110,6 +118,12 @@ const LayoutBehaviorSheet = ({
       setCtaLabel(hotspot.ctaLabel || FAMILY_CTA_DEFAULTS[parsed.family]);
       setClickBehavior(hotspot.clickBehavior || FAMILY_CLICK_DEFAULTS[parsed.family]);
       setDuration(hotspot.timeEnd - hotspot.timeStart);
+      // Reset countdown state
+      setCountdownActive(hotspot.countdown?.active ?? false);
+      setCountdownMode(hotspot.countdown?.mode ?? "fixed-end");
+      setCountdownEndTime(hotspot.countdown?.endTime ?? "");
+      setCountdownStyle(hotspot.countdown?.style ?? "light");
+      setCountdownPosition(hotspot.countdown?.position ?? "below");
     }
   }, [hotspot?.id]);
 
@@ -135,6 +149,13 @@ const LayoutBehaviorSheet = ({
       ctaLabel,
       clickBehavior,
       timeEnd: hotspot.timeStart + duration,
+      countdown: {
+        active: countdownActive,
+        mode: countdownMode,
+        endTime: countdownMode === "fixed-end" ? countdownEndTime : undefined,
+        style: countdownStyle,
+        position: countdownPosition,
+      },
     });
     onOpenChange(false);
   };
@@ -378,6 +399,122 @@ const LayoutBehaviorSheet = ({
                 {endTime.toFixed(1)}s
               </span>
             </div>
+          </section>
+
+          {/* Section 6: Countdown */}
+          <section>
+            <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              Countdown
+            </h3>
+            
+            {/* Toggle */}
+            <div className="flex items-center justify-between py-3 border-b border-border">
+              <span className="text-[14px] text-foreground">Enable Countdown</span>
+              <Switch 
+                checked={countdownActive} 
+                onCheckedChange={setCountdownActive}
+                disabled={isDisabled}
+              />
+            </div>
+            
+            {/* Conditional fields - fade in when enabled */}
+            {countdownActive && (
+              <div className="animate-fade-in space-y-4 pt-4">
+                {/* Mode Selection */}
+                <div>
+                  <span className="text-[13px] font-medium text-foreground mb-2 block">Mode</span>
+                  <div className="flex flex-col gap-2">
+                    <label className="flex items-center gap-3 min-h-[44px] cursor-pointer">
+                      <input 
+                        type="radio" 
+                        name="countdown-mode" 
+                        value="fixed-end" 
+                        checked={countdownMode === "fixed-end"} 
+                        onChange={() => setCountdownMode("fixed-end")}
+                        disabled={isDisabled}
+                        className="w-4 h-4 text-primary"
+                      />
+                      <span className="text-[14px] text-foreground">Fixed end time</span>
+                    </label>
+                    
+                    {countdownMode === "fixed-end" && (
+                      <div className="ml-7 animate-fade-in">
+                        <input 
+                          type="datetime-local" 
+                          value={countdownEndTime} 
+                          onChange={(e) => setCountdownEndTime(e.target.value)}
+                          disabled={isDisabled}
+                          className="w-full h-12 px-3 text-[14px] bg-background border border-border rounded-xl text-foreground focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none"
+                        />
+                      </div>
+                    )}
+                    
+                    <label className="flex items-center gap-3 min-h-[44px] cursor-pointer">
+                      <input 
+                        type="radio" 
+                        name="countdown-mode" 
+                        value="evergreen" 
+                        checked={countdownMode === "evergreen"} 
+                        onChange={() => setCountdownMode("evergreen")}
+                        disabled={isDisabled}
+                        className="w-4 h-4 text-primary"
+                      />
+                      <span className="text-[14px] text-foreground">Evergreen</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Style Selection */}
+                <div>
+                  <span className="text-[13px] font-medium text-foreground mb-2 block">Style</span>
+                  <div className="flex p-1 rounded-full bg-muted border border-border">
+                    {(["light", "bold"] as CountdownStyle[]).map((style) => (
+                      <button
+                        key={style}
+                        onClick={() => !isDisabled && setCountdownStyle(style)}
+                        disabled={isDisabled}
+                        className={cn(
+                          "flex-1 py-2.5 text-[13px] font-medium rounded-full transition-all duration-150 min-h-[44px] capitalize",
+                          countdownStyle === style
+                            ? "bg-background text-primary font-semibold shadow-sm"
+                            : "text-muted-foreground hover:text-foreground",
+                          isDisabled && "opacity-50 cursor-not-allowed"
+                        )}
+                      >
+                        {style}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Position Selection */}
+                <div>
+                  <span className="text-[13px] font-medium text-foreground mb-2 block">Position</span>
+                  <div className="flex p-1 rounded-full bg-muted border border-border">
+                    {([
+                      { value: "below" as CountdownPosition, label: "Below" },
+                      { value: "above" as CountdownPosition, label: "Above" },
+                      { value: "top-right" as CountdownPosition, label: "Top-right" },
+                    ]).map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => !isDisabled && setCountdownPosition(option.value)}
+                        disabled={isDisabled}
+                        className={cn(
+                          "flex-1 py-2.5 text-[13px] font-medium rounded-full transition-all duration-150 min-h-[44px]",
+                          countdownPosition === option.value
+                            ? "bg-background text-primary font-semibold shadow-sm"
+                            : "text-muted-foreground hover:text-foreground",
+                          isDisabled && "opacity-50 cursor-not-allowed"
+                        )}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </section>
         </div>
 

@@ -1,6 +1,7 @@
 import { Hotspot } from "@/types/video";
 import HotspotIcon from "./HotspotIcon";
 import EmptyHotspotIndicator from "./EmptyHotspotIndicator";
+import HotspotCountdown from "./HotspotCountdown";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 
@@ -116,53 +117,85 @@ const VideoHotspot = ({
           isEditMode={isEditMode}
         />
       ) : (
-        // Assigned hotspot - render HotspotIcon with resize handle positioned relative to card
-        <div className="relative">
-          <HotspotIcon
-            style={hotspot.style}
-            countdown={countdown}
-            ctaLabel={hotspot.ctaLabel}
-            isSelected={isSelected}
-            scale={hotspot.scale}
-            price={price}
-          />
+        // Assigned hotspot - render HotspotIcon with countdown and resize handle
+        <div className="flex flex-col items-center gap-1.5">
+          {/* Countdown ABOVE */}
+          {hotspot.countdown?.active && hotspot.countdown.position === "above" && (
+            <HotspotCountdown 
+              config={hotspot.countdown} 
+              isPreviewMode={!isEditMode} 
+              scale={hotspot.scale}
+            />
+          )}
           
-          {/* Resize handle - positioned at bottom-right corner of actual card */}
-          {isEditMode && isSelected && (
-            <div
-              className={cn(
-                "absolute w-5 h-5 bg-white/90 border border-neutral-300 rounded-full cursor-se-resize flex items-center justify-center transition-all hover:border-neutral-400 hover:shadow-sm hotspot-resize-handle",
-                isResizing && "animate-resize-pulse"
-              )}
-              style={{ 
-                bottom: '-10px', 
-                right: '-10px',
-                touchAction: 'none',
-                zIndex: 60,
-              }}
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                onResizeStart(e);
-              }}
-              onTouchStart={(e) => {
-                e.stopPropagation();
-                onTouchResizeStart?.(e);
-              }}
-            >
-              <svg 
-                width="8" 
-                height="8" 
-                viewBox="0 0 10 10" 
-                className="text-neutral-500"
-              >
-                <path 
-                  d="M9 1L1 9M9 5L5 9" 
-                  stroke="currentColor" 
-                  strokeWidth="1.5" 
-                  strokeLinecap="round"
+          {/* Hotspot card wrapper with resize handle */}
+          <div className="relative">
+            <HotspotIcon
+              style={hotspot.style}
+              countdown={countdown}
+              ctaLabel={hotspot.ctaLabel}
+              isSelected={isSelected}
+              scale={hotspot.scale}
+              price={price}
+            />
+            
+            {/* Countdown TOP-RIGHT (absolute positioned) */}
+            {hotspot.countdown?.active && hotspot.countdown.position === "top-right" && (
+              <div className="absolute -top-2 -right-2 z-[15]">
+                <HotspotCountdown 
+                  config={hotspot.countdown} 
+                  isPreviewMode={!isEditMode} 
+                  scale={hotspot.scale * 0.9}
                 />
-              </svg>
-            </div>
+              </div>
+            )}
+            
+            {/* Resize handle - positioned at bottom-right corner of actual card */}
+            {isEditMode && isSelected && (
+              <div
+                className={cn(
+                  "absolute w-5 h-5 bg-white/90 border border-neutral-300 rounded-full cursor-se-resize flex items-center justify-center transition-all hover:border-neutral-400 hover:shadow-sm hotspot-resize-handle",
+                  isResizing && "animate-resize-pulse"
+                )}
+                style={{ 
+                  bottom: '-10px', 
+                  right: '-10px',
+                  touchAction: 'none',
+                  zIndex: 60,
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  onResizeStart(e);
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                  onTouchResizeStart?.(e);
+                }}
+              >
+                <svg 
+                  width="8" 
+                  height="8" 
+                  viewBox="0 0 10 10" 
+                  className="text-neutral-500"
+                >
+                  <path 
+                    d="M9 1L1 9M9 5L5 9" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
+          
+          {/* Countdown BELOW */}
+          {hotspot.countdown?.active && hotspot.countdown.position === "below" && (
+            <HotspotCountdown 
+              config={hotspot.countdown} 
+              isPreviewMode={!isEditMode} 
+              scale={hotspot.scale}
+            />
           )}
         </div>
       )}
