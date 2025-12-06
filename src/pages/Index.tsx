@@ -69,6 +69,7 @@ const Index = () => {
   });
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
+  const layoutEditingHotspotRef = useRef<Hotspot | null>(null);
 
   // Demo products
   const [products, setProducts] = useState<Record<string, Product>>({
@@ -197,15 +198,20 @@ const Index = () => {
     }
   }, [pendingPanelHotspotId, isDeferringToolbar, ftuxComplete, ftuxStep, advanceStep]);
 
+  // Keep ref in sync with layoutEditingHotspot state to avoid stale closures
+  useEffect(() => {
+    layoutEditingHotspotRef.current = layoutEditingHotspot;
+  }, [layoutEditingHotspot]);
+
   const handleUpdateHotspot = (updatedHotspot: Hotspot) => {
-    // Use functional update to ensure we have the latest hotspots state (fixes stale closure)
+    // Use functional update to ensure we have the latest hotspots state
     setHotspots(prevHotspots =>
       prevHotspots.map((h) => (h.id === updatedHotspot.id ? updatedHotspot : h))
     );
     setSelectedHotspot(updatedHotspot);
     
-    // Also update layoutEditingHotspot if it's the same hotspot
-    if (layoutEditingHotspot?.id === updatedHotspot.id) {
+    // Use REF to avoid stale closure - ref.current is always up-to-date
+    if (layoutEditingHotspotRef.current?.id === updatedHotspot.id) {
       setLayoutEditingHotspot(updatedHotspot);
     }
   };
