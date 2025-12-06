@@ -470,6 +470,22 @@ All colors MUST be HSL.
   animation: safe-zone-fade 200ms ease-out forwards;
 }
 
+/* Toolbar entrance animation */
+@keyframes toolbar-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-toolbar-enter {
+  animation: toolbar-enter 150ms ease-out forwards;
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   .animate-hotspot-pop-in,

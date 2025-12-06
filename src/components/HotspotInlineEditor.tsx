@@ -1,7 +1,7 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback, useLayoutEffect } from "react";
 import { Hotspot, Product } from "@/types/video";
 import { Button } from "@/components/ui/button";
-import { Tag, Settings, Trash2 } from "lucide-react";
+import { Tag, Settings, Trash2, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface HotspotInlineEditorProps {
@@ -12,45 +12,8 @@ interface HotspotInlineEditorProps {
   onOpenProductSelection: (hotspotId: string) => void;
   onOpenLayoutSheet: (hotspot: Hotspot) => void;
   autoOpenProductPanel?: boolean;
-  containerWidth?: number;
-  containerHeight?: number;
+  containerRef: React.RefObject<HTMLDivElement>;
 }
-
-// Calculate smart position for toolbar to avoid viewport overflow
-const useSmartToolbarPosition = (
-  hotspotX: number, 
-  hotspotY: number,
-  containerWidth: number = 400,
-  containerHeight: number = 600
-) => {
-  return useMemo(() => {
-    const margin = 16;
-    const toolbarWidth = 140;
-    const toolbarHeight = 44;
-    const hotspotSize = 32;
-    
-    // Calculate pixel positions
-    const hotspotPixelX = hotspotX * containerWidth;
-    const hotspotPixelY = hotspotY * containerHeight;
-    
-    // Determine horizontal placement
-    let horizontal: 'left' | 'center' | 'right' = 'center';
-    if (hotspotPixelX + toolbarWidth / 2 > containerWidth - margin) {
-      horizontal = 'left'; // Place toolbar to the left of hotspot
-    } else if (hotspotPixelX - toolbarWidth / 2 < margin) {
-      horizontal = 'right'; // Place toolbar to the right of hotspot
-    }
-    
-    // Determine vertical placement
-    let vertical: 'above' | 'below' = 'below';
-    const spaceBelow = containerHeight - hotspotPixelY - hotspotSize / 2;
-    if (spaceBelow < toolbarHeight + margin + 20) {
-      vertical = 'above';
-    }
-    
-    return { horizontal, vertical };
-  }, [hotspotX, hotspotY, containerWidth, containerHeight]);
-};
 
 const HotspotInlineEditor = ({
   hotspot,
@@ -60,15 +23,98 @@ const HotspotInlineEditor = ({
   onOpenProductSelection,
   onOpenLayoutSheet,
   autoOpenProductPanel,
-  containerWidth = 400,
-  containerHeight = 600,
+  containerRef,
 }: HotspotInlineEditorProps) => {
-  const { horizontal, vertical } = useSmartToolbarPosition(
-    hotspot.x, 
-    hotspot.y, 
-    containerWidth, 
-    containerHeight
-  );
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ left: 0, top: 0 });
+  const [isPositioned, setIsPositioned] = useState(false);
+  
+  // Drag state
+  const isDraggingRef = useRef(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const initialOffsetRef = useRef({ x: 0, y: 0 });
+
+  // Calculate toolbar position using bounding rects
+  useLayoutEffect(() => {
+    if (!containerRef.current || !toolbarRef.current) return;
+
+    const container = containerRef.current.getBoundingClientRect();
+    const toolbar = toolbarRef.current.getBoundingClientRect();
+    const gap = 12;
+    const hotspotRadius = 16;
+
+    // Hotspot position in pixels relative to container
+    const hotspotCenterX = hotspot.x * container.width;
+    const hotspotCenterY = hotspot.y * container.height;
+
+    // Default: center toolbar above hotspot
+    let left = hotspotCenterX - toolbar.width / 2;
+    let top = hotspotCenterY - hotspotRadius - toolbar.height - gap;
+
+    // If not enough space above → place below
+    if (top < gap) {
+      top = hotspotCenterY + hotspotRadius + gap;
+    }
+
+    // Apply custom offset if user dragged
+    left += hotspot.toolbarOffset?.x ?? 0;
+    top += hotspot.toolbarOffset?.y ?? 0;
+
+    // Clamp to container bounds
+    left = Math.max(gap, Math.min(container.width - toolbar.width - gap, left));
+    top = Math.max(gap, Math.min(container.height - toolbar.height - gap, top));
+
+    setPosition({ left, top });
+    setIsPositioned(true);
+  }, [hotspot.x, hotspot.y, hotspot.toolbarOffset, containerRef]);
+
+  // Drag handlers
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    // Don't start drag if clicking a button
+    if ((e.target as HTMLElement).closest('button')) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    isDraggingRef.current = true;
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    initialOffsetRef.current = hotspot.toolbarOffset ?? { x: 0, y: 0 };
+    
+    document.body.style.cursor = 'grabbing';
+    
+    // Capture pointer for reliable tracking
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, [hotspot.toolbarOffset]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDraggingRef.current || !containerRef.current) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const dx = e.clientX - dragStartRef.current.x;
+    const dy = e.clientY - dragStartRef.current.y;
+
+    const newOffset = {
+      x: initialOffsetRef.current.x + dx,
+      y: initialOffsetRef.current.y + dy,
+    };
+
+    onUpdateHotspot({
+      ...hotspot,
+      toolbarOffset: newOffset,
+    });
+  }, [hotspot, onUpdateHotspot, containerRef]);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    if (!isDraggingRef.current) return;
+    
+    isDraggingRef.current = false;
+    document.body.style.cursor = '';
+    
+    // Release pointer capture
+    (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+  }, []);
 
   // Auto-open product selection when requested
   useEffect(() => {
@@ -92,44 +138,34 @@ const HotspotInlineEditor = ({
     onOpenProductSelection(hotspot.id);
   };
 
-  // Calculate transform based on smart positioning
-  const getTransform = () => {
-    const xTransform = horizontal === 'center' 
-      ? '-50%' 
-      : horizontal === 'left' 
-        ? '-100%' 
-        : '0%';
-    
-    const yTransform = vertical === 'below' 
-      ? 'calc(100% + 12px)' 
-      : 'calc(-100% - 12px)';
-    
-    return `translate(${xTransform}, ${yTransform})`;
-  };
-
-  // Calculate left position
-  const getLeftStyle = () => {
-    if (horizontal === 'center') {
-      return `${hotspot.x * 100}%`;
-    } else if (horizontal === 'left') {
-      return `calc(${hotspot.x * 100}% - 8px)`;
-    } else {
-      return `calc(${hotspot.x * 100}% + 8px)`;
-    }
-  };
-
   return (
     <div
-      className="absolute flex gap-1 bg-white border border-[rgba(0,0,0,0.12)] rounded-lg shadow-lg p-1 animate-scale-in"
+      ref={toolbarRef}
+      className={cn(
+        "absolute flex gap-0.5 bg-white border border-[rgba(0,0,0,0.12)] rounded-lg shadow-lg p-1 animate-toolbar-enter touch-none",
+        !isPositioned && "opacity-0"
+      )}
       style={{
-        left: getLeftStyle(),
-        top: `${hotspot.y * 100}%`,
-        transform: getTransform(),
+        left: position.left,
+        top: position.top,
         zIndex: 100,
       }}
       onClick={(e) => e.stopPropagation()}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
-      {/* Product Selector - now opens the sheet */}
+      {/* Grip handle for dragging */}
+      <div 
+        className="flex items-center justify-center w-5 h-8 cursor-grab active:cursor-grabbing text-[#9CA3AF] hover:text-[#6B7280] rounded-md hover:bg-[rgba(0,0,0,0.04)]"
+      >
+        <GripVertical className="w-3.5 h-3.5" />
+      </div>
+
+      <div className="w-px h-6 bg-[rgba(0,0,0,0.08)] my-auto" />
+
+      {/* Product Selector */}
       <Button
         size="sm"
         variant="ghost"

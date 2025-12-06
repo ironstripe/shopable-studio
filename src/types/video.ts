@@ -125,6 +125,7 @@ export interface Hotspot {
   scale: number;
   clickBehavior: ClickBehavior;
   cardStyle?: CardStyle; // Optional, defaults based on hotspot family
+  toolbarOffset?: { x: number; y: number }; // Custom toolbar position offset for drag
 }
 
 export interface Product {
