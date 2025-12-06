@@ -20,8 +20,8 @@ const HotspotStylePreview = ({
   // Family-specific blurred video backgrounds with seasonal style awareness
   const getPreviewBackground = (): string => {
     switch (family) {
-      case "ecommerce":
-        return "bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800";
+    case "ecommerce":
+      return "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900";
       case "luxury":
         return "bg-gradient-to-br from-neutral-900 via-stone-800 to-neutral-900";
       case "seasonal":

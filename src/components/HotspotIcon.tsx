@@ -278,16 +278,49 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price 
   }
 
   // E-Commerce Line variants
+  // Light Card - Clean vertical card with CTA label + price row
   if (style === "ecommerce-line-compact-price-tag") {
     return (
       <div 
-        className="flex items-center gap-2 bg-white/95 backdrop-blur-sm border border-[#E0E0E0] rounded-lg px-3 py-1.5 animate-fade-in"
-        style={{ ...baseStyle, animationDuration: '180ms' }}
+        className="flex flex-col items-start bg-white rounded-2xl px-4 py-3 animate-scale-in"
+        style={{ 
+          ...baseStyle, 
+          border: '1px solid rgba(0,0,0,0.05)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+          minWidth: '160px',
+          maxWidth: '200px',
+        }}
       >
-        <span className="text-[#111111] text-[13px] font-medium">{countdown}</span>
-        <span className="text-[#9CA3AF] text-[13px]">·</span>
-        <span className="text-[#111111] text-[13px] font-medium">{price || "–.–"}</span>
-        <span className="text-[#3B82F6] text-[13px]">→</span>
+        {/* CTA Label - Top line */}
+        <span 
+          className="text-[#1A1A1A] text-[16px] font-semibold leading-5 truncate w-full"
+          style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+        >
+          {ctaLabel}
+        </span>
+        
+        {/* Price Row - Bottom line */}
+        <div className="flex items-center gap-1.5 mt-1">
+          <span 
+            className="text-[#1A73E8] text-[16px] font-medium"
+            style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+          >
+            {price || "$0.00"}
+          </span>
+          <svg 
+            width="16" 
+            height="16" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="#1A73E8" 
+            strokeWidth="1.5" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            className="flex-shrink-0"
+          >
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </div>
       </div>
     );
   }
