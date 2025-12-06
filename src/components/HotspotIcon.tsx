@@ -1,5 +1,5 @@
 import { HotspotStyle } from "@/types/video";
-import { ArrowRight, Gift, Heart, Sparkles } from "lucide-react";
+import { ArrowRight, Gift, Heart, Sparkles, Percent } from "lucide-react";
 
 interface HotspotIconProps {
   style: HotspotStyle;
@@ -74,79 +74,125 @@ const HotspotIcon = ({
   }
 
   // Seasonal Standard
-  // White pill with festive icon accent
+  // White pill with blue gift icon accent
   if (style === "seasonal-standard") {
     return (
       <div
-        className="flex items-center gap-2 px-3 py-2 rounded-full bg-white shadow-md border border-border/30"
-        style={{ transform: `scale(${scale})` }}
+        className="flex items-center gap-2 px-3 py-2 rounded-full shadow-md"
+        style={{ 
+          transform: `scale(${scale})`,
+          backgroundColor: "#FFFFFF",
+          border: "1px solid rgba(0,0,0,0.08)"
+        }}
       >
-        {/* Festive icon circle */}
-        <div className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center">
-          <Gift className="w-3 h-3 text-amber-600" />
+        {/* Gift icon circle */}
+        <div 
+          className="w-5 h-5 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: "#E8F0FE" }}
+        >
+          <Gift className="w-3 h-3" style={{ color: "#1A73E8" }} />
         </div>
         
         {/* CTA Label */}
-        <span className="text-[13px] font-medium text-foreground whitespace-nowrap">
+        <span className="text-[13px] font-semibold whitespace-nowrap" style={{ color: "#1A1A1A" }}>
           {ctaLabel}
         </span>
         
         {/* Arrow */}
-        <ArrowRight className="w-3.5 h-3.5 text-primary" />
+        <ArrowRight className="w-3.5 h-3.5" style={{ color: "#1A73E8" }} />
       </div>
     );
   }
 
-  // Seasonal Valentine (locked, but render similar to standard with pink accent)
-  if (style === "seasonal-valentine") {
-    return (
-      <div
-        className="flex items-center gap-2 px-3 py-2 rounded-full bg-white shadow-md border border-rose-200"
-        style={{ transform: `scale(${scale})` }}
-      >
-        <div className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center">
-          <Heart className="w-3 h-3 text-rose-500" />
-        </div>
-        <span className="text-[13px] font-medium text-foreground whitespace-nowrap">
-          {ctaLabel}
-        </span>
-        <ArrowRight className="w-3.5 h-3.5 text-rose-500" />
-      </div>
-    );
-  }
-
-  // Seasonal Easter (locked, pastel accent)
+  // Seasonal Easter
+  // Warm pastel with egg/sparkles icon
   if (style === "seasonal-easter") {
     return (
       <div
-        className="flex items-center gap-2 px-3 py-2 rounded-full bg-white shadow-md border border-violet-200"
-        style={{ transform: `scale(${scale})` }}
+        className="flex items-center gap-2 px-3 py-2 rounded-full shadow-md"
+        style={{ 
+          transform: `scale(${scale})`,
+          backgroundColor: "#FFF8E9",
+          border: "1px solid rgba(0,0,0,0.04)"
+        }}
       >
-        <div className="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center">
-          <Sparkles className="w-3 h-3 text-violet-500" />
+        {/* Easter icon circle */}
+        <div 
+          className="w-5 h-5 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: "#FFE0B2" }}
+        >
+          <Sparkles className="w-3 h-3" style={{ color: "#FFB74D" }} />
         </div>
-        <span className="text-[13px] font-medium text-foreground whitespace-nowrap">
+        
+        {/* CTA Label */}
+        <span className="text-[13px] font-semibold whitespace-nowrap" style={{ color: "#5D4037" }}>
           {ctaLabel}
         </span>
-        <ArrowRight className="w-3.5 h-3.5 text-violet-500" />
+        
+        {/* Arrow */}
+        <ArrowRight className="w-3.5 h-3.5" style={{ color: "#FFB74D" }} />
       </div>
     );
   }
 
-  // Seasonal Black Friday (locked, dark accent)
+  // Seasonal Mother's Day
+  // Soft rose with heart icon
+  if (style === "seasonal-mothers-day") {
+    return (
+      <div
+        className="flex items-center gap-2 px-3 py-2 rounded-full shadow-md"
+        style={{ 
+          transform: `scale(${scale})`,
+          backgroundColor: "#FFE6EC",
+          border: "1px solid rgba(233,30,99,0.15)"
+        }}
+      >
+        {/* Heart icon circle */}
+        <div 
+          className="w-5 h-5 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: "#F8BBD0" }}
+        >
+          <Heart className="w-3 h-3" style={{ color: "#E91E63" }} />
+        </div>
+        
+        {/* CTA Label */}
+        <span className="text-[13px] font-semibold whitespace-nowrap" style={{ color: "#AD1457" }}>
+          {ctaLabel}
+        </span>
+        
+        {/* Arrow */}
+        <ArrowRight className="w-3.5 h-3.5" style={{ color: "#E91E63" }} />
+      </div>
+    );
+  }
+
+  // Seasonal Black Friday
+  // Dark bold with yellow percent icon
   if (style === "seasonal-black-friday") {
     return (
       <div
-        className="flex items-center gap-2 px-3 py-2 rounded-full bg-neutral-900 shadow-md border border-amber-500/50"
-        style={{ transform: `scale(${scale})` }}
+        className="flex items-center gap-2 px-3 py-2 rounded-full shadow-md"
+        style={{ 
+          transform: `scale(${scale})`,
+          backgroundColor: "#111111",
+          border: "1px solid #333333"
+        }}
       >
-        <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center">
-          <span className="text-[10px] font-bold text-neutral-900">%</span>
+        {/* Percent icon circle */}
+        <div 
+          className="w-5 h-5 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: "#FFEB3B" }}
+        >
+          <Percent className="w-3 h-3" style={{ color: "#111111" }} />
         </div>
-        <span className="text-[13px] font-medium text-white whitespace-nowrap">
+        
+        {/* CTA Label */}
+        <span className="text-[13px] font-semibold whitespace-nowrap" style={{ color: "#FFEB3B" }}>
           {ctaLabel}
         </span>
-        <ArrowRight className="w-3.5 h-3.5 text-amber-500" />
+        
+        {/* Arrow */}
+        <ArrowRight className="w-3.5 h-3.5" style={{ color: "#FFEB3B" }} />
       </div>
     );
   }
