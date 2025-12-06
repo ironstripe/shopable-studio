@@ -228,20 +228,26 @@ const Index = () => {
       })
     );
 
-    // Update selected hotspot with incremented revision
-    setSelectedHotspot(prev => {
-      if (prev?.id === updatedHotspot.id) {
-        return { ...updatedHotspot, revision: (prev.revision ?? 0) + 1 };
-      }
-      return prev;
-    });
-
-    // Keep layout editing ref in sync
-    if (layoutEditingHotspotRef.current?.id === updatedHotspot.id) {
-      const updated = { ...updatedHotspot, revision: (layoutEditingHotspotRef.current.revision ?? 0) + 1 };
-      layoutEditingHotspotRef.current = updated;
-      setLayoutEditingHotspot(updated);
-    }
+    // Derive selectedHotspot and layoutEditingHotspot from the updated hotspots array
+    // Use setTimeout to ensure we read the updated state after React processes setHotspots
+    setTimeout(() => {
+      setHotspots(currentHotspots => {
+        const updatedFromArray = currentHotspots.find(h => h.id === updatedHotspot.id);
+        if (updatedFromArray) {
+          console.log('[Index.handleUpdateHotspot] Syncing from array:', {
+            id: updatedFromArray.id,
+            style: updatedFromArray.style,
+            revision: updatedFromArray.revision,
+          });
+          setSelectedHotspot(updatedFromArray);
+          if (layoutEditingHotspotRef.current?.id === updatedHotspot.id) {
+            layoutEditingHotspotRef.current = updatedFromArray;
+            setLayoutEditingHotspot(updatedFromArray);
+          }
+        }
+        return currentHotspots; // Return unchanged
+      });
+    }, 0);
   };
 
   const handleDeleteHotspot = (hotspotId: string) => {
