@@ -198,8 +198,9 @@ const Index = () => {
   }, [pendingPanelHotspotId, isDeferringToolbar, ftuxComplete, ftuxStep, advanceStep]);
 
   const handleUpdateHotspot = (updatedHotspot: Hotspot) => {
-    setHotspots(
-      hotspots.map((h) => (h.id === updatedHotspot.id ? updatedHotspot : h))
+    // Use functional update to ensure we have the latest hotspots state (fixes stale closure)
+    setHotspots(prevHotspots =>
+      prevHotspots.map((h) => (h.id === updatedHotspot.id ? updatedHotspot : h))
     );
     setSelectedHotspot(updatedHotspot);
     
@@ -210,41 +211,52 @@ const Index = () => {
   };
 
   const handleDeleteHotspot = (hotspotId: string) => {
-    setHotspots(hotspots.filter((h) => h.id !== hotspotId));
+    setHotspots(prevHotspots => prevHotspots.filter((h) => h.id !== hotspotId));
     setSelectedHotspot(null);
     setActiveToolbarHotspotId(null);
     toast.success("Hotspot deleted");
   };
 
   const handleUpdateHotspotPosition = (hotspotId: string, x: number, y: number) => {
-    const hotspot = hotspots.find(h => h.id === hotspotId);
-    if (!hotspot) return;
-    
-    // Clamp to safe zone considering hotspot dimensions
-    const { x: safeX, y: safeY } = clampPositionToSafeZone(x, y, hotspot.scale, activeSafeZonePreset);
-    
-    setHotspots(
-      hotspots.map((h) => (h.id === hotspotId ? { ...h, x: safeX, y: safeY } : h))
-    );
-    if (selectedHotspot?.id === hotspotId) {
-      setSelectedHotspot({ ...selectedHotspot, x: safeX, y: safeY });
-    }
+    setHotspots(prevHotspots => {
+      const hotspot = prevHotspots.find(h => h.id === hotspotId);
+      if (!hotspot) return prevHotspots;
+      
+      // Clamp to safe zone considering hotspot dimensions
+      const { x: safeX, y: safeY } = clampPositionToSafeZone(x, y, hotspot.scale, activeSafeZonePreset);
+      
+      const updated = prevHotspots.map((h) => (h.id === hotspotId ? { ...h, x: safeX, y: safeY } : h));
+      
+      // Update selectedHotspot outside of this callback
+      setTimeout(() => {
+        if (selectedHotspot?.id === hotspotId) {
+          setSelectedHotspot(prev => prev?.id === hotspotId ? { ...prev, x: safeX, y: safeY } : prev);
+        }
+      }, 0);
+      
+      return updated;
+    });
   };
 
   const handleUpdateHotspotScale = (hotspotId: string, scale: number) => {
-    const hotspot = hotspots.find(h => h.id === hotspotId);
-    if (!hotspot) return;
-    
-    // Calculate maximum allowed scale at current position
-    const maxScale = getMaxScaleAtPosition(hotspot.x, hotspot.y, activeSafeZonePreset);
-    const clampedScale = Math.min(scale, maxScale);
-    
-    setHotspots(
-      hotspots.map((h) => (h.id === hotspotId ? { ...h, scale: clampedScale } : h))
-    );
-    if (selectedHotspot?.id === hotspotId) {
-      setSelectedHotspot({ ...selectedHotspot, scale: clampedScale });
-    }
+    setHotspots(prevHotspots => {
+      const hotspot = prevHotspots.find(h => h.id === hotspotId);
+      if (!hotspot) return prevHotspots;
+      
+      // Calculate maximum allowed scale at current position
+      const maxScale = getMaxScaleAtPosition(hotspot.x, hotspot.y, activeSafeZonePreset);
+      const clampedScale = Math.min(scale, maxScale);
+      
+      const updated = prevHotspots.map((h) => (h.id === hotspotId ? { ...h, scale: clampedScale } : h));
+      
+      setTimeout(() => {
+        if (selectedHotspot?.id === hotspotId) {
+          setSelectedHotspot(prev => prev?.id === hotspotId ? { ...prev, scale: clampedScale } : prev);
+        }
+      }, 0);
+      
+      return updated;
+    });
   };
 
   const handleSelectFromList = (hotspot: Hotspot) => {
@@ -304,23 +316,27 @@ const Index = () => {
     
     const product = products[productId];
     const clickBehavior = overrideClickBehavior || product?.defaultClickBehavior;
+    const targetHotspotId = productAssignmentHotspotId;
     
-    setHotspots(
-      hotspots.map((h) => 
-        h.id === productAssignmentHotspotId 
+    setHotspots(prevHotspots => {
+      const updatedHotspots = prevHotspots.map((h) => 
+        h.id === targetHotspotId 
           ? { ...h, productId, ...(clickBehavior && { clickBehavior }) } 
           : h
-      )
-    );
+      );
+      
+      // Update selectedHotspot with the new product assignment
+      const updatedHotspot = updatedHotspots.find(h => h.id === targetHotspotId);
+      if (updatedHotspot) {
+        setTimeout(() => {
+          setSelectedHotspot(updatedHotspot);
+        }, 0);
+      }
+      
+      return updatedHotspots;
+    });
     
-    const updatedHotspot = hotspots.find(h => h.id === productAssignmentHotspotId);
-    if (updatedHotspot) {
-      setSelectedHotspot({ 
-        ...updatedHotspot, 
-        productId,
-        ...(clickBehavior && { clickBehavior })
-      });
-    }
+    // The selectedHotspot is already updated inside setHotspots callback
     
     setSelectProductSheetOpen(false);
     setProductAssignmentHotspotId(null);
