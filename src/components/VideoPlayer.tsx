@@ -547,6 +547,10 @@ const VideoPlayer = ({
     return isInTimeRange || (!isPreviewMode && isSelectedOrActive);
   });
 
+  console.log('[VideoPlayer] activeHotspots:', 
+    activeHotspots.map(h => ({ id: h.id, style: h.style }))
+  );
+
   const assignedHotspots = hotspots.filter(h => h.productId);
   const unassignedHotspots = hotspots.filter(h => !h.productId);
   
@@ -729,7 +733,7 @@ const VideoPlayer = ({
                 
                 return (
                   <div
-                    key={hotspot.id}
+                    key={`${hotspot.id}-${hotspot.style}`}
                     className="pointer-events-auto"
                     onClick={(e) => {
                       e.stopPropagation();

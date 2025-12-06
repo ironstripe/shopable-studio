@@ -161,6 +161,13 @@ const LayoutBehaviorSheet = ({
     const selectedStyleDef = FAMILY_STYLES[selectedFamily].find(s => s.id === selectedStyle);
     const hotspotStyle = selectedStyleDef?.hotspotStyle || "ecommerce-line-compact-price-tag";
 
+    console.log('[LayoutBehaviorSheet] handleSave:', {
+      hotspotId: hotspot.id,
+      selectedFamily,
+      selectedStyle,
+      hotspotStyle,
+    });
+
     onUpdateHotspot({
       ...hotspot,
       style: hotspotStyle as Hotspot["style"],

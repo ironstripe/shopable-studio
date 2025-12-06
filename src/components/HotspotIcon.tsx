@@ -10,6 +10,8 @@ interface HotspotIconProps {
 }
 
 const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price }: HotspotIconProps) => {
+  console.log('[HotspotIcon] style prop:', style);
+  
   const baseStyle = {
     transform: `scale(${scale})`,
     transformOrigin: 'center center',
