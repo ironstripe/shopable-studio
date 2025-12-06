@@ -267,15 +267,6 @@ const LayoutBehaviorPanel = ({
       </div>
     );
   };
-    return (
-      <div className="bg-[#1A1A1A] rounded-lg px-3 py-2 flex flex-col items-start gap-0.5">
-        <span className="font-playfair text-sm font-light text-white tracking-wide">
-          Product Name
-        </span>
-        <div className="w-16 h-[0.5px] bg-white/70" />
-      </div>
-    );
-  };
 
   // Get friendly family name for variant label
   const getFamilyDisplayName = (type: HotspotType): string => {
@@ -283,29 +274,6 @@ const LayoutBehaviorPanel = ({
     return family?.label || type;
   };
 
-  // Badge Bubble specific variants
-  const badgeBubbleVariants = [
-    { 
-      value: "classic", 
-      label: "Classic Bubble",
-      description: "Solid filled, modern universal style"
-    },
-    { 
-      value: "outline", 
-      label: "Outline Bubble",
-      description: "Minimal outline, lightweight feel"
-    },
-    { 
-      value: "ghost", 
-      label: "Ghost Bubble",
-      description: "Semi-transparent with blur effect"
-    },
-    { 
-      value: "accent-split", 
-      label: "Accent Split",
-      description: "Two-part with prominent CTA"
-    }
-  ];
 
   // Fine Line specific variants (creative style-based)
   const fineLineVariants = [
@@ -403,50 +371,6 @@ const LayoutBehaviorPanel = ({
     }
   ];
 
-  // Get preview for Badge Bubble variants
-  const getBadgeBubbleVariantPreview = (variant: string) => {
-    if (variant === "classic") {
-      return (
-        <div className="flex items-center gap-1.5 bg-[#FF6A00] rounded-full px-3 py-1.5 shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
-          <span className="text-white font-medium text-[10px]">3</span>
-          <span className="text-white/60 text-[10px]">•</span>
-          <span className="text-white font-medium text-[9px]">Shop</span>
-        </div>
-      );
-    }
-    
-    if (variant === "outline") {
-      return (
-        <div className="flex items-center gap-1.5 bg-transparent border-[1.5px] border-[#FF6A00] rounded-full px-3 py-1.5">
-          <span className="text-[#FF6A00] font-medium text-[10px]">3</span>
-          <span className="text-[#FF6A00]/60 text-[10px]">•</span>
-          <span className="text-[#FF6A00] font-medium text-[9px]">Shop</span>
-        </div>
-      );
-    }
-    
-    if (variant === "ghost") {
-      return (
-        <div className="flex items-center gap-1.5 bg-black/25 backdrop-blur-[6px] rounded-full px-3 py-1.5 shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
-          <span className="text-white font-medium text-[10px]">3</span>
-          <span className="text-white/60 text-[10px]">•</span>
-          <span className="text-white font-medium text-[9px]">Shop</span>
-        </div>
-      );
-    }
-    
-    // accent-split
-    return (
-      <div className="flex items-center gap-1.5">
-        <div className="w-5 h-5 rounded-full bg-[#FF6A00] shadow-[0_2px_8px_rgba(0,0,0,0.12)] flex items-center justify-center">
-          <span className="text-white font-bold text-[9px]">3</span>
-        </div>
-        <div className="bg-[#FF6A00] rounded-full px-2 py-0.5 shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
-          <span className="text-white font-medium text-[8px]">Shop</span>
-        </div>
-      </div>
-    );
-  };
 
   // Get preview for E-Commerce Line variants
   const getEcommerceLineVariantPreview = (variant: string) => {
