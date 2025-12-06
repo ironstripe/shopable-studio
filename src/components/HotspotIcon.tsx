@@ -325,16 +325,62 @@ const HotspotIcon = ({ style, countdown, ctaLabel, isSelected, scale = 1, price 
     );
   }
 
+  // E-Commerce Minimal - Frosted glass with title, price, chevron
   if (style === "ecommerce-line-label-strip") {
     return (
       <div 
-        className="flex items-center justify-between gap-4 bg-[#F5F5F5] rounded px-3 py-1.5 animate-fade-in"
-        style={{ ...baseStyle, animationDuration: '180ms', minWidth: '120px' }}
+        className="flex flex-col items-stretch animate-fade-in"
+        style={{ 
+          ...baseStyle, 
+          background: 'rgba(255,255,255,0.78)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255,255,255,0.45)',
+          borderRadius: '14px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+          padding: '10px 14px',
+          minWidth: '180px',
+          maxWidth: '220px',
+          animationDuration: '120ms',
+        }}
       >
-        <span className="text-[#111111] text-[13px] font-medium">{ctaLabel}</span>
-        <div className="flex items-center gap-2">
-          <span className="text-[#6B7280] text-[12px]">{price || "–.–"}</span>
-          <span className="text-[#3B82F6] text-[11px] font-medium">Shop</span>
+        {/* Title */}
+        <span 
+          className="text-[15px] font-medium truncate"
+          style={{ 
+            fontFamily: 'Inter, system-ui, sans-serif',
+            color: 'rgba(0,0,0,0.85)',
+            lineHeight: '1.3',
+          }}
+        >
+          {ctaLabel}
+        </span>
+        
+        {/* Price Row with Chevron */}
+        <div className="flex items-center justify-between mt-1">
+          <span 
+            className="text-[15px] font-semibold"
+            style={{ 
+              fontFamily: 'Inter, system-ui, sans-serif',
+              color: 'rgba(0,0,0,0.70)',
+            }}
+          >
+            {price || "$0.00"}
+          </span>
+          
+          {/* Chevron Arrow */}
+          <svg 
+            width="14" 
+            height="14" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="rgba(0,0,0,0.55)" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          >
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
         </div>
       </div>
     );
