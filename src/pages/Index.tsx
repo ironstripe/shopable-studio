@@ -137,7 +137,7 @@ const Index = () => {
       clickBehavior: "show-card",
       cardStyle: "ecommerce-grid",
     };
-    setHotspots([...hotspots, newHotspot]);
+    setHotspots(prevHotspots => [...prevHotspots, newHotspot]);
     setSelectedHotspot(newHotspot);
     
     // Defer toolbar and panel opening - allow drag first
