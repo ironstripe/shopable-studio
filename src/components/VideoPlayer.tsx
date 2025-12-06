@@ -757,6 +757,7 @@ const VideoPlayer = ({
                       hasProduct={!!hotspot.productId}
                       isHighlighted={highlightedHotspotId === hotspot.id}
                       isAnyEditing={isAnyHotspotEditing}
+                      forceVisible={isThisSelected}
                     />
                     {!isPreviewMode && isThisSelected && !draggingHotspot && !isDeferringToolbar && (
                       <HotspotInlineEditor
