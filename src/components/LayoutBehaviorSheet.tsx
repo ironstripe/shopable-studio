@@ -127,9 +127,9 @@ const LayoutBehaviorSheet = ({
     }
   }, [open, hasProductAssigned, toast, onOpenChange]);
 
-  // Reset form when hotspot changes
+  // Reset form when hotspot changes or when sheet opens with updated hotspot data
   useEffect(() => {
-    if (hotspot) {
+    if (hotspot && open) {
       const parsed = parseStyle(hotspot.style);
       setSelectedFamily(parsed.family);
       setSelectedStyle(parsed.variant);
@@ -143,7 +143,7 @@ const LayoutBehaviorSheet = ({
       setCountdownStyle(hotspot.countdown?.style ?? "light");
       setCountdownPosition(hotspot.countdown?.position ?? "below");
     }
-  }, [hotspot?.id]);
+  }, [hotspot?.id, hotspot?.style, open]);
 
   // Update defaults when family changes
   const handleFamilyChange = (family: TemplateFamily) => {
