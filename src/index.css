@@ -550,6 +550,22 @@ All colors MUST be HSL.
   animation: luxury-enter 150ms ease-out forwards;
 }
 
+/* Luxury Dot pulse animation */
+@keyframes luxury-dot-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.5);
+  }
+}
+
+.animate-luxury-dot-pulse {
+  animation: luxury-dot-pulse 2s ease-in-out infinite;
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   .animate-hotspot-pop-in,

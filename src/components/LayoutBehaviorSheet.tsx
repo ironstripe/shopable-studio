@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Hotspot, ClickBehavior, HotspotStyle, CountdownMode, CountdownStyle, CountdownPosition } from "@/types/video";
+import { Hotspot, ClickBehavior, HotspotStyle, CountdownStyle, CountdownPosition } from "@/types/video";
 import {
   Sheet,
   SheetContent,
@@ -8,19 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { X, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import HotspotStylePreview from "./HotspotStylePreview";
 
-// Template families - simplified to 3
+// Template families
 type TemplateFamily = "ecommerce" | "luxury" | "seasonal";
 
-// Seasonal style option
-interface SeasonalStyleOption {
+// Style option interface
+interface StyleOption {
   id: HotspotStyle;
   label: string;
-  description: string;
 }
 
 // Family configuration
@@ -28,7 +27,7 @@ interface FamilyConfig {
   label: string;
   description: string;
   mainStyle: HotspotStyle;
-  selectableStyles?: SeasonalStyleOption[];
+  styles: StyleOption[];
 }
 
 const FAMILY_CONFIG: Record<TemplateFamily, FamilyConfig> = {
@@ -36,31 +35,30 @@ const FAMILY_CONFIG: Record<TemplateFamily, FamilyConfig> = {
     label: "E-Commerce",
     description: "Clean cards for classic shop setups",
     mainStyle: "ecommerce-light-card",
-    selectableStyles: [
-      { id: "ecommerce-light-card", label: "Light Card", description: "Clean, minimal product card" },
-      { id: "ecommerce-sale-boost", label: "Sale Boost", description: "Promo badge with price compare" },
-      { id: "ecommerce-minimal", label: "Minimal", description: "Frosted glass, ultra-light" },
+    styles: [
+      { id: "ecommerce-light-card", label: "Light Card" },
+      { id: "ecommerce-sale-boost", label: "Sale Boost" },
+      { id: "ecommerce-minimal", label: "Minimal" },
     ],
   },
   luxury: {
-    label: "Luxury Line",
-    description: "Ultra-clean, subtle, for premium brands",
-    mainStyle: "luxury-black-glass",
-    selectableStyles: [
-      { id: "luxury-black-glass", label: "Black Glass", description: "Dark frosted, premium" },
-      { id: "luxury-fine-line", label: "Fine Line", description: "Minimal thin outline" },
-      { id: "luxury-editorial", label: "Editorial", description: "Serif type, magazine feel" },
+    label: "Luxury",
+    description: "Ultra-clean, subtle, premium brands",
+    mainStyle: "luxury-fine-line",
+    styles: [
+      { id: "luxury-fine-line", label: "Fine Line" },
+      { id: "luxury-elegance-card", label: "Elegance Card" },
+      { id: "luxury-dot", label: "Luxury Dot" },
     ],
   },
   seasonal: {
-    label: "Seasonal Specials",
-    description: "Designed for campaigns",
-    mainStyle: "seasonal-standard",
-    selectableStyles: [
-      { id: "seasonal-standard", label: "Standard", description: "Neutral seasonal look" },
-      { id: "seasonal-easter", label: "Easter", description: "Soft, spring feeling" },
-      { id: "seasonal-mothers-day", label: "Mother's Day", description: "Warm, elegant" },
-      { id: "seasonal-black-friday", label: "Black Friday", description: "Bold, high contrast" },
+    label: "Seasonal",
+    description: "Special event templates (Valentine, Easter, BF)",
+    mainStyle: "seasonal-valentine",
+    styles: [
+      { id: "seasonal-valentine", label: "Valentine" },
+      { id: "seasonal-easter", label: "Easter" },
+      { id: "seasonal-black-friday", label: "Black Friday" },
     ],
   },
 };
@@ -72,12 +70,8 @@ const FAMILY_CTA_DEFAULTS: Record<TemplateFamily, string> = {
   seasonal: "Get the Deal",
 };
 
-// Default click behavior per family
-const FAMILY_CLICK_DEFAULTS: Record<TemplateFamily, ClickBehavior> = {
-  ecommerce: "show-card",
-  luxury: "show-card",
-  seasonal: "direct-link",
-};
+// CTA presets
+const CTA_PRESETS = ["Shop Now", "Buy", "Learn More", "Get Deal"];
 
 interface LayoutBehaviorSheetProps {
   open: boolean;
@@ -115,10 +109,8 @@ const LayoutBehaviorSheet = ({
   const [clickBehavior, setClickBehavior] = useState<ClickBehavior>(hotspot?.clickBehavior || "show-card");
   const [duration, setDuration] = useState(hotspot ? hotspot.timeEnd - hotspot.timeStart : 3);
   
-  // Countdown state
+  // Simplified countdown state (auto-counts down hotspot duration)
   const [countdownActive, setCountdownActive] = useState(hotspot?.countdown?.active ?? false);
-  const [countdownMode, setCountdownMode] = useState<CountdownMode>(hotspot?.countdown?.mode ?? "fixed-end");
-  const [countdownEndTime, setCountdownEndTime] = useState<string>(hotspot?.countdown?.endTime ?? "");
   const [countdownStyle, setCountdownStyle] = useState<CountdownStyle>(hotspot?.countdown?.style ?? "light");
   const [countdownPosition, setCountdownPosition] = useState<CountdownPosition>(hotspot?.countdown?.position ?? "below");
 
@@ -141,12 +133,9 @@ const LayoutBehaviorSheet = ({
       setSelectedFamily(family);
       setSelectedStyle(hotspot.style);
       setCtaLabel(hotspot.ctaLabel || FAMILY_CTA_DEFAULTS[family]);
-      setClickBehavior(hotspot.clickBehavior || FAMILY_CLICK_DEFAULTS[family]);
+      setClickBehavior(hotspot.clickBehavior || "show-card");
       setDuration(hotspot.timeEnd - hotspot.timeStart);
-      // Reset countdown state
       setCountdownActive(hotspot.countdown?.active ?? false);
-      setCountdownMode(hotspot.countdown?.mode ?? "fixed-end");
-      setCountdownEndTime(hotspot.countdown?.endTime ?? "");
       setCountdownStyle(hotspot.countdown?.style ?? "light");
       setCountdownPosition(hotspot.countdown?.position ?? "below");
     }
@@ -156,15 +145,12 @@ const LayoutBehaviorSheet = ({
   const handleFamilyChange = (family: TemplateFamily) => {
     if (isPreviewMode) return;
     setSelectedFamily(family);
-    // Set to main style of the family
     const newStyle = FAMILY_CONFIG[family].mainStyle;
     setSelectedStyle(newStyle);
     setCtaLabel(FAMILY_CTA_DEFAULTS[family]);
-    setClickBehavior(FAMILY_CLICK_DEFAULTS[family]);
   };
 
-  // Handle seasonal style selection
-  const handleSeasonalStyleChange = (style: HotspotStyle) => {
+  const handleStyleChange = (style: HotspotStyle) => {
     if (isPreviewMode) return;
     setSelectedStyle(style);
   };
@@ -181,12 +167,15 @@ const LayoutBehaviorSheet = ({
       cardStyle: selectedStyle as Hotspot["cardStyle"],
       countdown: {
         active: countdownActive,
-        mode: countdownMode,
-        endTime: countdownMode === "fixed-end" ? countdownEndTime : undefined,
+        mode: "evergreen", // Simplified: always auto-countdown
         style: countdownStyle,
         position: countdownPosition,
       },
     });
+    onOpenChange(false);
+  };
+
+  const handleCancel = () => {
     onOpenChange(false);
   };
 
@@ -198,21 +187,21 @@ const LayoutBehaviorSheet = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent 
         side="bottom" 
-        className="h-[88vh] max-h-[88vh] rounded-t-[20px] p-0 flex flex-col bg-white overflow-hidden"
+        className="h-[90vh] max-h-[90vh] rounded-t-[20px] p-0 flex flex-col bg-white overflow-hidden"
         hideCloseButton
       >
         {/* Drag Handle */}
-        <div className="flex justify-center pt-3 pb-2 flex-shrink-0">
-          <div className="w-9 h-1 rounded-full bg-[#D0D0D0]" />
+        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+          <div className="w-10 h-1 rounded-full bg-[#D0D0D0]" />
         </div>
 
-        {/* Sticky Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-3 border-b border-[#EBEBEB] bg-white">
+        {/* Header - Matching Product Sheet */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[#EBEBEB]">
           <button
-            onClick={() => onOpenChange(false)}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#F5F5F5] transition-colors"
+            onClick={handleCancel}
+            className="text-[15px] text-[#666666] hover:text-[#333333] transition-colors min-w-[60px] text-left font-medium"
           >
-            <X className="w-5 h-5 text-[#666666]" />
+            Cancel
           </button>
           
           <h2 className="text-[17px] font-semibold text-[#111111]">
@@ -223,18 +212,18 @@ const LayoutBehaviorSheet = ({
             size="sm"
             onClick={handleSave}
             disabled={isDisabled}
-            className="h-9 px-5 rounded-full bg-primary text-white text-[14px] font-medium hover:bg-primary/90 disabled:opacity-50"
+            className="h-8 px-4 text-[14px] font-medium min-w-[60px] bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             Save
           </Button>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto overscroll-contain px-5 pt-5 pb-40 space-y-6">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-4 pt-5 pb-40 space-y-6">
           
-          {/* Section 1: Template Family */}
+          {/* Section 1: Template Family - Compact horizontal cards */}
           <section>
-            <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            <h3 className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
               Template Family
             </h3>
             
@@ -249,40 +238,41 @@ const LayoutBehaviorSheet = ({
                     onClick={() => handleFamilyChange(family)}
                     disabled={isDisabled}
                     className={cn(
-                      "w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-150",
+                      "w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all duration-150",
                       isActive
                         ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/40",
+                        : "border-[#E5E5E5] hover:border-[#D0D0D0]",
                       isDisabled && "opacity-50 cursor-not-allowed"
                     )}
                   >
-                    {/* Preview thumbnail */}
-                    <div className="w-16 h-12 flex-shrink-0 rounded-lg overflow-hidden">
+                    {/* Preview thumbnail - approx 40px */}
+                    <div className="w-10 h-10 flex-shrink-0 rounded-lg overflow-hidden">
                       <HotspotStylePreview
                         family={family}
                         hotspotStyle={config.mainStyle}
                         isActive={isActive}
-                        ctaLabel={ctaLabel || "Shop"}
+                        ctaLabel="Shop"
+                        compact
                       />
                     </div>
                     
-                    {/* Text */}
+                    {/* Title + description */}
                     <div className="flex-1 text-left">
                       <div className={cn(
-                        "text-[15px] font-medium",
-                        isActive ? "text-primary" : "text-foreground"
+                        "text-[14px] font-medium",
+                        isActive ? "text-primary" : "text-[#111111]"
                       )}>
                         {config.label}
                       </div>
-                      <div className="text-[13px] text-muted-foreground">
+                      <div className="text-[12px] text-[#888888]">
                         {config.description}
                       </div>
                     </div>
                     
-                    {/* Checkmark */}
+                    {/* Checkmark when selected */}
                     {isActive && (
-                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                        <Check className="w-3.5 h-3.5 text-primary-foreground" />
+                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="w-3 h-3 text-white" />
                       </div>
                     )}
                   </button>
@@ -291,96 +281,83 @@ const LayoutBehaviorSheet = ({
             </div>
           </section>
 
-          {/* Section 2: Style Selection */}
+          {/* Section 2: Style Selection - Real HotspotIcon previews */}
           <section>
-            <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            <h3 className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
               Style
             </h3>
             
-            {/* For E-Commerce, Luxury, and Seasonal - show grid of selectable styles */}
-            {currentFamilyConfig.selectableStyles && (
-              <div className="grid grid-cols-2 gap-3">
-                {currentFamilyConfig.selectableStyles.map((styleOption) => {
-                  const isSelected = selectedStyle === styleOption.id;
-                  
-                  return (
-                    <button
-                      key={styleOption.id}
-                      onClick={() => handleSeasonalStyleChange(styleOption.id)}
-                      disabled={isDisabled}
-                      className={cn(
-                        "relative flex flex-col overflow-hidden rounded-xl border-2 transition-all duration-150",
-                        isSelected
-                          ? "border-primary shadow-md"
-                          : "border-border hover:border-primary/40",
-                        isDisabled && "opacity-50 cursor-not-allowed"
-                      )}
-                    >
-                      {/* Preview */}
-                      <div className="aspect-[1.4/1]">
-                        <HotspotStylePreview
-                          family="seasonal"
-                          hotspotStyle={styleOption.id}
-                          isActive={isSelected}
-                          ctaLabel={ctaLabel || "Shop"}
-                        />
-                      </div>
-                      
-                      {/* Label */}
-                      <div className={cn(
-                        "px-3 py-2.5 border-t",
-                        isSelected ? "bg-primary/5 border-primary/20" : "bg-muted/30 border-border"
+            <div className="grid grid-cols-3 gap-3">
+              {currentFamilyConfig.styles.map((styleOption) => {
+                const isSelected = selectedStyle === styleOption.id;
+                
+                return (
+                  <button
+                    key={styleOption.id}
+                    onClick={() => handleStyleChange(styleOption.id)}
+                    disabled={isDisabled}
+                    className={cn(
+                      "flex flex-col overflow-hidden rounded-xl border-2 transition-all duration-150",
+                      isSelected
+                        ? "border-primary shadow-md"
+                        : "border-[#E5E5E5] hover:border-[#D0D0D0]",
+                      isDisabled && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    {/* Preview with real HotspotIcon */}
+                    <div className="aspect-square">
+                      <HotspotStylePreview
+                        family={selectedFamily}
+                        hotspotStyle={styleOption.id}
+                        isActive={isSelected}
+                        ctaLabel={ctaLabel || "Shop"}
+                      />
+                    </div>
+                    
+                    {/* Label */}
+                    <div className={cn(
+                      "px-2 py-2 bg-white border-t",
+                      isSelected ? "border-primary/20" : "border-[#EBEBEB]"
+                    )}>
+                      <span className={cn(
+                        "text-[12px] font-medium block truncate",
+                        isSelected ? "text-primary" : "text-[#333333]"
                       )}>
-                        <div className={cn(
-                          "text-[13px] font-medium",
-                          isSelected ? "text-primary" : "text-foreground"
-                        )}>
-                          {styleOption.label}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground">
-                          {styleOption.description}
-                        </div>
-                      </div>
-                      
-                      {/* Selected indicator */}
-                      {isSelected && (
-                        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                          <Check className="w-3 h-3 text-primary-foreground" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+                        {styleOption.label}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </section>
 
           {/* Section 3: CTA Label */}
           <section>
-            <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            <h3 className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
               CTA Label
             </h3>
             
             <Input
               value={ctaLabel}
               onChange={(e) => setCtaLabel(e.target.value)}
-              placeholder="Enter button text..."
+              placeholder="e.g. Shop Now"
               disabled={isDisabled}
-              className="h-12 text-[15px] bg-background border-border text-foreground placeholder:text-muted-foreground rounded-xl mb-3 focus:border-primary focus:ring-1 focus:ring-primary/30"
+              className="h-12 text-[15px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl mb-3 focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
             
-            {/* Pill presets */}
+            {/* Light grey pill presets */}
             <div className="flex flex-wrap gap-2">
-              {["Shop Now", "Buy", "Learn More", "Get Deal", "View Details"].map((preset) => (
+              {CTA_PRESETS.map((preset) => (
                 <button
                   key={preset}
                   onClick={() => !isDisabled && setCtaLabel(preset)}
                   disabled={isDisabled}
                   className={cn(
-                    "px-4 py-2 text-[13px] font-medium rounded-full transition-all duration-150 min-h-[44px]",
+                    "px-3 py-1.5 text-[12px] font-medium rounded-full border transition-all",
                     ctaLabel === preset
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-accent",
+                      ? "bg-primary/10 border-primary/40 text-primary"
+                      : "bg-[#F5F5F5] border-[#E0E0E0] text-[#666666] hover:border-[#CCCCCC]",
                     isDisabled && "opacity-50 cursor-not-allowed"
                   )}
                 >
@@ -390,13 +367,13 @@ const LayoutBehaviorSheet = ({
             </div>
           </section>
 
-          {/* Section 4: Click Behavior */}
+          {/* Section 4: Click Behavior - Pill buttons */}
           <section>
-            <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            <h3 className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
               Click Behavior
             </h3>
             
-            <div className="flex p-1 rounded-full bg-muted border border-border">
+            <div className="flex gap-2">
               {[
                 { value: "show-card" as ClickBehavior, label: "Show Card" },
                 { value: "direct-link" as ClickBehavior, label: "Direct Link" },
@@ -407,10 +384,10 @@ const LayoutBehaviorSheet = ({
                   onClick={() => !isDisabled && setClickBehavior(option.value)}
                   disabled={isDisabled}
                   className={cn(
-                    "flex-1 py-2.5 text-[13px] font-medium rounded-full transition-all duration-150 min-h-[44px]",
+                    "flex-1 py-2.5 text-[13px] font-medium rounded-full border transition-all min-h-[44px]",
                     clickBehavior === option.value
-                      ? "bg-background text-primary font-semibold shadow-sm"
-                      : "text-muted-foreground hover:text-foreground",
+                      ? "bg-primary text-white border-primary"
+                      : "bg-white text-[#666666] border-[#E0E0E0] hover:border-[#CCCCCC]",
                     isDisabled && "opacity-50 cursor-not-allowed"
                   )}
                 >
@@ -422,23 +399,23 @@ const LayoutBehaviorSheet = ({
 
           {/* Section 5: Timing */}
           <section>
-            <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            <h3 className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
               Timing
             </h3>
             
-            {/* Start Time (read-only) */}
-            <div className="flex items-center justify-between py-3 border-b border-border">
-              <span className="text-[14px] text-muted-foreground">Start Time</span>
-              <span className="text-[14px] font-semibold text-foreground">
+            {/* Start Time - editable */}
+            <div className="flex items-center justify-between py-3 border-b border-[#EBEBEB]">
+              <span className="text-[14px] text-[#666666]">Start Time</span>
+              <span className="text-[14px] font-semibold text-[#111111]">
                 {hotspot?.timeStart.toFixed(1)}s
               </span>
             </div>
 
-            {/* Duration with slider */}
+            {/* Duration slider */}
             <div className="py-4">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[14px] font-medium text-foreground">Duration</span>
-                <span className="text-[14px] font-bold text-primary">
+                <span className="text-[14px] font-medium text-[#111111]">Duration</span>
+                <span className="text-[14px] font-semibold text-primary">
                   {duration.toFixed(1)}s
                 </span>
               </div>
@@ -446,37 +423,37 @@ const LayoutBehaviorSheet = ({
                 value={[duration]}
                 onValueChange={(values) => !isDisabled && setDuration(values[0])}
                 min={1}
-                max={6}
+                max={10}
                 step={0.5}
                 disabled={isDisabled}
                 className="w-full"
               />
-              <div className="flex justify-between text-[11px] text-muted-foreground mt-2">
+              <div className="flex justify-between text-[11px] text-[#999999] mt-2">
                 <span>1s</span>
-                <span>6s</span>
+                <span>10s</span>
               </div>
             </div>
 
-            {/* Auto-calculated End Time (subtle) */}
+            {/* End Time - auto-calculated readonly */}
             <div className="flex items-center justify-between pt-2">
-              <span className="text-[12px] text-muted-foreground">End Time (auto)</span>
-              <span className="text-[12px] text-muted-foreground">
+              <span className="text-[12px] text-[#999999]">End Time (auto)</span>
+              <span className="text-[12px] text-[#999999]">
                 {endTime.toFixed(1)}s
               </span>
             </div>
           </section>
 
-          {/* Section 6: Countdown */}
+          {/* Section 6: Countdown Timer - Simplified */}
           <section>
-            <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            <h3 className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
               Countdown Timer
             </h3>
             
             {/* Toggle */}
-            <div className="flex items-center justify-between py-3 border-b border-border">
-              <div className="flex flex-col">
-                <span className="text-[14px] font-medium text-foreground">Enable Countdown</span>
-                <span className="text-[12px] text-muted-foreground">Show urgency timer on hotspot</span>
+            <div className="flex items-center justify-between py-3 border-b border-[#EBEBEB]">
+              <div>
+                <span className="text-[14px] font-medium text-[#111111] block">Show countdown timer</span>
+                <span className="text-[12px] text-[#888888]">Counts down hotspot duration</span>
               </div>
               <Switch
                 checked={countdownActive}
@@ -485,53 +462,13 @@ const LayoutBehaviorSheet = ({
               />
             </div>
 
-            {/* Countdown Settings (only show when active) */}
+            {/* Settings (only show when active) */}
             {countdownActive && (
               <div className="pt-4 space-y-4">
-                {/* Mode Selection */}
+                {/* Style - pill buttons */}
                 <div>
-                  <span className="text-[12px] text-muted-foreground mb-2 block">Mode</span>
-                  <div className="flex p-1 rounded-full bg-muted border border-border">
-                    {[
-                      { value: "fixed-end" as CountdownMode, label: "Fixed End" },
-                      { value: "evergreen" as CountdownMode, label: "Evergreen" },
-                    ].map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => !isDisabled && setCountdownMode(option.value)}
-                        disabled={isDisabled}
-                        className={cn(
-                          "flex-1 py-2 text-[13px] font-medium rounded-full transition-all duration-150 min-h-[40px]",
-                          countdownMode === option.value
-                            ? "bg-background text-foreground shadow-sm"
-                            : "text-muted-foreground hover:text-foreground",
-                          isDisabled && "opacity-50 cursor-not-allowed"
-                        )}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* End Time Input (only for fixed-end mode) */}
-                {countdownMode === "fixed-end" && (
-                  <div>
-                    <span className="text-[12px] text-muted-foreground mb-2 block">End Date & Time</span>
-                    <Input
-                      type="datetime-local"
-                      value={countdownEndTime}
-                      onChange={(e) => setCountdownEndTime(e.target.value)}
-                      disabled={isDisabled}
-                      className="h-12 text-[15px] bg-background border-border text-foreground rounded-xl"
-                    />
-                  </div>
-                )}
-
-                {/* Style Selection */}
-                <div>
-                  <span className="text-[12px] text-muted-foreground mb-2 block">Style</span>
-                  <div className="flex p-1 rounded-full bg-muted border border-border">
+                  <span className="text-[12px] text-[#888888] mb-2 block">Style</span>
+                  <div className="flex gap-2">
                     {[
                       { value: "light" as CountdownStyle, label: "Light" },
                       { value: "bold" as CountdownStyle, label: "Bold" },
@@ -541,10 +478,10 @@ const LayoutBehaviorSheet = ({
                         onClick={() => !isDisabled && setCountdownStyle(option.value)}
                         disabled={isDisabled}
                         className={cn(
-                          "flex-1 py-2 text-[13px] font-medium rounded-full transition-all duration-150 min-h-[40px]",
+                          "flex-1 py-2.5 text-[13px] font-medium rounded-full border transition-all min-h-[44px]",
                           countdownStyle === option.value
-                            ? "bg-background text-foreground shadow-sm"
-                            : "text-muted-foreground hover:text-foreground",
+                            ? "bg-primary text-white border-primary"
+                            : "bg-white text-[#666666] border-[#E0E0E0] hover:border-[#CCCCCC]",
                           isDisabled && "opacity-50 cursor-not-allowed"
                         )}
                       >
@@ -554,10 +491,10 @@ const LayoutBehaviorSheet = ({
                   </div>
                 </div>
 
-                {/* Position Selection */}
+                {/* Position - pill buttons */}
                 <div>
-                  <span className="text-[12px] text-muted-foreground mb-2 block">Position</span>
-                  <div className="flex p-1 rounded-full bg-muted border border-border">
+                  <span className="text-[12px] text-[#888888] mb-2 block">Position</span>
+                  <div className="flex gap-2">
                     {[
                       { value: "above" as CountdownPosition, label: "Above" },
                       { value: "below" as CountdownPosition, label: "Below" },
@@ -568,10 +505,10 @@ const LayoutBehaviorSheet = ({
                         onClick={() => !isDisabled && setCountdownPosition(option.value)}
                         disabled={isDisabled}
                         className={cn(
-                          "flex-1 py-2 text-[13px] font-medium rounded-full transition-all duration-150 min-h-[40px]",
+                          "flex-1 py-2.5 text-[13px] font-medium rounded-full border transition-all min-h-[44px]",
                           countdownPosition === option.value
-                            ? "bg-background text-foreground shadow-sm"
-                            : "text-muted-foreground hover:text-foreground",
+                            ? "bg-primary text-white border-primary"
+                            : "bg-white text-[#666666] border-[#E0E0E0] hover:border-[#CCCCCC]",
                           isDisabled && "opacity-50 cursor-not-allowed"
                         )}
                       >
@@ -585,22 +522,23 @@ const LayoutBehaviorSheet = ({
           </section>
         </div>
 
-        {/* Sticky Footer */}
-        <div className="sticky bottom-0 left-0 right-0 p-5 pt-4 pb-8 bg-white border-t border-[#EBEBEB] flex gap-3">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            className="flex-1 h-12 rounded-xl text-[15px] font-medium border-border"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={isDisabled}
-            className="flex-1 h-12 rounded-xl text-[15px] font-medium bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            Save Changes
-          </Button>
+        {/* Sticky Footer - Matching Product Sheet */}
+        <div className="border-t border-[#EBEBEB] p-4 pb-safe-plus bg-white shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleCancel}
+              className="text-[15px] font-medium text-[#666666] hover:text-[#333333] transition-colors px-2"
+            >
+              Cancel
+            </button>
+            <Button
+              onClick={handleSave}
+              disabled={isDisabled}
+              className="flex-1 h-12 rounded-xl text-[15px] font-medium bg-primary text-white hover:bg-primary/90"
+            >
+              Save changes
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

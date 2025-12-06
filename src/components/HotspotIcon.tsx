@@ -191,57 +191,6 @@ const HotspotIcon = ({
     );
   }
 
-  // Luxury Black Glass
-  // Dark frosted glass with white text
-  if (style === "luxury-black-glass") {
-    return (
-      <div
-        className="flex flex-col items-start animate-luxury-enter"
-        style={{ 
-          transform: `scale(${scale})`,
-          padding: "14px 20px",
-          borderRadius: "18px",
-          background: "rgba(0,0,0,0.55)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,0.12)",
-          boxShadow: "0 4px 18px rgba(0,0,0,0.45)",
-          minWidth: "160px",
-        }}
-      >
-        {/* Title */}
-        <span 
-          className="font-semibold truncate w-full"
-          style={{ 
-            fontSize: "15px", 
-            color: "#FFFFFF",
-            lineHeight: "1.3"
-          }}
-        >
-          {ctaLabel}
-        </span>
-        
-        {/* Price row with arrow */}
-        <div className="flex items-center justify-between w-full mt-1">
-          <span 
-            className="font-medium"
-            style={{ 
-              fontSize: "14px", 
-              color: "rgba(255,255,255,0.85)" 
-            }}
-          >
-            {price || "$0"}
-          </span>
-          <ArrowRight 
-            className="w-4 h-4 ml-2" 
-            style={{ color: "#FFFFFF" }} 
-            strokeWidth={1.5}
-          />
-        </div>
-      </div>
-    );
-  }
-
   // Luxury Fine Line
   // Minimal thin outline, transparent background
   if (style === "luxury-fine-line") {
@@ -290,18 +239,19 @@ const HotspotIcon = ({
     );
   }
 
-  // Luxury Editorial
-  // White background with serif typography
-  if (style === "luxury-editorial") {
+  // Luxury Elegance Card
+  // White/ivory background with serif typography, elegant underline CTA
+  if (style === "luxury-elegance-card") {
     return (
       <div
         className="flex flex-col items-start animate-luxury-enter"
         style={{ 
           transform: `scale(${scale})`,
-          padding: "12px 16px",
-          borderRadius: "12px",
-          background: "rgba(255,255,255,0.85)",
-          minWidth: "160px",
+          padding: "14px 18px",
+          borderRadius: "14px",
+          background: "rgba(255,252,248,0.95)",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+          minWidth: "170px",
         }}
       >
         {/* Title - Playfair Display */}
@@ -311,79 +261,122 @@ const HotspotIcon = ({
             fontFamily: "'Playfair Display', serif",
             fontWeight: 500,
             fontSize: "16px", 
-            color: "#000000",
+            color: "#1A1A1A",
             lineHeight: "1.3"
           }}
         >
           {ctaLabel}
         </span>
         
-        {/* Price row with arrow */}
-        <div className="flex items-center justify-between w-full mt-1">
+        {/* Price */}
+        <span 
+          className="font-medium mt-1"
+          style={{ 
+            fontSize: "14px", 
+            color: "#666666" 
+          }}
+        >
+          {price || "$0"}
+        </span>
+        
+        {/* Elegant underline CTA */}
+        <div 
+          className="flex items-center gap-1.5 mt-2 pt-2"
+          style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }}
+        >
           <span 
-            className="font-medium"
             style={{ 
-              fontSize: "15px", 
-              color: "#111111" 
+              fontFamily: "'Playfair Display', serif",
+              fontStyle: "italic",
+              fontSize: "13px", 
+              color: "#333333" 
             }}
           >
-            {price || "$0"}
+            Discover
           </span>
-          <div className="flex items-center gap-1">
-            <span 
-              style={{ 
-                fontFamily: "'Playfair Display', serif",
-                fontStyle: "italic",
-                fontSize: "14px", 
-                color: "#000000" 
-              }}
-            >
-              Shop Now
-            </span>
-            <ArrowRight 
-              className="w-3.5 h-3.5" 
-              style={{ color: "#000000" }} 
-              strokeWidth={1.5}
-            />
-          </div>
+          <ArrowRight 
+            className="w-3 h-3" 
+            style={{ color: "#333333" }} 
+            strokeWidth={1.5}
+          />
         </div>
       </div>
     );
   }
 
-  // Seasonal Standard
-  // White pill with blue gift icon accent
-  if (style === "seasonal-standard") {
+  // Luxury Dot
+  // Minimal pulsing dot with label
+  if (style === "luxury-dot") {
+    return (
+      <div
+        className="flex items-center gap-2 animate-luxury-enter"
+        style={{ 
+          transform: `scale(${scale})`,
+        }}
+      >
+        {/* Pulsing dot */}
+        <div 
+          className="relative flex items-center justify-center"
+          style={{ width: "12px", height: "12px" }}
+        >
+          <div 
+            className="absolute w-full h-full rounded-full animate-luxury-dot-pulse"
+            style={{ backgroundColor: "rgba(255,255,255,0.3)" }}
+          />
+          <div 
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: "#FFFFFF" }}
+          />
+        </div>
+        
+        {/* Label */}
+        <span 
+          className="font-medium"
+          style={{ 
+            fontSize: "13px", 
+            color: "rgba(255,255,255,0.9)",
+            letterSpacing: "0.02em"
+          }}
+        >
+          {ctaLabel}
+        </span>
+      </div>
+    );
+  }
+
+  // Seasonal Valentine
+  // Soft pink/rose with heart icon
+  if (style === "seasonal-valentine") {
     return (
       <div
         className="flex items-center gap-2 px-3 py-2 rounded-full shadow-md"
         style={{ 
           transform: `scale(${scale})`,
-          backgroundColor: "#FFFFFF",
-          border: "1px solid rgba(0,0,0,0.08)"
+          backgroundColor: "#FFF0F3",
+          border: "1px solid rgba(236,72,153,0.2)"
         }}
       >
-        {/* Gift icon circle */}
+        {/* Heart icon circle */}
         <div 
           className="w-5 h-5 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: "#E8F0FE" }}
+          style={{ backgroundColor: "#FBCFE8" }}
         >
-          <Gift className="w-3 h-3" style={{ color: "#1A73E8" }} />
+          <Heart className="w-3 h-3" style={{ color: "#EC4899" }} />
         </div>
         
         {/* CTA Label */}
-        <span className="text-[13px] font-semibold whitespace-nowrap" style={{ color: "#1A1A1A" }}>
+        <span className="text-[13px] font-semibold whitespace-nowrap" style={{ color: "#BE185D" }}>
           {ctaLabel}
         </span>
         
         {/* Arrow */}
-        <ArrowRight className="w-3.5 h-3.5" style={{ color: "#1A73E8" }} />
+        <ArrowRight className="w-3.5 h-3.5" style={{ color: "#EC4899" }} />
       </div>
     );
   }
 
   // Seasonal Easter
-  // Warm pastel with egg/sparkles icon
+  // Warm pastel with sparkles icon
   if (style === "seasonal-easter") {
     return (
       <div
@@ -409,37 +402,6 @@ const HotspotIcon = ({
         
         {/* Arrow */}
         <ArrowRight className="w-3.5 h-3.5" style={{ color: "#FFB74D" }} />
-      </div>
-    );
-  }
-
-  // Seasonal Mother's Day
-  // Soft rose with heart icon
-  if (style === "seasonal-mothers-day") {
-    return (
-      <div
-        className="flex items-center gap-2 px-3 py-2 rounded-full shadow-md"
-        style={{ 
-          transform: `scale(${scale})`,
-          backgroundColor: "#FFE6EC",
-          border: "1px solid rgba(233,30,99,0.15)"
-        }}
-      >
-        {/* Heart icon circle */}
-        <div 
-          className="w-5 h-5 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: "#F8BBD0" }}
-        >
-          <Heart className="w-3 h-3" style={{ color: "#E91E63" }} />
-        </div>
-        
-        {/* CTA Label */}
-        <span className="text-[13px] font-semibold whitespace-nowrap" style={{ color: "#AD1457" }}>
-          {ctaLabel}
-        </span>
-        
-        {/* Arrow */}
-        <ArrowRight className="w-3.5 h-3.5" style={{ color: "#E91E63" }} />
       </div>
     );
   }
