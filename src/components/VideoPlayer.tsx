@@ -358,9 +358,16 @@ const VideoPlayer = ({
     );
     
     // Clamp to safe zone using pixel-accurate calculation
-    const { x, y } = clampHotspotCenterToSafeZone(
+    const { x, y, wasConstrained } = clampHotspotCenterToSafeZone(
       rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
     );
+    
+    // Debug logging
+    console.log('[Drag] raw:', rawX.toFixed(3), rawY.toFixed(3), 
+      '-> clamped:', x.toFixed(3), y.toFixed(3),
+      'hotspotSize:', width.toFixed(0), height.toFixed(0),
+      'container:', rect.width.toFixed(0), rect.height.toFixed(0),
+      'constrained:', wasConstrained);
     
     onUpdateHotspotPosition(draggingHotspot.id, x, y);
     setDidDrag(true);
