@@ -141,13 +141,11 @@ const VideoPlayer = ({
       
       if (!hotspot || !measured) return;
       
-      // Clamp using actual measured dimensions multiplied by scale
-      const scaledWidth = measured.width * (hotspot.scale || 1);
-      const scaledHeight = measured.height * (hotspot.scale || 1);
-      
+      // getBoundingClientRect already includes CSS transforms (scale), so don't multiply again
+      // The measured dimensions are the actual visual pixel size
       const { x, y, wasConstrained } = clampWithMeasuredDimensions(
         hotspot.x, hotspot.y,
-        scaledWidth, scaledHeight,
+        measured.width, measured.height,
         rect.width, rect.height,
         'vertical_social'
       );
@@ -419,14 +417,12 @@ const VideoPlayer = ({
     const rawX = (e.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
     const rawY = (e.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
     
-    // Use MEASURED dimensions from DOM, multiplied by scale
+    // Use MEASURED dimensions from DOM - getBoundingClientRect already includes scale
     const measured = hotspotDimensionsRef.current.get(hotspot.id);
-    const baseWidth = measured?.width ?? 150;
-    const baseHeight = measured?.height ?? 80;
-    const width = baseWidth * (hotspot.scale || 1);
-    const height = baseHeight * (hotspot.scale || 1);
+    const width = measured?.width ?? 150;
+    const height = measured?.height ?? 80;
     
-    // Clamp to safe zone using scaled pixel dimensions
+    // Clamp to safe zone using actual pixel dimensions
     const { x, y } = clampWithMeasuredDimensions(
       rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
     );
@@ -451,14 +447,12 @@ const VideoPlayer = ({
     const rawX = (touch.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
     const rawY = (touch.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
     
-    // Use MEASURED dimensions from DOM, multiplied by scale
+    // Use MEASURED dimensions from DOM - getBoundingClientRect already includes scale
     const measured = hotspotDimensionsRef.current.get(hotspot.id);
-    const baseWidth = measured?.width ?? 150;
-    const baseHeight = measured?.height ?? 80;
-    const width = baseWidth * (hotspot.scale || 1);
-    const height = baseHeight * (hotspot.scale || 1);
+    const width = measured?.width ?? 150;
+    const height = measured?.height ?? 80;
     
-    // Clamp to safe zone using scaled pixel dimensions
+    // Clamp to safe zone using actual pixel dimensions
     const { x, y } = clampWithMeasuredDimensions(
       rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
     );
