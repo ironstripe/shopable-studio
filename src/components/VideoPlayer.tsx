@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import { Hotspot, Product, VideoCTA as VideoCTAType, VERTICAL_SOCIAL_SAFE_ZONE } from "@/types/video";
+import { Hotspot, Product, VideoCTA as VideoCTAType } from "@/types/video";
 import VideoHotspot from "./VideoHotspot";
 import ProductCard from "./ProductCard";
 import HotspotInlineEditor from "./HotspotInlineEditor";
@@ -12,9 +12,8 @@ import { Loader2 } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
 import { 
   isPointInSafeZone, 
-  clampHotspotCenterToSafeZone, 
+  clampHotspotPercentage, 
   getMaxScaleInSafeZone,
-  clampWithMeasuredDimensions
 } from "@/utils/safe-zone";
 
 interface VideoPlayerProps {
@@ -143,7 +142,7 @@ const VideoPlayer = ({
       
       // getBoundingClientRect already includes CSS transforms (scale), so don't multiply again
       // The measured dimensions are the actual visual pixel size
-      const { x, y, wasConstrained } = clampWithMeasuredDimensions(
+      const { x, y, wasConstrained } = clampHotspotPercentage(
         hotspot.x, hotspot.y,
         measured.width, measured.height,
         rect.width, rect.height,
@@ -299,7 +298,7 @@ const VideoPlayer = ({
     const fallbackSize = 60; // Larger fallback for safety
     
     // Clamp to safe zone using fallback (will re-clamp after DOM measurement)
-    const { x: safeX, y: safeY } = clampHotspotCenterToSafeZone(
+    const { x: safeX, y: safeY } = clampHotspotPercentage(
       x, y, fallbackSize, fallbackSize, rect.width, rect.height, 'vertical_social'
     );
 
@@ -345,7 +344,7 @@ const VideoPlayer = ({
     const fallbackSize = 60;
     
     // Clamp to safe zone using fallback (will re-clamp after DOM measurement)
-    const { x: safeX, y: safeY } = clampHotspotCenterToSafeZone(
+    const { x: safeX, y: safeY } = clampHotspotPercentage(
       x, y, fallbackSize, fallbackSize, rect.width, rect.height, 'vertical_social'
     );
 
@@ -423,7 +422,7 @@ const VideoPlayer = ({
     const height = measured?.height ?? 80;
     
     // Clamp to safe zone using actual pixel dimensions
-    const { x, y } = clampWithMeasuredDimensions(
+    const { x, y } = clampHotspotPercentage(
       rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
     );
     
@@ -453,7 +452,7 @@ const VideoPlayer = ({
     const height = measured?.height ?? 80;
     
     // Clamp to safe zone using actual pixel dimensions
-    const { x, y } = clampWithMeasuredDimensions(
+    const { x, y } = clampHotspotPercentage(
       rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
     );
     
@@ -797,7 +796,7 @@ const VideoPlayer = ({
 
           {/* Safe Zone Overlay - Edit mode only, when video is ready */}
           {videoSrc && isVideoReady && !isPreviewMode && showSafeZones && (
-            <SafeZoneOverlay safeZone={VERTICAL_SOCIAL_SAFE_ZONE} />
+            <SafeZoneOverlay />
           )}
 
           {/* Zero-hotspots placement hint overlay - only when video is ready */}

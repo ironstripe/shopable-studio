@@ -1,9 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { Hotspot, HotspotStyle, CardStyle, ClickBehavior } from "@/types/video";
-import { SafeZonePreset, getSafeRect } from "@/utils/safe-zone";
 
 export interface UseHotspotsOptions {
-  safeZonePreset?: SafeZonePreset;
   defaultStyle?: HotspotStyle;
   defaultDuration?: number;
 }
@@ -30,11 +28,17 @@ export interface UseHotspotsReturn {
 }
 
 const DEFAULT_OPTIONS: Required<UseHotspotsOptions> = {
-  safeZonePreset: 'vertical_social',
   defaultStyle: "ecommerce-light-card",
   defaultDuration: 3,
 };
 
+/**
+ * useHotspots hook - manages hotspot state.
+ * 
+ * IMPORTANT: This hook does NOT perform safe zone clamping.
+ * All clamping happens in VideoPlayer.tsx using pixel-accurate measurements.
+ * The hook stores raw positions; VideoPlayer clamps before calling updateHotspotPosition.
+ */
 export function useHotspots(
   initialHotspots: Hotspot[] = [],
   options: UseHotspotsOptions = {}
@@ -50,28 +54,16 @@ export function useHotspots(
     return hotspots.find(h => h.id === selectedHotspotId) ?? null;
   }, [hotspots, selectedHotspotId]);
 
-  // Simple clamp to safe zone boundaries (percentage-based, for hook usage)
-  const simpleClampPosition = useCallback((x: number, y: number): { x: number; y: number } => {
-    const safe = getSafeRect(opts.safeZonePreset);
-    return {
-      x: Math.max(safe.left, Math.min(safe.right, x)),
-      y: Math.max(safe.top, Math.min(safe.bottom, y)),
-    };
-  }, [opts.safeZonePreset]);
-
-  // CREATE
+  // CREATE - no clamping here, clamping happens in VideoPlayer with measured dimensions
   const addHotspot = useCallback((x: number, y: number, time: number): Hotspot => {
     const defaultScale = 1;
-    
-    // Basic clamp to safe zone (pixel-accurate clamping happens in VideoPlayer)
-    const { x: safeX, y: safeY } = simpleClampPosition(x, y);
 
     const newHotspot: Hotspot = {
       id: `hotspot-${Date.now()}`,
       timeStart: time,
       timeEnd: time + opts.defaultDuration,
-      x: safeX,
-      y: safeY,
+      x: x,
+      y: y,
       productId: null,
       style: opts.defaultStyle,
       ctaLabel: "Shop Now",
@@ -85,7 +77,7 @@ export function useHotspots(
     setSelectedHotspotId(newHotspot.id);
     
     return newHotspot;
-  }, [simpleClampPosition, opts.defaultStyle, opts.defaultDuration]);
+  }, [opts.defaultStyle, opts.defaultDuration]);
 
   // UPDATE
   const updateHotspot = useCallback((updated: Partial<Hotspot> & { id: string }) => {
@@ -122,7 +114,7 @@ export function useHotspots(
     setSelectedHotspotId(null);
   }, []);
 
-  // UPDATE POSITION (simple clamp - pixel-accurate clamping in VideoPlayer)
+  // UPDATE POSITION - stores raw position, clamping already done by caller
   const updateHotspotPosition = useCallback((id: string, x: number, y: number) => {
     setHotspots(prev => prev.map(h => h.id === id ? { ...h, x, y } : h));
   }, []);

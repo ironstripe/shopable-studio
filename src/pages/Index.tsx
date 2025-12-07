@@ -29,16 +29,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useFTUX } from "@/hooks/use-ftux";
 import { useHotspots } from "@/hooks/use-hotspots";
 import { useLocale } from "@/lib/i18n";
-import { SafeZonePreset } from "@/utils/safe-zone";
 import shopableLogo from "@/assets/shopable-logo.png";
 
 const Index = () => {
   const isMobile = useIsMobile();
   const { t } = useLocale();
   const { step: ftuxStep, isComplete: ftuxComplete, advanceStep, completeFTUX } = useFTUX();
-  
-  // Active safe zone preset
-  const activeSafeZonePreset: SafeZonePreset = 'vertical_social';
   
   // Centralized hotspot management via hook
   const {
@@ -53,7 +49,7 @@ const Index = () => {
     updateHotspotPosition,
     updateHotspotScale,
     setHotspots,
-  } = useHotspots([], { safeZonePreset: activeSafeZonePreset });
+  } = useHotspots([]);
   
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>("edit");
