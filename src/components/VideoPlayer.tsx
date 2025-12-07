@@ -9,7 +9,12 @@ import SafeZoneOverlay from "./SafeZoneOverlay";
 import TapIndicator from "./TapIndicator";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
-import { isPointInSafeZone, clampPositionToSafeZone } from "@/utils/safe-zone";
+import { 
+  isPointInSafeZone, 
+  clampHotspotCenterToSafeZone, 
+  getHotspotPixelDimensions,
+  getMaxScaleInSafeZone 
+} from "@/utils/safe-zone";
 
 interface VideoPlayerProps {
   videoSrc: string | null;
@@ -225,8 +230,13 @@ const VideoPlayer = ({
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
 
-    // Clamp to safe zone
-    const { x: safeX, y: safeY } = clampPositionToSafeZone(x, y, 1, 'vertical_social');
+    // Get dimensions for unassigned hotspot (no product yet) at default scale
+    const { width, height } = getHotspotPixelDimensions("ecommerce-light-card", 1, false);
+    
+    // Clamp to safe zone using pixel-accurate calculation
+    const { x: safeX, y: safeY } = clampHotspotCenterToSafeZone(
+      x, y, width, height, rect.width, rect.height, 'vertical_social'
+    );
 
     // Add tap indicator at click position (pixel coords)
     const pixelX = e.clientX - rect.left;
@@ -266,8 +276,13 @@ const VideoPlayer = ({
     const x = (touch.clientX - rect.left) / rect.width;
     const y = (touch.clientY - rect.top) / rect.height;
 
-    // Clamp to safe zone
-    const { x: safeX, y: safeY } = clampPositionToSafeZone(x, y, 1, 'vertical_social');
+    // Get dimensions for unassigned hotspot (no product yet) at default scale
+    const { width, height } = getHotspotPixelDimensions("ecommerce-light-card", 1, false);
+    
+    // Clamp to safe zone using pixel-accurate calculation
+    const { x: safeX, y: safeY } = clampHotspotCenterToSafeZone(
+      x, y, width, height, rect.width, rect.height, 'vertical_social'
+    );
 
     // Add tap indicator at touch position with offset above thumb
     const pixelX = touch.clientX - rect.left;
@@ -329,7 +344,7 @@ const VideoPlayer = ({
   const handleDragMove = (e: MouseEvent) => {
     if (!draggingHotspot || !containerRef.current) return;
     
-    // Find the hotspot to get its actual scale
+    // Find the hotspot to get its actual scale and style
     const hotspot = hotspots.find(h => h.id === draggingHotspot.id);
     if (!hotspot) return;
     
@@ -337,8 +352,15 @@ const VideoPlayer = ({
     const rawX = (e.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
     const rawY = (e.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
     
-    // Clamp to safe zone during drag using actual hotspot scale
-    const { x, y } = clampPositionToSafeZone(rawX, rawY, hotspot.scale, 'vertical_social');
+    // Get actual hotspot dimensions
+    const { width, height } = getHotspotPixelDimensions(
+      hotspot.style, hotspot.scale, !!hotspot.productId
+    );
+    
+    // Clamp to safe zone using pixel-accurate calculation
+    const { x, y } = clampHotspotCenterToSafeZone(
+      rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
+    );
     
     onUpdateHotspotPosition(draggingHotspot.id, x, y);
     setDidDrag(true);
@@ -349,7 +371,7 @@ const VideoPlayer = ({
     
     e.preventDefault(); // Prevent scroll while dragging
     
-    // Find the hotspot to get its actual scale
+    // Find the hotspot to get its actual scale and style
     const hotspot = hotspots.find(h => h.id === draggingHotspot.id);
     if (!hotspot) return;
     
@@ -360,8 +382,15 @@ const VideoPlayer = ({
     const rawX = (touch.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
     const rawY = (touch.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
     
-    // Clamp to safe zone during drag using actual hotspot scale
-    const { x, y } = clampPositionToSafeZone(rawX, rawY, hotspot.scale, 'vertical_social');
+    // Get actual hotspot dimensions
+    const { width, height } = getHotspotPixelDimensions(
+      hotspot.style, hotspot.scale, !!hotspot.productId
+    );
+    
+    // Clamp to safe zone using pixel-accurate calculation
+    const { x, y } = clampHotspotCenterToSafeZone(
+      rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
+    );
     
     onUpdateHotspotPosition(draggingHotspot.id, x, y);
     setDidDrag(true);
@@ -439,21 +468,29 @@ const VideoPlayer = ({
 
   const handleResizeMove = useCallback((e: MouseEvent) => {
     const currentResizing = resizingHotspotRef.current;
-    if (!currentResizing) return;
+    if (!currentResizing || !containerRef.current) return;
     
     const hotspot = hotspotsRef.current.find(h => h.id === currentResizing.id);
     if (!hotspot) return;
     
+    const rect = containerRef.current.getBoundingClientRect();
     const currentDistance = getDistanceFromCenter(hotspot, e.clientX, e.clientY);
     const scaleRatio = currentDistance / currentResizing.initialDistance;
-    const newScale = Math.min(2, Math.max(0.5, currentResizing.initialScale * scaleRatio));
+    let newScale = Math.min(2, Math.max(0.5, currentResizing.initialScale * scaleRatio));
+    
+    // Clamp scale to what fits in safe zone at current position
+    const maxScale = getMaxScaleInSafeZone(
+      hotspot.x, hotspot.y, hotspot.style, !!hotspot.productId,
+      rect.width, rect.height, 'vertical_social'
+    );
+    newScale = Math.min(newScale, maxScale);
     
     onUpdateHotspotScale(currentResizing.id, newScale);
   }, [onUpdateHotspotScale, getDistanceFromCenter]);
 
   const handleTouchResizeMove = useCallback((e: TouchEvent) => {
     const currentResizing = resizingHotspotRef.current;
-    if (!currentResizing) return;
+    if (!currentResizing || !containerRef.current) return;
     
     e.preventDefault();
     
@@ -463,9 +500,17 @@ const VideoPlayer = ({
     const hotspot = hotspotsRef.current.find(h => h.id === currentResizing.id);
     if (!hotspot) return;
     
+    const rect = containerRef.current.getBoundingClientRect();
     const currentDistance = getDistanceFromCenter(hotspot, touch.clientX, touch.clientY);
     const scaleRatio = currentDistance / currentResizing.initialDistance;
-    const newScale = Math.min(2, Math.max(0.5, currentResizing.initialScale * scaleRatio));
+    let newScale = Math.min(2, Math.max(0.5, currentResizing.initialScale * scaleRatio));
+    
+    // Clamp scale to what fits in safe zone at current position
+    const maxScale = getMaxScaleInSafeZone(
+      hotspot.x, hotspot.y, hotspot.style, !!hotspot.productId,
+      rect.width, rect.height, 'vertical_social'
+    );
+    newScale = Math.min(newScale, maxScale);
     
     onUpdateHotspotScale(currentResizing.id, newScale);
   }, [onUpdateHotspotScale, getDistanceFromCenter]);

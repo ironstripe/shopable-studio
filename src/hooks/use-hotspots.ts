@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { Hotspot, HotspotStyle, CardStyle, ClickBehavior } from "@/types/video";
-import { clampPositionToSafeZone, clampHotspotToSafeZone, getHotspotDimensions, getMaxScaleAtPosition, SafeZonePreset, SAFE_ZONE_CONFIG } from "@/utils/safe-zone";
+import { SafeZonePreset, getSafeRect } from "@/utils/safe-zone";
 
 export interface UseHotspotsOptions {
   safeZonePreset?: SafeZonePreset;
@@ -21,7 +21,7 @@ export interface UseHotspotsReturn {
   selectHotspot: (id: string | null) => void;
   clearHotspots: () => void;
   
-  // Position/Scale helpers (with safe zone clamping)
+  // Position/Scale helpers
   updateHotspotPosition: (id: string, x: number, y: number) => void;
   updateHotspotScale: (id: string, scale: number) => void;
   
@@ -50,14 +50,21 @@ export function useHotspots(
     return hotspots.find(h => h.id === selectedHotspotId) ?? null;
   }, [hotspots, selectedHotspotId]);
 
+  // Simple clamp to safe zone boundaries (percentage-based, for hook usage)
+  const simpleClampPosition = useCallback((x: number, y: number): { x: number; y: number } => {
+    const safe = getSafeRect(opts.safeZonePreset);
+    return {
+      x: Math.max(safe.left, Math.min(safe.right, x)),
+      y: Math.max(safe.top, Math.min(safe.bottom, y)),
+    };
+  }, [opts.safeZonePreset]);
+
   // CREATE
   const addHotspot = useCallback((x: number, y: number, time: number): Hotspot => {
     const defaultScale = 1;
     
-    // Clamp to safe zone
-    const { x: safeX, y: safeY } = clampPositionToSafeZone(
-      x, y, defaultScale, opts.safeZonePreset
-    );
+    // Basic clamp to safe zone (pixel-accurate clamping happens in VideoPlayer)
+    const { x: safeX, y: safeY } = simpleClampPosition(x, y);
 
     const newHotspot: Hotspot = {
       id: `hotspot-${Date.now()}`,
@@ -78,7 +85,7 @@ export function useHotspots(
     setSelectedHotspotId(newHotspot.id);
     
     return newHotspot;
-  }, [opts.safeZonePreset, opts.defaultStyle, opts.defaultDuration]);
+  }, [simpleClampPosition, opts.defaultStyle, opts.defaultDuration]);
 
   // UPDATE
   const updateHotspot = useCallback((updated: Partial<Hotspot> & { id: string }) => {
@@ -115,50 +122,16 @@ export function useHotspots(
     setSelectedHotspotId(null);
   }, []);
 
-  // UPDATE POSITION (with safe zone clamping)
+  // UPDATE POSITION (simple clamp - pixel-accurate clamping in VideoPlayer)
   const updateHotspotPosition = useCallback((id: string, x: number, y: number) => {
-    setHotspots(prev => {
-      const hotspot = prev.find(h => h.id === id);
-      if (!hotspot) return prev;
-      
-      const { x: safeX, y: safeY } = clampPositionToSafeZone(
-        x, y, hotspot.scale, opts.safeZonePreset
-      );
-      
-      return prev.map(h => h.id === id ? { ...h, x: safeX, y: safeY } : h);
-    });
-  }, [opts.safeZonePreset]);
+    setHotspots(prev => prev.map(h => h.id === id ? { ...h, x, y } : h));
+  }, []);
 
-  // UPDATE SCALE (with safe zone clamping and position adjustment)
+  // UPDATE SCALE
   const updateHotspotScale = useCallback((id: string, scale: number) => {
-    setHotspots(prev => {
-      const hotspot = prev.find(h => h.id === id);
-      if (!hotspot) return prev;
-      
-      // Clamp scale to valid range first
-      const clampedScale = Math.min(2, Math.max(0.5, scale));
-      
-      // Get hotspot dimensions at new scale
-      const { width, height } = getHotspotDimensions(clampedScale);
-      
-      // Clamp position + dimensions to safe zone (may adjust position)
-      const { x: newX, y: newY, width: newWidth, height: newHeight } = 
-        clampHotspotToSafeZone(hotspot.x, hotspot.y, width, height, opts.safeZonePreset);
-      
-      // If dimensions had to be reduced, recalculate scale from the reduced dimensions
-      const finalScale = Math.min(
-        newWidth / SAFE_ZONE_CONFIG.baseHotspotSize, 
-        newHeight / SAFE_ZONE_CONFIG.baseHotspotSize
-      );
-      
-      return prev.map(h => h.id === id ? { 
-        ...h, 
-        x: newX, 
-        y: newY,
-        scale: Math.min(clampedScale, Math.max(0.5, finalScale))
-      } : h);
-    });
-  }, [opts.safeZonePreset]);
+    const clampedScale = Math.min(2, Math.max(0.5, scale));
+    setHotspots(prev => prev.map(h => h.id === id ? { ...h, scale: clampedScale } : h));
+  }, []);
 
   return {
     hotspots,
