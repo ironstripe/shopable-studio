@@ -23,7 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Download, Pencil, RefreshCw } from "lucide-react";
+import { Download, Pencil, RefreshCw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -38,11 +38,16 @@ const Index = () => {
   const { t } = useLocale();
   const { step: ftuxStep, isComplete: ftuxComplete, advanceStep, completeFTUX } = useFTUX();
   
-  // Centralized hotspot management via hook
+  // Backend video state
+  const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
+  
+  // Centralized hotspot management via hook - pass videoId for backend sync
   const {
     hotspots,
     selectedHotspotId,
     selectedHotspot, // Derived, always fresh!
+    isLoading: hotspotsLoading,
+    loadError: hotspotsError,
     addHotspot: addHotspotCore,
     updateHotspot,
     deleteHotspot: deleteHotspotCore,
@@ -51,13 +56,13 @@ const Index = () => {
     updateHotspotPosition,
     updateHotspotScale,
     setHotspots,
-  } = useHotspots([]);
+    persistPositionUpdate,
+  } = useHotspots([], { videoId: currentVideoId });
   
-  // Backend video state
+  // Backend video list state
   const [videos, setVideos] = useState<VideoDto[]>([]);
   const [videosLoading, setVideosLoading] = useState(true);
   const [videosError, setVideosError] = useState<string | null>(null);
-  const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
   const [showUploadView, setShowUploadView] = useState(false);
   
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
@@ -204,6 +209,9 @@ const Index = () => {
     // End deferring state - now show toolbar
     setIsDeferringToolbar(false);
     selectHotspot(hotspotId);
+    
+    // Persist position update to backend
+    persistPositionUpdate(hotspotId);
     
     if (pendingPanelHotspotId === hotspotId) {
       // Small delay before opening product panel to avoid race conditions
@@ -503,8 +511,8 @@ const Index = () => {
 
   // FTUX computed states
   const showWelcomeOverlay = !ftuxComplete && ftuxStep === "welcome";
-  // Show placement hint when video is loaded, in edit mode, and no hotspots exist
-  const showPlacementHint = videoSrc && editorMode === "edit" && hotspots.length === 0;
+  // Show placement hint when video is loaded, hotspots are loaded, in edit mode, and no hotspots exist
+  const showPlacementHint = videoSrc && !hotspotsLoading && editorMode === "edit" && hotspots.length === 0;
   const showProductSheetHint = !ftuxComplete && ftuxStep === "productSelect";
 
   // Mobile layout
@@ -574,6 +582,7 @@ const Index = () => {
               showPlacementHint={!!showPlacementHint}
               onHotspotDragEnd={handleHotspotDragEnd}
               isDeferringToolbar={isDeferringToolbar}
+              hotspotsLoading={hotspotsLoading}
             />
           )}
         </main>
@@ -781,6 +790,7 @@ const Index = () => {
               showPlacementHint={!!showPlacementHint}
               onHotspotDragEnd={handleHotspotDragEnd}
               isDeferringToolbar={isDeferringToolbar}
+              hotspotsLoading={hotspotsLoading}
             />
           )}
         </div>
