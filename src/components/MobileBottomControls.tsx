@@ -3,6 +3,7 @@ import { Play, Pause, List, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
+import { useLocale } from "@/lib/i18n";
 
 type EditorTab = "edit" | "preview" | "hotspots";
 
@@ -38,6 +39,7 @@ const MobileBottomControls = ({
   hotspotCount = 0,
 }: MobileBottomControlsProps) => {
   const { toast } = useToast();
+  const { t } = useLocale();
   const [activeTab, setActiveTab] = useState<EditorTab>(editorMode === "preview" ? "preview" : "edit");
 
   // Sync tab with editorMode
@@ -64,17 +66,17 @@ const MobileBottomControls = ({
     if ((tab === "edit" && editorMode === "preview") || (tab === "preview" && editorMode === "edit")) {
       onToggleMode();
       toast({
-        title: tab === "edit" ? "Edit mode enabled" : "Preview mode",
-        description: tab === "edit" ? "Tap on the video to add hotspots" : "See how viewers will experience your video",
+        title: tab === "edit" ? t("editor.mode.edit") : t("editor.mode.preview"),
+        description: tab === "edit" ? t("editor.mode.editHint") : t("editor.mode.previewHint"),
         duration: 1500,
       });
     }
   };
 
   const tabs: { id: EditorTab; label: string }[] = [
-    { id: "edit", label: "Edit" },
-    { id: "preview", label: "Preview" },
-    { id: "hotspots", label: `Hotspots${hotspotCount > 0 ? ` (${hotspotCount})` : ""}` },
+    { id: "edit", label: t("editor.tabs.edit") },
+    { id: "preview", label: t("editor.tabs.preview") },
+    { id: "hotspots", label: `${t("editor.tabs.hotspots")}${hotspotCount > 0 ? ` (${hotspotCount})` : ""}` },
   ];
 
   return (

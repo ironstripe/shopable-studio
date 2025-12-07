@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronLeft, RefreshCw, Download, HelpCircle, Trash2, Settings, MoreVertical, Check } from "lucide-react";
+import { ChevronLeft, RefreshCw, Download, HelpCircle, Trash2, Settings, MoreVertical, Check, Globe } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,6 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLocale } from "@/lib/i18n";
 import shopableLogo from "@/assets/shopable-logo.png";
 
 interface MobileHeaderProps {
@@ -28,6 +29,7 @@ const MobileHeader = ({
   onBack,
   onDeleteVideo,
 }: MobileHeaderProps) => {
+  const { t, locale, setLocale } = useLocale();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(videoTitle);
   const [showSavedCheck, setShowSavedCheck] = useState(false);
@@ -45,13 +47,17 @@ const MobileHeader = ({
   }, [isEditingTitle]);
 
   const handleSaveTitle = () => {
-    const newTitle = editedTitle.trim() || "Untitled Video";
+    const newTitle = editedTitle.trim() || t("header.untitled");
     onTitleChange(newTitle);
     setIsEditingTitle(false);
     
     // Show saved checkmark animation
     setShowSavedCheck(true);
     setTimeout(() => setShowSavedCheck(false), 1500);
+  };
+
+  const toggleLanguage = () => {
+    setLocale(locale === "de" ? "en" : "de");
   };
 
   return (
@@ -116,29 +122,33 @@ const MobileHeader = ({
               <>
                 <DropdownMenuItem onClick={onExport} className="gap-2">
                   <Download className="w-4 h-4" />
-                  Export
+                  {t("header.export")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onReplaceVideo} className="gap-2">
                   <RefreshCw className="w-4 h-4" />
-                  Replace video
+                  {t("header.replace")}
                 </DropdownMenuItem>
                 {onDeleteVideo && (
                   <DropdownMenuItem onClick={onDeleteVideo} className="gap-2 text-destructive focus:text-destructive">
                     <Trash2 className="w-4 h-4" />
-                    Delete video
+                    {t("header.delete")}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem disabled className="gap-2 opacity-50">
                   <Settings className="w-4 h-4" />
-                  Video settings
+                  {t("header.settings")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
               </>
             )}
+            <DropdownMenuItem onClick={toggleLanguage} className="gap-2">
+              <Globe className="w-4 h-4" />
+              {locale === "de" ? t("app.language.en") : t("app.language.de")}
+            </DropdownMenuItem>
             <DropdownMenuItem className="gap-2">
               <HelpCircle className="w-4 h-4" />
-              Help & Feedback
+              {t("header.help")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
