@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, RefObject } from "react";
 import { createPortal } from "react-dom";
 import { Product, CardStyle } from "@/types/video";
-import { X, ArrowRight } from "lucide-react";
+import { X, ArrowRight, Tag } from "lucide-react";
 import { useSmartPosition } from "@/hooks/use-smart-position";
 
 interface ProductCardProps {
@@ -119,6 +119,14 @@ const ProductCard = ({
   // E-Commerce Light Card
   const renderEcommerceCard = () => (
     <div className="p-5 pt-4">
+      {product.promoCode && (
+        <div className="flex items-center gap-1.5 mb-3 px-2.5 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg w-fit">
+          <Tag className="w-3.5 h-3.5 text-emerald-600" />
+          <span className="text-[12px] font-semibold text-emerald-700 tracking-wide">
+            {product.promoCode}
+          </span>
+        </div>
+      )}
       <div className="flex gap-3 mb-3">
         {product.thumbnail && (
           <img
@@ -157,6 +165,14 @@ const ProductCard = ({
   // Luxury Fine Line Card
   const renderLuxuryCard = () => (
     <div className="p-6 space-y-4">
+      {product.promoCode && (
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/20 rounded-lg w-fit">
+          <Tag className="w-3.5 h-3.5 text-white/70" />
+          <span className="text-[12px] font-light tracking-widest text-white/90 uppercase">
+            {product.promoCode}
+          </span>
+        </div>
+      )}
       {product.thumbnail && (
         <img
           src={product.thumbnail}
@@ -203,6 +219,14 @@ const ProductCard = ({
         <div className={`${theme.stripBg} px-3 py-1.5 rounded-lg text-white font-semibold text-[11px] tracking-wide text-center mb-3 uppercase`}>
           {theme.stripText}
         </div>
+        {product.promoCode && (
+          <div className={`flex items-center justify-center gap-1.5 mb-3 px-3 py-1.5 ${isBlackFriday ? "bg-yellow-400/20 border-yellow-500/40" : "bg-primary/10 border-primary/30"} border rounded-lg`}>
+            <Tag className={`w-3.5 h-3.5 ${isBlackFriday ? "text-yellow-400" : "text-primary"}`} />
+            <span className={`text-[12px] font-bold tracking-wide ${isBlackFriday ? "text-yellow-400" : "text-primary"}`}>
+              {product.promoCode}
+            </span>
+          </div>
+        )}
         <div className="flex gap-3 mb-3">
           {product.thumbnail && (
             <img
