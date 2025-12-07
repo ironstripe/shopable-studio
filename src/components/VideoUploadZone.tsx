@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Plus, Link, Loader2 } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { isIOS } from "@/utils/ios-detection";
@@ -10,7 +10,6 @@ interface VideoUploadZoneProps {
 
 const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [urlInput, setUrlInput] = useState("");
   const [hasAnimated, setHasAnimated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -20,16 +19,6 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
     const timer = setTimeout(() => setHasAnimated(true), 50);
     return () => clearTimeout(timer);
   }, []);
-
-  const isValidVideoUrl = (url: string): boolean => {
-    const videoUrlPatterns = [
-      /youtube\.com\/watch\?v=/i,
-      /youtu\.be\//i,
-      /vimeo\.com\//i,
-      /\.(mp4|webm|mov|ogg)(\?.*)?$/i,
-    ];
-    return videoUrlPatterns.some((pattern) => pattern.test(url));
-  };
 
   const handleFile = (file: File) => {
     console.log('[VideoUpload] File received:', file.name, 'Type:', file.type, 'Size:', file.size);
@@ -80,19 +69,6 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
     }
   };
 
-  const handleUrlSubmit = () => {
-    const trimmedUrl = urlInput.trim();
-    if (!trimmedUrl) return;
-
-    if (isValidVideoUrl(trimmedUrl)) {
-      onVideoLoad(trimmedUrl);
-      toast.success("Video URL loaded successfully");
-      setUrlInput("");
-    } else {
-      toast.error("Please enter a valid video URL (YouTube, Vimeo, or direct MP4 link)");
-    }
-  };
-
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -123,12 +99,6 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
     const file = e.target.files?.[0];
     if (file) {
       handleFile(file);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleUrlSubmit();
     }
   };
 
@@ -185,54 +155,9 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
             {isLoading ? "Loading video..." : "Upload your video"}
           </h1>
           <p className="mt-2 text-[15px] text-neutral-500">
-            {isLoading ? "This may take a moment on mobile devices." : "Tap to upload or paste a link."}
+            {isLoading ? "This may take a moment on mobile devices." : "Tap to choose from your gallery."}
           </p>
         </div>
-
-        {/* Modern divider */}
-        {!isLoading && (
-          <div className={cn(
-            "mt-8 flex items-center justify-center",
-            hasAnimated ? "animate-fade-in" : "opacity-0"
-          )} style={{ animationDelay: "100ms" }}>
-            <span className="text-sm text-neutral-400 font-light">
-              — or paste link —
-            </span>
-          </div>
-        )}
-
-        {/* URL input field */}
-        {!isLoading && (
-          <div className={cn(
-            "mt-6 w-full",
-            hasAnimated ? "animate-fade-in" : "opacity-0"
-          )} style={{ animationDelay: "150ms" }}>
-            <div className={cn(
-              "flex items-center gap-3 h-12 px-4",
-              "bg-white/80 rounded-[14px] border border-neutral-200/80",
-              "shadow-sm transition-all duration-200",
-              "focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white focus-within:border-primary/30"
-            )}>
-              <Link className="w-[18px] h-[18px] text-neutral-400 flex-shrink-0" strokeWidth={1.5} />
-              <input
-                type="text"
-                placeholder="Paste a video URL..."
-                value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="flex-1 text-[15px] outline-none bg-transparent text-neutral-800 placeholder:text-neutral-400"
-              />
-              {urlInput && (
-                <button
-                  onClick={handleUrlSubmit}
-                  className="text-sm font-medium text-primary hover:text-primary/80 transition-colors px-2 py-1 rounded-lg hover:bg-primary/5"
-                >
-                  Load
-                </button>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
