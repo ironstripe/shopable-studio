@@ -66,7 +66,7 @@ const MobileHeader = ({
             <ChevronLeft className="w-6 h-6" />
           </button>
         ) : (
-          <img src={shopableLogo} alt="Shopable" className="h-[27px] w-auto" />
+          <img src={shopableLogo} alt="Shopable" className="h-[54px] w-auto" />
         )}
 
         {/* Center: Editable title */}
