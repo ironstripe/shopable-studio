@@ -31,7 +31,8 @@ export type UpdateHotspotPayload = Partial<CreateHotspotPayload>;
 // ========== API Functions ==========
 
 export async function listHotspots(videoId: string): Promise<HotspotDto[]> {
-  const res = await fetch(`${API_BASE_URL}/videos/${videoId}/hotspots`, {
+  const encodedVideoId = encodeURIComponent(videoId);
+  const res = await fetch(`${API_BASE_URL}/videos/${encodedVideoId}/hotspots`, {
     method: "GET",
   });
   if (!res.ok) {
@@ -44,7 +45,8 @@ export async function createHotspot(
   videoId: string,
   payload: CreateHotspotPayload
 ): Promise<HotspotDto> {
-  const res = await fetch(`${API_BASE_URL}/videos/${videoId}/hotspots`, {
+  const encodedVideoId = encodeURIComponent(videoId);
+  const res = await fetch(`${API_BASE_URL}/videos/${encodedVideoId}/hotspots`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -60,8 +62,10 @@ export async function updateHotspot(
   hotspotId: string,
   payload: UpdateHotspotPayload
 ): Promise<HotspotDto> {
+  const encodedVideoId = encodeURIComponent(videoId);
+  const encodedHotspotId = encodeURIComponent(hotspotId);
   const res = await fetch(
-    `${API_BASE_URL}/videos/${videoId}/hotspots/${hotspotId}`,
+    `${API_BASE_URL}/videos/${encodedVideoId}/hotspots/${encodedHotspotId}`,
     {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -78,8 +82,10 @@ export async function deleteHotspot(
   videoId: string,
   hotspotId: string
 ): Promise<void> {
+  const encodedVideoId = encodeURIComponent(videoId);
+  const encodedHotspotId = encodeURIComponent(hotspotId);
   const res = await fetch(
-    `${API_BASE_URL}/videos/${videoId}/hotspots/${hotspotId}`,
+    `${API_BASE_URL}/videos/${encodedVideoId}/hotspots/${encodedHotspotId}`,
     {
       method: "DELETE",
     }
