@@ -313,12 +313,16 @@ const VideoPlayer = ({
   const handleDragMove = (e: MouseEvent) => {
     if (!draggingHotspot || !containerRef.current) return;
     
+    // Find the hotspot to get its actual scale
+    const hotspot = hotspots.find(h => h.id === draggingHotspot.id);
+    if (!hotspot) return;
+    
     const rect = containerRef.current.getBoundingClientRect();
     const rawX = (e.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
     const rawY = (e.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
     
-    // Clamp to safe zone during drag
-    const { x, y } = clampPositionToSafeZone(rawX, rawY, 1, 'vertical_social');
+    // Clamp to safe zone during drag using actual hotspot scale
+    const { x, y } = clampPositionToSafeZone(rawX, rawY, hotspot.scale, 'vertical_social');
     
     onUpdateHotspotPosition(draggingHotspot.id, x, y);
     setDidDrag(true);
@@ -329,6 +333,10 @@ const VideoPlayer = ({
     
     e.preventDefault(); // Prevent scroll while dragging
     
+    // Find the hotspot to get its actual scale
+    const hotspot = hotspots.find(h => h.id === draggingHotspot.id);
+    if (!hotspot) return;
+    
     const touch = e.touches[0];
     if (!touch) return;
     
@@ -336,8 +344,8 @@ const VideoPlayer = ({
     const rawX = (touch.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
     const rawY = (touch.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
     
-    // Clamp to safe zone during drag
-    const { x, y } = clampPositionToSafeZone(rawX, rawY, 1, 'vertical_social');
+    // Clamp to safe zone during drag using actual hotspot scale
+    const { x, y } = clampPositionToSafeZone(rawX, rawY, hotspot.scale, 'vertical_social');
     
     onUpdateHotspotPosition(draggingHotspot.id, x, y);
     setDidDrag(true);

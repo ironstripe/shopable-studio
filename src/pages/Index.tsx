@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useFTUX } from "@/hooks/use-ftux";
 import { useHotspots } from "@/hooks/use-hotspots";
-import { clampPositionToSafeZone, SafeZonePreset } from "@/utils/safe-zone";
+import { clampPositionToSafeZone, clampHotspotToSafeZone, getHotspotDimensions, SafeZonePreset } from "@/utils/safe-zone";
 import shopableLogo from "@/assets/shopable-logo.png";
 
 const Index = () => {
@@ -118,6 +118,35 @@ const Index = () => {
   });
 
   const isPreviewMode = editorMode === "preview";
+
+  // Normalize existing hotspots to safe zone on load
+  useEffect(() => {
+    if (hotspots.length === 0) return;
+    
+    let needsNormalization = false;
+    const normalizedHotspots = hotspots.map(hotspot => {
+      const { width, height } = getHotspotDimensions(hotspot.scale);
+      const clamped = clampHotspotToSafeZone(
+        hotspot.x, hotspot.y, width, height, activeSafeZonePreset
+      );
+      
+      if (clamped.wasConstrained) {
+        needsNormalization = true;
+        return {
+          ...hotspot,
+          x: clamped.x,
+          y: clamped.y,
+        };
+      }
+      return hotspot;
+    });
+    
+    if (needsNormalization) {
+      setHotspots(normalizedHotspots);
+      toast.info("Some hotspots were moved into the safe zone");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount
 
   const handleVideoLoad = (src: string) => {
     setVideoSrc(src);
