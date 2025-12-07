@@ -79,13 +79,6 @@ export async function registerUpload(
   
   const data = JSON.parse(responseText);
   
-  // Validate response - if we see "items", we hit the wrong endpoint
-  if (data.items) {
-    console.error("[Uploads] ERROR: Got video list response instead of upload URL. Check backend routing!");
-    console.error("[Uploads] Called URL:", url, "Method: POST");
-    throw new Error("Backend returned video list instead of upload URL - check API routing");
-  }
-  
   if (!data.uploadUrl) {
     console.error("[Uploads] Backend did not return uploadUrl:", data);
     throw new Error("Backend did not return upload URL");
