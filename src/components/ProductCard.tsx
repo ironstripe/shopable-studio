@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef, RefObject } from "react";
 import { createPortal } from "react-dom";
 import { Product, CardStyle } from "@/types/video";
-import { X, ArrowRight, Tag } from "lucide-react";
+import { X, ArrowRight, Tag, Copy, Check } from "lucide-react";
 import { useSmartPosition } from "@/hooks/use-smart-position";
+import { toast } from "sonner";
 
 interface ProductCardProps {
   product: Product;
@@ -78,8 +79,21 @@ const ProductCard = ({
   containerRef,
 }: ProductCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const [cardDimensions, setCardDimensions] = useState({ width: 320, height: 200 });
+
+  const handleCopyPromoCode = async () => {
+    if (!product.promoCode) return;
+    try {
+      await navigator.clipboard.writeText(product.promoCode);
+      setCopied(true);
+      toast.success("Promo code copied!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
+  };
 
   // Determine card family from style
   const getCardFamily = (style: CardStyle): "ecommerce" | "luxury" | "seasonal" => {
@@ -120,12 +134,20 @@ const ProductCard = ({
   const renderEcommerceCard = () => (
     <div className="p-5 pt-4">
       {product.promoCode && (
-        <div className="flex items-center gap-1.5 mb-3 px-2.5 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg w-fit">
+        <button
+          onClick={handleCopyPromoCode}
+          className="flex items-center gap-1.5 mb-3 px-2.5 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg w-fit hover:bg-emerald-100 transition-colors cursor-pointer"
+        >
           <Tag className="w-3.5 h-3.5 text-emerald-600" />
           <span className="text-[12px] font-semibold text-emerald-700 tracking-wide">
             {product.promoCode}
           </span>
-        </div>
+          {copied ? (
+            <Check className="w-3.5 h-3.5 text-emerald-600" />
+          ) : (
+            <Copy className="w-3.5 h-3.5 text-emerald-500" />
+          )}
+        </button>
       )}
       <div className="flex gap-3 mb-3">
         {product.thumbnail && (
@@ -166,12 +188,20 @@ const ProductCard = ({
   const renderLuxuryCard = () => (
     <div className="p-6 space-y-4">
       {product.promoCode && (
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/20 rounded-lg w-fit">
+        <button
+          onClick={handleCopyPromoCode}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/20 rounded-lg w-fit hover:bg-white/20 transition-colors cursor-pointer"
+        >
           <Tag className="w-3.5 h-3.5 text-white/70" />
           <span className="text-[12px] font-light tracking-widest text-white/90 uppercase">
             {product.promoCode}
           </span>
-        </div>
+          {copied ? (
+            <Check className="w-3.5 h-3.5 text-white/90" />
+          ) : (
+            <Copy className="w-3.5 h-3.5 text-white/60" />
+          )}
+        </button>
       )}
       {product.thumbnail && (
         <img
@@ -220,12 +250,20 @@ const ProductCard = ({
           {theme.stripText}
         </div>
         {product.promoCode && (
-          <div className={`flex items-center justify-center gap-1.5 mb-3 px-3 py-1.5 ${isBlackFriday ? "bg-yellow-400/20 border-yellow-500/40" : "bg-primary/10 border-primary/30"} border rounded-lg`}>
+          <button
+            onClick={handleCopyPromoCode}
+            className={`flex items-center justify-center gap-1.5 mb-3 px-3 py-1.5 ${isBlackFriday ? "bg-yellow-400/20 border-yellow-500/40 hover:bg-yellow-400/30" : "bg-primary/10 border-primary/30 hover:bg-primary/20"} border rounded-lg transition-colors cursor-pointer`}
+          >
             <Tag className={`w-3.5 h-3.5 ${isBlackFriday ? "text-yellow-400" : "text-primary"}`} />
             <span className={`text-[12px] font-bold tracking-wide ${isBlackFriday ? "text-yellow-400" : "text-primary"}`}>
               {product.promoCode}
             </span>
-          </div>
+            {copied ? (
+              <Check className={`w-3.5 h-3.5 ${isBlackFriday ? "text-yellow-400" : "text-primary"}`} />
+            ) : (
+              <Copy className={`w-3.5 h-3.5 ${isBlackFriday ? "text-yellow-400/70" : "text-primary/70"}`} />
+            )}
+          </button>
         )}
         <div className="flex gap-3 mb-3">
           {product.thumbnail && (
