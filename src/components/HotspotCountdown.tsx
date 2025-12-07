@@ -18,57 +18,76 @@ const HotspotCountdown = ({
   const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
   const [isExpired, setIsExpired] = useState(false);
 
-  // Calculate time left for preview mode
+  // Simulated countdown for preview (counts down from a demo value)
   useEffect(() => {
-    if (!isPreviewMode || !config.active || config.mode !== "fixed-end" || !config.endTime) {
+    if (!isPreviewMode || !config.active) {
       return;
     }
 
-    const updateTimer = () => {
-      const now = new Date().getTime();
-      const end = new Date(config.endTime!).getTime();
-      const diff = end - now;
+    // Start with demo time of 2:34:12 and count down
+    let totalSeconds = 2 * 3600 + 34 * 60 + 12;
 
-      if (diff <= 0) {
+    const updateTimer = () => {
+      if (totalSeconds <= 0) {
         setIsExpired(true);
         setTimeLeft(null);
         return;
       }
 
+      totalSeconds -= 1;
       setTimeLeft({
-        hours: Math.floor(diff / (1000 * 60 * 60)),
-        minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
-        seconds: Math.floor((diff % (1000 * 60)) / 1000),
+        hours: Math.floor(totalSeconds / 3600),
+        minutes: Math.floor((totalSeconds % 3600) / 60),
+        seconds: totalSeconds % 60,
       });
     };
 
-    updateTimer();
+    // Initial set
+    setTimeLeft({
+      hours: Math.floor(totalSeconds / 3600),
+      minutes: Math.floor((totalSeconds % 3600) / 60),
+      seconds: totalSeconds % 60,
+    });
+
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [isPreviewMode, config.active, config.endTime, config.mode]);
+  }, [isPreviewMode, config.active]);
 
-  // Format time display
+  // Smart time formatting: MM:SS if < 1 hour, HH:MM:SS otherwise
   const formatTime = () => {
-    if (isExpired) return "Sale ended";
+    if (isExpired) return "Ended";
     
     // Static display for edit mode
     if (!isPreviewMode) {
-      return "02:34:12";
+      return "02:34";
     }
     
-    // Evergreen mode shows static time
-    if (config.mode === "evergreen") {
-      return "02:34:12";
-    }
+    if (!timeLeft) return "00:00";
     
-    if (!timeLeft) return "00:00:00";
-    return `${String(timeLeft.hours).padStart(2, '0')}:${String(timeLeft.minutes).padStart(2, '0')}:${String(timeLeft.seconds).padStart(2, '0')}`;
+    if (timeLeft.hours > 0) {
+      return `${String(timeLeft.hours).padStart(2, '0')}:${String(timeLeft.minutes).padStart(2, '0')}:${String(timeLeft.seconds).padStart(2, '0')}`;
+    }
+    return `${String(timeLeft.minutes).padStart(2, '0')}:${String(timeLeft.seconds).padStart(2, '0')}`;
   };
 
   if (!config.active) return null;
 
   const isLight = config.style === "light";
   const isBold = config.style === "bold";
+
+  // Position-based transform origin
+  const getTransformOrigin = () => {
+    switch (config.position) {
+      case "corner":
+        return "top right";
+      case "above":
+        return "bottom center";
+      case "below":
+        return "top center";
+      default:
+        return "center";
+    }
+  };
 
   return (
     <div 
@@ -78,29 +97,41 @@ const HotspotCountdown = ({
       )}
       style={{
         transform: `scale(${scale})`,
-        transformOrigin: config.position === "top-right" ? "top right" : "center",
+        transformOrigin: getTransformOrigin(),
       }}
     >
+      {/* Light style: Semi-transparent white pill with dark text */}
       {isLight && (
-        <span 
-          className="text-[13px] font-semibold"
+        <div 
+          className="flex items-center gap-1 px-2.5 py-1"
           style={{
-            fontFamily: 'Inter, system-ui, sans-serif',
-            color: 'rgba(0,0,0,0.75)',
-            textShadow: '0 1px 2px rgba(255,255,255,0.8)',
+            background: 'rgba(255, 255, 255, 0.88)',
+            borderRadius: '6px',
+            border: '1px solid rgba(0, 0, 0, 0.08)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
           }}
         >
-          {isExpired ? formatTime() : `Ends in ${formatTime()}`}
-        </span>
+          <span 
+            className="text-[12px] font-medium"
+            style={{
+              fontFamily: 'Inter, system-ui, sans-serif',
+              color: 'rgba(0, 0, 0, 0.75)',
+            }}
+          >
+            {isExpired ? formatTime() : `Ends in ${formatTime()}`}
+          </span>
+        </div>
       )}
 
+      {/* Bold style: Dark prominent pill with white text */}
       {isBold && (
         <div 
-          className="flex items-center gap-1 px-2 py-1"
+          className="flex items-center gap-1.5 px-3 py-1.5"
           style={{
-            background: 'rgba(0,0,0,0.70)',
+            background: 'rgba(0, 0, 0, 0.85)',
             borderRadius: '8px',
-            padding: '4px 8px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
           }}
         >
           <span 

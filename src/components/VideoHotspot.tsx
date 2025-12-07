@@ -149,13 +149,13 @@ const VideoHotspot = ({
               price={price}
             />
             
-            {/* Countdown TOP-RIGHT (absolute positioned) */}
-            {hotspot.countdown?.active && hotspot.countdown.position === "top-right" && (
+            {/* Countdown CORNER (absolute positioned) */}
+            {hotspot.countdown?.active && hotspot.countdown.position === "corner" && (
               <div className="absolute -top-2 -right-2 z-[15]">
                 <HotspotCountdown 
                   config={hotspot.countdown} 
                   isPreviewMode={!isEditMode} 
-                  scale={hotspot.scale * 0.9}
+                  scale={hotspot.scale * 0.85}
                 />
               </div>
             )}

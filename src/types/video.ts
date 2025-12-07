@@ -4,7 +4,7 @@ export type EditorMode = "edit" | "preview";
 // Countdown configuration types
 export type CountdownMode = "fixed-end" | "evergreen";
 export type CountdownStyle = "light" | "bold";
-export type CountdownPosition = "above" | "below" | "top-right";
+export type CountdownPosition = "above" | "below" | "corner";
 
 export interface HotspotCountdown {
   active: boolean;
