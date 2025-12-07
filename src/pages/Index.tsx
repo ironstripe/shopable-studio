@@ -5,7 +5,7 @@ import HotspotSidebar from "@/components/HotspotSidebar";
 import MobileHeader from "@/components/MobileHeader";
 import MobileBottomControls from "@/components/MobileBottomControls";
 import HotspotDrawer from "@/components/HotspotDrawer";
-import AddHotspotFAB from "@/components/AddHotspotFAB";
+
 import SelectProductSheet from "@/components/SelectProductSheet";
 import NewProductSheet from "@/components/NewProductSheet";
 import LayoutBehaviorSheet from "@/components/LayoutBehaviorSheet";
@@ -420,13 +420,6 @@ const Index = () => {
     }
   };
 
-  const handleEnterPlacementMode = () => {
-    // FTUX: Advance to hotspotPlacement step when FAB is tapped
-    if (!ftuxComplete && ftuxStep === "videoLoaded") {
-      advanceStep("hotspotPlacement");
-    }
-    toast.info("Tap on the video to place a hotspot");
-  };
 
   // FTUX: Handle welcome overlay close
   const handleWelcomeClose = () => {
@@ -435,8 +428,8 @@ const Index = () => {
 
   // FTUX computed states
   const showWelcomeOverlay = !ftuxComplete && ftuxStep === "welcome";
-  const showFABHint = !ftuxComplete && ftuxStep === "videoLoaded" && videoSrc && editorMode === "edit";
-  const showPlacementHint = !ftuxComplete && ftuxStep === "hotspotPlacement" && videoSrc && editorMode === "edit";
+  // Show placement hint when video is loaded, in edit mode, and no hotspots exist
+  const showPlacementHint = videoSrc && editorMode === "edit" && hotspots.length === 0;
   const showProductSheetHint = !ftuxComplete && ftuxStep === "productSelect";
 
   // Mobile layout
@@ -491,8 +484,7 @@ const Index = () => {
             onUpdateVideoCTA={setVideoCTA}
             showSafeZones={editorMode === "edit"}
             isMobile={true}
-            showPlacementHint={showPlacementHint}
-            onPlacementHintDismiss={() => advanceStep("productSelect")}
+            showPlacementHint={!!showPlacementHint}
             onHotspotDragEnd={handleHotspotDragEnd}
             isDeferringToolbar={isDeferringToolbar}
           />
@@ -514,14 +506,6 @@ const Index = () => {
           />
         )}
 
-        {/* Add Hotspot FAB - Edit mode only */}
-        {videoSrc && editorMode === "edit" && (
-          <AddHotspotFAB
-            onClick={handleEnterPlacementMode}
-            showHint={showFABHint}
-            onHintDismiss={() => advanceStep("hotspotPlacement")}
-          />
-        )}
 
         {/* Hotspot Drawer */}
         <HotspotDrawer
@@ -691,8 +675,7 @@ const Index = () => {
             onUpdateVideoCTA={setVideoCTA}
             showSafeZones={editorMode === "edit"}
             isMobile={false}
-            showPlacementHint={showPlacementHint}
-            onPlacementHintDismiss={() => advanceStep("productSelect")}
+            showPlacementHint={!!showPlacementHint}
             onHotspotDragEnd={handleHotspotDragEnd}
             isDeferringToolbar={isDeferringToolbar}
           />
