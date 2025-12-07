@@ -28,11 +28,13 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useFTUX } from "@/hooks/use-ftux";
 import { useHotspots } from "@/hooks/use-hotspots";
+import { useLocale } from "@/lib/i18n";
 import { SafeZonePreset } from "@/utils/safe-zone";
 import shopableLogo from "@/assets/shopable-logo.png";
 
 const Index = () => {
   const isMobile = useIsMobile();
+  const { t } = useLocale();
   const { step: ftuxStep, isComplete: ftuxComplete, advanceStep, completeFTUX } = useFTUX();
   
   // Active safe zone preset
@@ -123,9 +125,9 @@ const Index = () => {
 
   const handleVideoLoad = (src: string) => {
     setVideoSrc(src);
-    const filename = src.split('/').pop()?.split('.')[0] || "Untitled Video";
+    const filename = src.split('/').pop()?.split('.')[0] || t("header.untitled");
     setVideoTitle(filename);
-    toast.success("Video loaded successfully");
+    toast.success(t("upload.success"));
     
     // FTUX: Advance to videoLoaded step
     if (!ftuxComplete && ftuxStep === "emptyEditor") {
@@ -142,7 +144,7 @@ const Index = () => {
     setIsDeferringToolbar(true);
     setPendingPanelHotspotId(newHotspot.id);
     
-    toast.success("Hotspot created!");
+    toast.success(t("hotspots.created"));
   };
 
   const handleHotspotSelect = (hotspotId: string) => {
@@ -204,7 +206,7 @@ const Index = () => {
 
   const handleDeleteHotspot = (hotspotId: string) => {
     deleteHotspotCore(hotspotId);
-    toast.success("Hotspot deleted");
+    toast.success(t("hotspots.deleted"));
   };
 
   const handleUpdateHotspotPosition = (hotspotId: string, x: number, y: number) => {
@@ -279,14 +281,14 @@ const Index = () => {
     
     setSelectProductSheetOpen(false);
     setProductAssignmentHotspotId(null);
-    toast.success("Product assigned to hotspot");
+    toast.success(t("product.assigned"));
     
     // FTUX: Show preview hint and then export hint
     if (!ftuxComplete && ftuxStep === "productSelect" && !shownPreviewHint) {
       advanceStep("postProduct");
       setShownPreviewHint(true);
       setTimeout(() => {
-        toast("Switch to Preview to see your final video.", {
+        toast(t("ftux.previewHint"), {
           duration: 4000,
           icon: "👀",
         });
@@ -297,7 +299,7 @@ const Index = () => {
         if (!shownExportHint) {
           setShownExportHint(true);
           advanceStep("exportHint");
-          toast("You can now export your Shopable video.", {
+          toast(t("ftux.exportHint"), {
             duration: 4000,
             icon: "🎉",
           });
@@ -320,7 +322,7 @@ const Index = () => {
 
   const handleUpdateProduct = (updatedProduct: Product) => {
     setProducts({ ...products, [updatedProduct.id]: updatedProduct });
-    toast.success("Product updated");
+    toast.success(t("product.updated"));
   };
 
   const handleRemoveProductFromHotspot = () => {
@@ -331,13 +333,13 @@ const Index = () => {
       productId: null,
     } as Hotspot);
     
-    toast.success("Product removed from hotspot");
+    toast.success(t("product.removed"));
   };
 
   const handleCreateProduct = (newProduct: Omit<Product, "id">): string => {
     const id = `product-${Date.now()}`;
     setProducts({ ...products, [id]: { ...newProduct, id } });
-    toast.success("Product created");
+    toast.success(t("product.created"));
     return id;
   };
 
@@ -374,11 +376,11 @@ const Index = () => {
       timing: { mode: "entire-video" },
       position: { x: 0.85, y: 0.85 },
     });
-    setVideoTitle("Untitled Video");
+    setVideoTitle(t("header.untitled"));
     setEditorMode("edit");
     setShouldAutoOpenProductPanel(false);
     setShowReplaceVideoDialog(false);
-    toast.success("Video removed. Upload a new video to continue.");
+    toast.success(t("video.removed"));
   };
 
   const handleExport = () => {
@@ -407,7 +409,7 @@ const Index = () => {
     a.download = "shopable-project.json";
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Project exported successfully");
+    toast.success(t("video.exportSuccess"));
   };
 
   const handlePlayPause = () => {

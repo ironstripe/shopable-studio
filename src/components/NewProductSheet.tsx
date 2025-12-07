@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Camera, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLocale } from "@/lib/i18n";
 
 interface NewProductSheetProps {
   open: boolean;
@@ -28,6 +29,7 @@ const NewProductSheet = ({
   onUpdateProduct,
   onDeleteProduct,
 }: NewProductSheetProps) => {
+  const { t } = useLocale();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -170,10 +172,10 @@ const NewProductSheet = ({
             onClick={handleClose}
             className="text-[15px] text-[#666666] hover:text-[#333333] transition-colors min-w-[60px] text-left font-medium"
           >
-            Cancel
+            {t("actions.cancel")}
           </button>
           <h2 className="text-[17px] font-semibold text-[#111111]">
-            {isEditMode ? "Edit product" : "New product"}
+            {isEditMode ? t("product.edit") : t("product.new")}
           </h2>
           <Button
             onClick={handleSave}
@@ -181,7 +183,7 @@ const NewProductSheet = ({
             size="sm"
             className="h-8 px-4 text-[14px] font-medium min-w-[60px] bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            Save
+            {t("actions.save")}
           </Button>
         </div>
 
@@ -222,14 +224,14 @@ const NewProductSheet = ({
                       />
                       <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                         <span className="bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-[13px] font-medium text-[#333333] shadow-sm">
-                          Change
+                          {t("product.field.imageChange")}
                         </span>
                       </div>
                     </div>
                   ) : (
                     <>
                       <Camera className="w-8 h-8 text-[#999999] mb-2" strokeWidth={1.5} />
-                      <span className="text-[14px] font-medium text-[#333333]">Add image</span>
+                      <span className="text-[14px] font-medium text-[#333333]">{t("product.field.imageUpload")}</span>
                     </>
                   )}
                 </div>
@@ -238,7 +240,7 @@ const NewProductSheet = ({
               {/* Image URL alternative */}
               <div className="flex items-center gap-2 my-3 max-w-[180px] mx-auto">
                 <div className="flex-1 h-px bg-[#E0E0E0]" />
-                <span className="text-[11px] text-[#888888]">or</span>
+                <span className="text-[11px] text-[#888888]">{t("actions.or")}</span>
                 <div className="flex-1 h-px bg-[#E0E0E0]" />
               </div>
               
@@ -252,20 +254,20 @@ const NewProductSheet = ({
                   placeholder="https://…"
                   className="h-10 text-[14px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
-                <p className="text-[11px] text-[#888888] mt-1 text-center">Paste image URL</p>
+                <p className="text-[11px] text-[#888888] mt-1 text-center">{t("actions.pasteUrl")}</p>
               </div>
             </div>
 
             {/* B) PRODUCT NAME (required) */}
             <div>
               <label className="text-[13px] font-medium text-[#666666] mb-1.5 block">
-                Product name <span className="text-red-500">*</span>
+                {t("product.field.name")} <span className="text-red-500">*</span>
               </label>
               <Input
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 onBlur={() => setNameTouched(true)}
-                placeholder="e.g. Bose QuietComfort Ultra"
+                placeholder={t("product.field.namePlaceholder")}
                 className={cn(
                   "h-12 text-[16px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl",
                   "focus:border-primary focus:ring-2 focus:ring-primary/20",
@@ -273,19 +275,19 @@ const NewProductSheet = ({
                 )}
               />
               {showNameError && (
-                <p className="text-[12px] text-red-500 mt-1.5">Product name is required</p>
+                <p className="text-[12px] text-red-500 mt-1.5">{t("product.field.nameRequired")}</p>
               )}
             </div>
 
             {/* C) DESCRIPTION (optional) */}
             <div>
               <label className="text-[13px] font-medium text-[#666666] mb-1.5 block">
-                Description
+                {t("product.field.description")}
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Optional. Short description that appears in the product card."
+                placeholder={t("product.field.descriptionHint")}
                 rows={3}
                 className="w-full px-3 py-3 text-[15px] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl border border-[#E0E0E0] bg-white resize-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
               />
@@ -294,14 +296,14 @@ const NewProductSheet = ({
             {/* D) PRICE (optional) */}
             <div>
               <label className="text-[13px] font-medium text-[#666666] mb-1.5 block">
-                Price
+                {t("product.field.price")}
               </label>
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] text-[#888888] font-medium">€</span>
                 <Input
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  placeholder="e.g. 349.–"
+                  placeholder={t("product.field.pricePlaceholder")}
                   className="h-12 text-[15px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl pl-8 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
@@ -310,12 +312,12 @@ const NewProductSheet = ({
             {/* D2) PROMO CODE (optional) */}
             <div>
               <label className="text-[13px] font-medium text-[#666666] mb-1.5 block">
-                Promo code
+                {t("product.field.promo")}
               </label>
               <Input
                 value={formData.promoCode}
                 onChange={(e) => setFormData({ ...formData, promoCode: e.target.value })}
-                placeholder="e.g. SAVE20"
+                placeholder={t("product.field.promoPlaceholder")}
                 className="h-12 text-[15px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>
@@ -323,7 +325,7 @@ const NewProductSheet = ({
             {/* E) PRODUCT URL (required) */}
             <div>
               <label className="text-[13px] font-medium text-[#666666] mb-1.5 block">
-                Product URL <span className="text-red-500">*</span>
+                {t("product.field.url")} <span className="text-red-500">*</span>
               </label>
               <Input
                 value={formData.link}
@@ -337,10 +339,10 @@ const NewProductSheet = ({
                 )}
               />
               <p className="text-[12px] text-[#888888] mt-1.5">
-                The link users see when they tap the product card.
+                {t("product.field.urlHint")}
               </p>
               {showUrlError && (
-                <p className="text-[12px] text-red-500 mt-1">Please enter a valid URL (https://...)</p>
+                <p className="text-[12px] text-red-500 mt-1">{t("product.field.urlInvalid")}</p>
               )}
               {domain && !showUrlError && (
                 <div className="flex items-center gap-1.5 mt-1.5 text-[12px] text-[#666666]">
@@ -353,12 +355,12 @@ const NewProductSheet = ({
             {/* F) BUTTON LABEL (optional) */}
             <div>
               <label className="text-[13px] font-medium text-[#666666] mb-1.5 block">
-                Button label
+                {t("product.field.cta")}
               </label>
               <Input
                 value={formData.ctaLabel}
                 onChange={(e) => setFormData({ ...formData, ctaLabel: e.target.value })}
-                placeholder="e.g. Shop now"
+                placeholder={t("product.field.ctaPlaceholder")}
                 className="h-12 text-[15px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 mb-2"
               />
               <div className="flex flex-wrap gap-2">
@@ -391,7 +393,7 @@ const NewProductSheet = ({
                 onClick={handleDelete}
                 className="text-[15px] font-medium text-red-500 hover:text-red-600 transition-colors px-2"
               >
-                Delete
+                {t("actions.delete")}
               </button>
             )}
             <Button
@@ -402,7 +404,7 @@ const NewProductSheet = ({
                 isEditMode ? "flex-1" : "w-full"
               )}
             >
-              {isEditMode ? "Save changes" : "Save product"}
+              {isEditMode ? t("actions.saveChanges") : t("actions.saveProduct")}
             </Button>
           </div>
         </div>
