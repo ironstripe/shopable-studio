@@ -6,6 +6,7 @@ import { Search, Plus, Check, Package, ImageIcon, ArrowLeft } from "lucide-react
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useLocale } from "@/lib/i18n";
 
 interface SelectProductSheetProps {
   open: boolean;
@@ -35,6 +36,7 @@ const SelectProductSheet = ({
   onUpdateProduct,
   onRemoveProduct,
 }: SelectProductSheetProps) => {
+  const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"select" | "edit">("select");
   const [editFormData, setEditFormData] = useState({
@@ -149,7 +151,7 @@ const SelectProductSheet = ({
           {viewMode === "select" && showFTUXHint && (
             <div className="mx-4 mb-3 px-4 py-2.5 bg-primary/10 rounded-xl">
               <p className="text-[13px] text-primary font-medium text-center">
-                Choose a product or create a new one.
+                {t("ftux.productHint")}
               </p>
             </div>
           )}
@@ -163,17 +165,17 @@ const SelectProductSheet = ({
                   className="flex items-center gap-1.5 text-[14px] text-[#666666] hover:text-[#111111] transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  Change
+                  {t("product.change")}
                 </button>
                 <h2 className="text-[17px] font-semibold text-[#111111]">
-                  Edit product
+                  {t("product.edit")}
                 </h2>
                 <div className="w-16" /> {/* Spacer for centering */}
               </>
             ) : (
               <>
                 <h2 className="text-[17px] font-semibold text-[#111111]">
-                  Choose a product
+                  {t("product.choose")}
                 </h2>
                 <button
                   onClick={handleOpenNewProduct}
@@ -186,7 +188,7 @@ const SelectProductSheet = ({
                   )}
                 >
                   <Plus className="w-4 h-4" />
-                  New
+                  {t("actions.new")}
                 </button>
               </>
             )}
@@ -202,7 +204,7 @@ const SelectProductSheet = ({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search products…"
+                  placeholder={t("product.search")}
                   className={cn(
                     "w-full h-11 pl-11 pr-4",
                     "text-[15px] text-[#111111] placeholder:text-[#999999]",
@@ -242,7 +244,7 @@ const SelectProductSheet = ({
                   </div>
                   <div className="flex-1">
                     <label className="text-[12px] font-medium text-[#666666] mb-1.5 block">
-                      Image URL
+                      {t("product.field.image")}
                     </label>
                     <Input
                       value={editFormData.thumbnail}
@@ -256,12 +258,12 @@ const SelectProductSheet = ({
                 {/* Product Name */}
                 <div>
                   <label className="text-[12px] font-medium text-[#666666] mb-1.5 block">
-                    Product name <span className="text-red-500">*</span>
+                    {t("product.field.name")} <span className="text-red-500">*</span>
                   </label>
                   <Input
                     value={editFormData.title}
                     onChange={(e) => setEditFormData({...editFormData, title: e.target.value})}
-                    placeholder="Product name"
+                    placeholder={t("product.field.namePlaceholder")}
                     className="h-11 text-[15px] bg-white border-[#E0E0E0] text-[#111111]"
                   />
                 </div>
@@ -269,12 +271,12 @@ const SelectProductSheet = ({
                 {/* Description */}
                 <div>
                   <label className="text-[12px] font-medium text-[#666666] mb-1.5 block">
-                    Description
+                    {t("product.field.description")}
                   </label>
                   <textarea
                     value={editFormData.description}
                     onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
-                    placeholder="Short description"
+                    placeholder={t("product.field.descriptionHint")}
                     rows={2}
                     className="w-full px-3 py-2.5 text-[14px] text-[#111111] rounded-lg border border-[#E0E0E0] bg-white resize-none focus:outline-none focus:ring-2 focus:ring-primary/20"
                   />
@@ -283,12 +285,12 @@ const SelectProductSheet = ({
                 {/* Price */}
                 <div>
                   <label className="text-[12px] font-medium text-[#666666] mb-1.5 block">
-                    Price
+                    {t("product.field.price")}
                   </label>
                   <Input
                     value={editFormData.price}
                     onChange={(e) => setEditFormData({...editFormData, price: e.target.value})}
-                    placeholder="e.g. €349"
+                    placeholder={t("product.field.pricePlaceholder")}
                     className="h-11 text-[15px] bg-white border-[#E0E0E0] text-[#111111]"
                   />
                 </div>
@@ -296,12 +298,12 @@ const SelectProductSheet = ({
                 {/* Promo Code */}
                 <div>
                   <label className="text-[12px] font-medium text-[#666666] mb-1.5 block">
-                    Promo code
+                    {t("product.field.promo")}
                   </label>
                   <Input
                     value={editFormData.promoCode}
                     onChange={(e) => setEditFormData({...editFormData, promoCode: e.target.value})}
-                    placeholder="e.g. SAVE20"
+                    placeholder={t("product.field.promoPlaceholder")}
                     className="h-11 text-[15px] bg-white border-[#E0E0E0] text-[#111111]"
                   />
                 </div>
@@ -309,7 +311,7 @@ const SelectProductSheet = ({
                 {/* Product URL */}
                 <div>
                   <label className="text-[12px] font-medium text-[#666666] mb-1.5 block">
-                    Product URL <span className="text-red-500">*</span>
+                    {t("product.field.url")} <span className="text-red-500">*</span>
                   </label>
                   <Input
                     value={editFormData.link}
@@ -322,12 +324,12 @@ const SelectProductSheet = ({
                 {/* CTA Label */}
                 <div>
                   <label className="text-[12px] font-medium text-[#666666] mb-1.5 block">
-                    Button label
+                    {t("product.field.cta")}
                   </label>
                   <Input
                     value={editFormData.ctaLabel}
                     onChange={(e) => setEditFormData({...editFormData, ctaLabel: e.target.value})}
-                    placeholder="Shop Now"
+                    placeholder={t("product.field.ctaPlaceholder")}
                     className="h-11 text-[15px] bg-white border-[#E0E0E0] text-[#111111]"
                   />
                 </div>
@@ -345,10 +347,10 @@ const SelectProductSheet = ({
                     <Package className="w-7 h-7 text-[#AAAAAA]" />
                   </div>
                   <h3 className="text-[17px] font-semibold text-[#111111] mb-2">
-                    No products yet
+                    {t("product.empty")}
                   </h3>
                   <p className="text-[14px] text-[#666666] mb-6 max-w-[260px]">
-                    Add your first product to link it to this hotspot.
+                    {t("product.emptyHint")}
                   </p>
                   <button
                     onClick={handleOpenNewProduct}
@@ -361,7 +363,7 @@ const SelectProductSheet = ({
                     )}
                   >
                     <Plus className="w-4 h-4" />
-                    Create product
+                    {t("product.create")}
                   </button>
                 </div>
               )}
@@ -373,10 +375,10 @@ const SelectProductSheet = ({
                     <Search className="w-6 h-6 text-[#AAAAAA]" />
                   </div>
                   <h3 className="text-[16px] font-semibold text-[#111111] mb-1">
-                    No products found
+                    {t("product.noResults")}
                   </h3>
                   <p className="text-[14px] text-[#666666] max-w-[240px]">
-                    Try a different term or create a new product.
+                    {t("product.noResultsHint")}
                   </p>
                 </div>
               )}
@@ -463,14 +465,14 @@ const SelectProductSheet = ({
                 onClick={handleRemoveProduct}
                 className="text-[14px] font-medium text-red-500 hover:text-red-600 px-3 py-2 transition-colors"
               >
-                Remove
+                {t("product.removed").split(" ")[0]}
               </button>
               <Button
                 onClick={handleSaveEdit}
                 disabled={!canSave}
                 className="flex-1 h-11 text-[15px] font-medium"
               >
-                Save changes
+                {t("actions.saveChanges")}
               </Button>
             </div>
           </div>
