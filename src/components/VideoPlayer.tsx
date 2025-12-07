@@ -141,10 +141,13 @@ const VideoPlayer = ({
       
       if (!hotspot || !measured) return;
       
-      // Clamp using actual measured dimensions
+      // Clamp using actual measured dimensions multiplied by scale
+      const scaledWidth = measured.width * (hotspot.scale || 1);
+      const scaledHeight = measured.height * (hotspot.scale || 1);
+      
       const { x, y, wasConstrained } = clampWithMeasuredDimensions(
         hotspot.x, hotspot.y,
-        measured.width, measured.height,
+        scaledWidth, scaledHeight,
         rect.width, rect.height,
         'vertical_social'
       );
@@ -416,12 +419,14 @@ const VideoPlayer = ({
     const rawX = (e.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
     const rawY = (e.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
     
-    // Use MEASURED dimensions from DOM, fallback to generous estimate
+    // Use MEASURED dimensions from DOM, multiplied by scale
     const measured = hotspotDimensionsRef.current.get(hotspot.id);
-    const width = measured?.width ?? 150;  // Generous fallback
-    const height = measured?.height ?? 80;
+    const baseWidth = measured?.width ?? 150;
+    const baseHeight = measured?.height ?? 80;
+    const width = baseWidth * (hotspot.scale || 1);
+    const height = baseHeight * (hotspot.scale || 1);
     
-    // Clamp to safe zone using measured pixel dimensions
+    // Clamp to safe zone using scaled pixel dimensions
     const { x, y } = clampWithMeasuredDimensions(
       rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
     );
@@ -446,12 +451,14 @@ const VideoPlayer = ({
     const rawX = (touch.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
     const rawY = (touch.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
     
-    // Use MEASURED dimensions from DOM, fallback to generous estimate
+    // Use MEASURED dimensions from DOM, multiplied by scale
     const measured = hotspotDimensionsRef.current.get(hotspot.id);
-    const width = measured?.width ?? 150;
-    const height = measured?.height ?? 80;
+    const baseWidth = measured?.width ?? 150;
+    const baseHeight = measured?.height ?? 80;
+    const width = baseWidth * (hotspot.scale || 1);
+    const height = baseHeight * (hotspot.scale || 1);
     
-    // Clamp to safe zone using measured pixel dimensions
+    // Clamp to safe zone using scaled pixel dimensions
     const { x, y } = clampWithMeasuredDimensions(
       rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
     );
