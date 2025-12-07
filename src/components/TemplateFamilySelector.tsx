@@ -1,7 +1,6 @@
-import { Check } from "lucide-react";
+import { Check, ShoppingBag, Sparkles, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TEMPLATE_FAMILIES, TemplateFamilyId } from "@/types/templates";
-import HotspotStylePreview from "./HotspotStylePreview";
 
 interface TemplateFamilySelectorProps {
   value: TemplateFamilyId;
@@ -9,13 +8,27 @@ interface TemplateFamilySelectorProps {
   disabled?: boolean;
 }
 
+// Simple icon mapping for each family
+const getFamilyIcon = (familyId: TemplateFamilyId) => {
+  switch (familyId) {
+    case "ecommerce":
+      return <ShoppingBag className="w-5 h-5 text-blue-600" />;
+    case "luxury":
+      return <Sparkles className="w-5 h-5 text-amber-600" />;
+    case "seasonal":
+      return <Calendar className="w-5 h-5 text-rose-500" />;
+    default:
+      return <ShoppingBag className="w-5 h-5 text-muted-foreground" />;
+  }
+};
+
 const TemplateFamilySelector = ({
   value,
   onChange,
   disabled = false,
 }: TemplateFamilySelectorProps) => {
   return (
-    <div className="space-y-2 max-h-[220px] overflow-y-auto">
+    <div className="space-y-2">
       {TEMPLATE_FAMILIES.map((family) => {
         const isSelected = value === family.id;
 
@@ -32,15 +45,14 @@ const TemplateFamilySelector = ({
               disabled && "opacity-50 cursor-not-allowed"
             )}
           >
-            {/* Small preview thumbnail */}
-            <div className="w-8 h-8 flex-shrink-0 rounded-lg overflow-hidden">
-              <HotspotStylePreview
-                family={family.id}
-                hotspotStyle={family.mainStyle}
-                isActive={isSelected}
-                ctaLabel="Shop"
-                compact
-              />
+            {/* Simple icon - NOT a preview */}
+            <div
+              className={cn(
+                "w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center transition-colors",
+                isSelected ? "bg-primary/10" : "bg-muted"
+              )}
+            >
+              {getFamilyIcon(family.id)}
             </div>
 
             {/* Name + subtitle */}
