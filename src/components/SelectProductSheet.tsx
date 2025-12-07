@@ -219,10 +219,10 @@ const SelectProductSheet = ({
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-hidden bg-white">
+        <div className="flex-1 min-h-0 overflow-y-auto bg-white">
           {/* EDIT MODE: Show editable form */}
           {viewMode === "edit" && assignedProductId && (
-            <ScrollArea className="h-full bg-white">
+            <div className="h-full overflow-y-auto overscroll-contain">
               <div className="px-4 py-4 space-y-4 pb-32">
                 {/* Thumbnail + Image URL */}
                 <div className="flex items-start gap-4">
@@ -334,7 +334,7 @@ const SelectProductSheet = ({
                   />
                 </div>
               </div>
-            </ScrollArea>
+            </div>
           )}
 
           {/* SELECT MODE: Product list or empty states */}
