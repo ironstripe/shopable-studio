@@ -1,3 +1,5 @@
+import { HotspotStyle } from "@/types/video";
+
 // Safe zone presets for different platforms
 export type SafeZonePreset = 'vertical_social' | 'none';
 
@@ -7,6 +9,14 @@ export interface SafeRect {
   top: number;
   right: number;  // maximum X position for hotspot right edge
   bottom: number; // maximum Y position for hotspot bottom edge
+}
+
+// Pixel rectangle for calculations
+export interface PixelRect {
+  x: number;      // left edge in pixels
+  y: number;      // top edge in pixels
+  width: number;  // width in pixels
+  height: number; // height in pixels
 }
 
 // ========================================
@@ -23,11 +33,8 @@ export const SAFE_ZONE_CONFIG = {
   maxScale: 2.0,
 } as const;
 
-// Base hotspot size as percentage of video dimensions
-const BASE_HOTSPOT_SIZE = SAFE_ZONE_CONFIG.baseHotspotSize;
-
 /**
- * Get safe rect boundaries for a given preset
+ * Get safe rect boundaries for a given preset (as percentages 0-1)
  */
 export const getSafeRect = (preset: SafeZonePreset): SafeRect => {
   if (preset === 'none') {
@@ -44,11 +51,66 @@ export const getSafeRect = (preset: SafeZonePreset): SafeRect => {
 };
 
 /**
- * Estimate hotspot visual dimensions based on scale
+ * Get safe zone as pixel rectangle
  */
-export const getHotspotDimensions = (scale: number): { width: number; height: number } => {
-  const size = BASE_HOTSPOT_SIZE * scale;
-  return { width: size, height: size };
+export const getSafeZonePixelRect = (
+  containerWidth: number,
+  containerHeight: number,
+  preset: SafeZonePreset
+): PixelRect => {
+  const safe = getSafeRect(preset);
+  return {
+    x: safe.left * containerWidth,
+    y: safe.top * containerHeight,
+    width: (safe.right - safe.left) * containerWidth,
+    height: (safe.bottom - safe.top) * containerHeight,
+  };
+};
+
+/**
+ * Get estimated hotspot pixel dimensions based on style
+ * These match the actual rendered sizes in HotspotIcon.tsx
+ */
+export const getHotspotPixelDimensions = (
+  style: HotspotStyle,
+  scale: number,
+  hasProduct: boolean
+): { width: number; height: number } => {
+  if (!hasProduct) {
+    // EmptyHotspotIndicator: 48px base, minimum 44px
+    const size = Math.max(44, 48 * scale);
+    return { width: size, height: size };
+  }
+  
+  // Product-assigned hotspot dimensions (from HotspotIcon.tsx actual renders)
+  let baseWidth = 160;
+  let baseHeight = 60;
+  
+  switch (style) {
+    case "ecommerce-light-card":
+      baseWidth = 192; baseHeight = 72; break; // padding + content
+    case "ecommerce-sale-boost":
+      baseWidth = 212; baseHeight = 160; break;
+    case "ecommerce-minimal":
+      baseWidth = 208; baseHeight = 56; break;
+    case "luxury-fine-line":
+      baseWidth = 178; baseHeight = 56; break;
+    case "luxury-elegance-card":
+      baseWidth = 206; baseHeight = 110; break;
+    case "luxury-dot":
+      baseWidth = 110; baseHeight = 28; break;
+    case "seasonal-valentine":
+    case "seasonal-easter":
+    case "seasonal-black-friday":
+      baseWidth = 150; baseHeight = 40; break;
+    default:
+      baseWidth = 160; baseHeight = 60;
+  }
+  
+  return { 
+    width: baseWidth * scale, 
+    height: baseHeight * scale 
+  };
 };
 
 /**
@@ -60,104 +122,137 @@ export const isPointInSafeZone = (x: number, y: number, preset: SafeZonePreset):
 };
 
 /**
- * Clamp hotspot bounds (considering position + dimensions) to safe rect
- * Returns corrected position/dimensions and whether constraint was applied
+ * Clamp hotspot CENTER position to safe zone using pixel coordinates
+ * Input: center position as percentage (0-1), hotspot pixel dimensions
+ * Output: clamped center position as percentage (0-1)
  */
-export const clampHotspotToSafeZone = (
-  x: number, 
-  y: number, 
-  width: number, 
-  height: number, 
+export const clampHotspotCenterToSafeZone = (
+  centerX: number,       // 0-1 percentage from left (center of hotspot)
+  centerY: number,       // 0-1 percentage from top (center of hotspot)
+  hotspotWidth: number,  // pixels
+  hotspotHeight: number, // pixels
+  containerWidth: number,
+  containerHeight: number,
   preset: SafeZonePreset
-): { x: number; y: number; width: number; height: number; wasConstrained: boolean } => {
+): { x: number; y: number; wasConstrained: boolean } => {
   if (preset === 'none') {
-    return { x, y, width, height, wasConstrained: false };
+    return { x: centerX, y: centerY, wasConstrained: false };
   }
   
-  const safe = getSafeRect(preset);
+  const safeZone = getSafeZonePixelRect(containerWidth, containerHeight, preset);
   
-  let newX = x;
-  let newY = y;
-  let newWidth = width;
-  let newHeight = height;
+  // Convert center percentage to pixel center
+  let centerPixelX = centerX * containerWidth;
+  let centerPixelY = centerY * containerHeight;
+  
+  // Calculate hotspot bounding box (from center)
+  const halfWidth = hotspotWidth / 2;
+  const halfHeight = hotspotHeight / 2;
+  
   let wasConstrained = false;
   
-  // Clamp left edge
-  if (newX < safe.left) { 
-    newX = safe.left; 
-    wasConstrained = true; 
-  }
-  
-  // Clamp top edge
-  if (newY < safe.top) { 
-    newY = safe.top; 
-    wasConstrained = true; 
-  }
-  
-  // Clamp right edge (x + width must be <= safe.right)
-  if (newX + newWidth > safe.right) {
-    const overflow = (newX + newWidth) - safe.right;
-    // First try shifting position left
-    if (newX - overflow >= safe.left) {
-      newX -= overflow;
-    } else {
-      // Can't shift enough, clamp position to left edge and reduce width
-      newX = safe.left;
-      newWidth = safe.right - safe.left;
-    }
+  // Clamp left edge (center - halfWidth must be >= safe.x)
+  if (centerPixelX - halfWidth < safeZone.x) {
+    centerPixelX = safeZone.x + halfWidth;
     wasConstrained = true;
   }
   
-  // Clamp bottom edge (y + height must be <= safe.bottom)
-  if (newY + newHeight > safe.bottom) {
-    const overflow = (newY + newHeight) - safe.bottom;
-    // First try shifting position up
-    if (newY - overflow >= safe.top) {
-      newY -= overflow;
-    } else {
-      // Can't shift enough, clamp position to top edge and reduce height
-      newY = safe.top;
-      newHeight = safe.bottom - safe.top;
-    }
+  // Clamp top edge (center - halfHeight must be >= safe.y)
+  if (centerPixelY - halfHeight < safeZone.y) {
+    centerPixelY = safeZone.y + halfHeight;
     wasConstrained = true;
   }
   
-  return { x: newX, y: newY, width: newWidth, height: newHeight, wasConstrained };
+  // Clamp right edge (center + halfWidth must be <= safe.x + safe.width)
+  const safeRight = safeZone.x + safeZone.width;
+  if (centerPixelX + halfWidth > safeRight) {
+    centerPixelX = safeRight - halfWidth;
+    wasConstrained = true;
+  }
+  
+  // Clamp bottom edge (center + halfHeight must be <= safe.y + safe.height)
+  const safeBottom = safeZone.y + safeZone.height;
+  if (centerPixelY + halfHeight > safeBottom) {
+    centerPixelY = safeBottom - halfHeight;
+    wasConstrained = true;
+  }
+  
+  // Handle case where hotspot is larger than safe zone (center it)
+  if (hotspotWidth > safeZone.width) {
+    centerPixelX = safeZone.x + safeZone.width / 2;
+    wasConstrained = true;
+  }
+  if (hotspotHeight > safeZone.height) {
+    centerPixelY = safeZone.y + safeZone.height / 2;
+    wasConstrained = true;
+  }
+  
+  // Convert back to percentage
+  return {
+    x: centerPixelX / containerWidth,
+    y: centerPixelY / containerHeight,
+    wasConstrained,
+  };
 };
 
 /**
- * Clamp a hotspot position considering its scale/dimensions
- * Simplified helper for position-only updates (drag, placement)
+ * Calculate maximum allowed scale for a hotspot at given position within safe zone
  */
+export const getMaxScaleInSafeZone = (
+  centerX: number,       // 0-1 percentage
+  centerY: number,       // 0-1 percentage
+  style: HotspotStyle,
+  hasProduct: boolean,
+  containerWidth: number,
+  containerHeight: number,
+  preset: SafeZonePreset
+): number => {
+  if (preset === 'none') return SAFE_ZONE_CONFIG.maxScale;
+  
+  const safeZone = getSafeZonePixelRect(containerWidth, containerHeight, preset);
+  
+  // Get base dimensions at scale 1
+  const { width: baseWidth, height: baseHeight } = getHotspotPixelDimensions(style, 1, hasProduct);
+  
+  // Convert center to pixels
+  const centerPixelX = centerX * containerWidth;
+  const centerPixelY = centerY * containerHeight;
+  
+  // Calculate max half-dimensions that fit from current center position
+  const maxHalfLeft = centerPixelX - safeZone.x;
+  const maxHalfRight = (safeZone.x + safeZone.width) - centerPixelX;
+  const maxHalfTop = centerPixelY - safeZone.y;
+  const maxHalfBottom = (safeZone.y + safeZone.height) - centerPixelY;
+  
+  // Max half-dimensions we can use
+  const maxHalfWidth = Math.min(maxHalfLeft, maxHalfRight);
+  const maxHalfHeight = Math.min(maxHalfTop, maxHalfBottom);
+  
+  // Calculate max scale based on each dimension
+  const maxScaleByWidth = (maxHalfWidth * 2) / baseWidth;
+  const maxScaleByHeight = (maxHalfHeight * 2) / baseHeight;
+  
+  // Return the most restrictive, clamped to valid range
+  return Math.max(
+    SAFE_ZONE_CONFIG.minScale, 
+    Math.min(SAFE_ZONE_CONFIG.maxScale, Math.min(maxScaleByWidth, maxScaleByHeight))
+  );
+};
+
+// Legacy function for backward compatibility
 export const clampPositionToSafeZone = (
   x: number, 
   y: number, 
   scale: number,
   preset: SafeZonePreset
 ): { x: number; y: number; wasConstrained: boolean } => {
-  const { width, height } = getHotspotDimensions(scale);
-  const result = clampHotspotToSafeZone(x, y, width, height, preset);
-  return { x: result.x, y: result.y, wasConstrained: result.wasConstrained };
-};
-
-/**
- * Calculate maximum allowed scale for a hotspot at given position
- */
-export const getMaxScaleAtPosition = (
-  x: number, 
-  y: number, 
-  preset: SafeZonePreset
-): number => {
-  if (preset === 'none') return 2; // Max scale
-  
+  // This is a simplified version that doesn't account for actual hotspot size
+  // Use clampHotspotCenterToSafeZone for accurate clamping with pixel dimensions
   const safe = getSafeRect(preset);
-  const maxWidth = safe.right - x;
-  const maxHeight = safe.bottom - y;
-  const maxSize = Math.min(maxWidth, maxHeight);
   
-  // Convert max size back to scale
-  const maxScale = maxSize / BASE_HOTSPOT_SIZE;
+  let newX = Math.max(safe.left, Math.min(safe.right, x));
+  let newY = Math.max(safe.top, Math.min(safe.bottom, y));
   
-  // Clamp to reasonable bounds (0.5 to 2.0)
-  return Math.max(0.5, Math.min(2, maxScale));
+  const wasConstrained = newX !== x || newY !== y;
+  return { x: newX, y: newY, wasConstrained };
 };

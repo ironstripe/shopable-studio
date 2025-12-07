@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useFTUX } from "@/hooks/use-ftux";
 import { useHotspots } from "@/hooks/use-hotspots";
-import { clampPositionToSafeZone, clampHotspotToSafeZone, getHotspotDimensions, SafeZonePreset } from "@/utils/safe-zone";
+import { SafeZonePreset } from "@/utils/safe-zone";
 import shopableLogo from "@/assets/shopable-logo.png";
 
 const Index = () => {
@@ -119,34 +119,7 @@ const Index = () => {
 
   const isPreviewMode = editorMode === "preview";
 
-  // Normalize existing hotspots to safe zone on load
-  useEffect(() => {
-    if (hotspots.length === 0) return;
-    
-    let needsNormalization = false;
-    const normalizedHotspots = hotspots.map(hotspot => {
-      const { width, height } = getHotspotDimensions(hotspot.scale);
-      const clamped = clampHotspotToSafeZone(
-        hotspot.x, hotspot.y, width, height, activeSafeZonePreset
-      );
-      
-      if (clamped.wasConstrained) {
-        needsNormalization = true;
-        return {
-          ...hotspot,
-          x: clamped.x,
-          y: clamped.y,
-        };
-      }
-      return hotspot;
-    });
-    
-    if (needsNormalization) {
-      setHotspots(normalizedHotspots);
-      toast.info("Some hotspots were moved into the safe zone");
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run once on mount
+  // No need to normalize on mount - clamping happens in VideoPlayer during drag/creation
 
   const handleVideoLoad = (src: string) => {
     setVideoSrc(src);
@@ -161,16 +134,9 @@ const Index = () => {
   };
 
   const handleAddHotspot = (x: number, y: number, time: number) => {
-    const { x: safeX, y: safeY, wasConstrained } = clampPositionToSafeZone(x, y, 1, activeSafeZonePreset);
-    
-    if (wasConstrained) {
-      toast.info("Hotspot snapped to safe area. Reserved zones are used by platform UI.", {
-        duration: 3000,
-      });
-    }
-
-    // Use centralized addHotspot from hook (it handles safe zone clamping internally)
-    const newHotspot = addHotspotCore(safeX, safeY, time);
+    // Safe zone clamping is now handled in VideoPlayer with pixel-accurate dimensions
+    // Just create the hotspot at the provided (already clamped) position
+    const newHotspot = addHotspotCore(x, y, time);
     
     // Defer toolbar and panel opening - allow drag first
     setIsDeferringToolbar(true);
