@@ -8,6 +8,7 @@ import VideoCTA from "./VideoCTA";
 import SafeZoneOverlay from "./SafeZoneOverlay";
 import TapIndicator from "./TapIndicator";
 import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 import { isPointInSafeZone, clampPositionToSafeZone } from "@/utils/safe-zone";
 
 interface VideoPlayerProps {
@@ -69,6 +70,7 @@ const VideoPlayer = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isVideoReady, setIsVideoReady] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedProductHotspot, setSelectedProductHotspot] = useState<Hotspot | null>(null);
   const [showShopButton, setShowShopButton] = useState(true);
@@ -99,7 +101,7 @@ const VideoPlayer = ({
     setTapIndicators(prev => prev.filter(t => t.id !== id));
   }, []);
 
-  // Clear states when video is removed
+  // Clear states when video is removed or changed
   useEffect(() => {
     if (!videoSrc) {
       setDraggingHotspot(null);
@@ -107,6 +109,10 @@ const VideoPlayer = ({
       setSelectedProductHotspot(null);
       setTapIndicators([]);
       setPendingDragPosition(null);
+      setIsVideoReady(false);
+    } else {
+      // Reset ready state when video source changes
+      setIsVideoReady(false);
     }
   }, [videoSrc]);
 
@@ -126,6 +132,9 @@ const VideoPlayer = ({
       // iOS Safari: wait for loadedmetadata event before allowing interaction
       const handleLoadedMetadata = () => {
         console.log('[VideoPlayer] Video metadata loaded successfully');
+        // Explicitly pause and seek to beginning
+        video.pause();
+        video.currentTime = 0;
       };
       
       const handleError = (e: Event) => {
@@ -134,7 +143,14 @@ const VideoPlayer = ({
       };
       
       const handleCanPlay = () => {
-        console.log('[VideoPlayer] Video can play');
+        console.log('[VideoPlayer] Video can play - marking as ready');
+        // Ensure video is paused at 0:00
+        video.pause();
+        if (video.currentTime !== 0) {
+          video.currentTime = 0;
+        }
+        // Mark video as ready to display
+        setIsVideoReady(true);
       };
       
       video.addEventListener('loadedmetadata', handleLoadedMetadata);
@@ -558,8 +574,8 @@ const VideoPlayer = ({
 
   return (
     <div className={cn("w-full mx-auto", isMobile ? "max-w-full" : "max-w-[960px]")}>
-      {/* Mode Controls - Above Video (Desktop only) */}
-      {videoSrc && !isMobile && (
+      {/* Mode Controls - Above Video (Desktop only) - Only show when video is ready */}
+      {videoSrc && isVideoReady && !isMobile && (
         <div className="flex flex-col items-center mb-6">
           <div className="inline-flex items-center rounded-lg bg-white border border-[rgba(0,0,0,0.12)] p-0.5 shadow-sm">
             <button
@@ -601,18 +617,28 @@ const VideoPlayer = ({
           className={cn(
             "relative w-full min-h-[300px] overflow-visible transition-all duration-200",
             isMobile && "aspect-[9/16] max-h-[80vh]",
-            videoSrc && "bg-gradient-to-br from-[#101010] to-[#181818] rounded-[14px] p-1",
-            videoSrc && "shadow-[0_4px_16px_rgba(0,0,0,0.12)]",
-            videoSrc && !isPreviewMode && "ring-2 ring-[rgba(59,130,246,0.4)]"
+            // Light neutral background while loading, then subtle container when ready
+            videoSrc && !isVideoReady && "bg-neutral-100 rounded-[14px] flex items-center justify-center",
+            videoSrc && isVideoReady && "bg-neutral-100 rounded-[14px] p-1",
+            videoSrc && isVideoReady && "shadow-[0_4px_16px_rgba(0,0,0,0.08)]",
+            videoSrc && isVideoReady && !isPreviewMode && "ring-2 ring-[rgba(59,130,246,0.4)]"
           )}
           style={{
             minHeight: videoSrc ? '200px' : undefined,
           }}
         >
+          {/* Loading indicator while video is processing */}
+          {videoSrc && !isVideoReady && (
+            <div className="flex flex-col items-center gap-3 py-20">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+              <p className="text-sm text-neutral-500">Loading video...</p>
+            </div>
+          )}
+
           {videoSrc ? (
             <video
               ref={videoRef}
-              controls={!isMobile}
+              controls={!isMobile && isVideoReady}
               playsInline
               // @ts-ignore - webkit-playsinline is needed for older iOS
               webkit-playsinline=""
@@ -620,7 +646,10 @@ const VideoPlayer = ({
               preload="auto"
               autoPlay={false}
               poster=""
-              className="w-full h-full min-h-[200px] rounded-[12px] animate-video-enter ios-video-fix"
+              className={cn(
+                "w-full h-full min-h-[200px] rounded-[12px] ios-video-fix",
+                isVideoReady ? "animate-fade-in" : "opacity-0 absolute"
+              )}
               style={{ 
                 display: "block",
                 objectFit: "contain",
@@ -643,13 +672,13 @@ const VideoPlayer = ({
             <VideoUploadZone onVideoLoad={onVideoLoad} />
           )}
 
-          {/* Safe Zone Overlay - Edit mode only */}
-          {videoSrc && !isPreviewMode && showSafeZones && (
+          {/* Safe Zone Overlay - Edit mode only, when video is ready */}
+          {videoSrc && isVideoReady && !isPreviewMode && showSafeZones && (
             <SafeZoneOverlay safeZone={VERTICAL_SOCIAL_SAFE_ZONE} />
           )}
 
-          {/* Zero-hotspots placement hint overlay */}
-          {videoSrc && !isPreviewMode && showPlacementHint && (
+          {/* Zero-hotspots placement hint overlay - only when video is ready */}
+          {videoSrc && isVideoReady && !isPreviewMode && showPlacementHint && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[15]">
               <div className="bg-black/75 backdrop-blur-sm text-white px-6 py-5 rounded-2xl text-center animate-fade-in shadow-xl max-w-[280px]">
                 {/* Helper icon - tap indicator */}
@@ -676,8 +705,8 @@ const VideoPlayer = ({
             </div>
           )}
 
-          {/* Click overlay for hotspot placement (edit mode only) */}
-          {videoSrc && !isPreviewMode && (
+          {/* Click overlay for hotspot placement (edit mode only, when video is ready) */}
+          {videoSrc && isVideoReady && !isPreviewMode && (
             <div
               className="absolute inset-0 bottom-[50px] hotspot-placement-cursor z-[5]"
               onClick={handleOverlayClick}
