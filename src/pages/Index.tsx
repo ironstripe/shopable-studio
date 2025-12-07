@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Hotspot, Product, VideoProject, VideoCTA, EditorMode } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import VideoGallery from "@/components/VideoGallery";
+import VideoUploadZone from "@/components/VideoUploadZone";
 import HotspotSidebar from "@/components/HotspotSidebar";
 import MobileHeader from "@/components/MobileHeader";
 import MobileBottomControls from "@/components/MobileBottomControls";
@@ -23,6 +24,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Download, Pencil, RefreshCw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -63,7 +70,7 @@ const Index = () => {
   const [videos, setVideos] = useState<VideoDto[]>([]);
   const [videosLoading, setVideosLoading] = useState(true);
   const [videosError, setVideosError] = useState<string | null>(null);
-  const [showUploadView, setShowUploadView] = useState(false);
+  const [showVideoGallerySheet, setShowVideoGallerySheet] = useState(false);
   
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>("edit");
@@ -156,7 +163,7 @@ const Index = () => {
       setVideoSrc(video.fileUrl);
       setCurrentVideoId(video.id);
       setVideoTitle(video.title || t("header.untitled"));
-      setShowUploadView(false);
+      setShowVideoGallerySheet(false);
       
       // FTUX: Advance to videoLoaded step
       if (!ftuxComplete && ftuxStep === "emptyEditor") {
@@ -169,8 +176,14 @@ const Index = () => {
 
   // Handle upload complete - refresh video list
   const handleUploadComplete = () => {
-    setShowUploadView(false);
+    setShowVideoGallerySheet(false);
     fetchVideos();
+  };
+
+  // Handle opening video gallery
+  const handleOpenVideoGallery = () => {
+    fetchVideos(); // Refresh list before opening
+    setShowVideoGallerySheet(true);
   };
 
   const handleVideoLoad = (src: string, videoId?: string) => {
@@ -437,7 +450,6 @@ const Index = () => {
     setEditorMode("edit");
     setShouldAutoOpenProductPanel(false);
     setShowReplaceVideoDialog(false);
-    setShowUploadView(false);
     // Refresh the video list to show all available videos
     fetchVideos();
     toast.success(t("video.removed"));
@@ -526,6 +538,7 @@ const Index = () => {
           onExport={handleExport}
           hasVideo={!!videoSrc}
           onDeleteVideo={() => setShowReplaceVideoDialog(true)}
+          onOpenVideoGallery={handleOpenVideoGallery}
         />
 
         {/* Main content area - accounts for header with safe area and bottom controls */}
@@ -536,15 +549,12 @@ const Index = () => {
             paddingBottom: videoSrc ? 'calc(140px + env(safe-area-inset-bottom, 0px) + 8px)' : 'env(safe-area-inset-bottom, 0px)',
           }}
         >
-          {/* Show gallery if no video selected and not in upload view */}
-          {!videoSrc && !showUploadView ? (
-            <VideoGallery
-              videos={videos}
-              isLoading={videosLoading}
-              error={videosError}
-              onSelectVideo={handleSelectVideoFromGallery}
-              onRetry={fetchVideos}
-              onUploadClick={() => setShowUploadView(true)}
+          {/* Show upload zone if no video selected (entry screen) */}
+          {!videoSrc ? (
+            <VideoUploadZone
+              onVideoLoad={handleVideoLoad}
+              onUploadComplete={handleUploadComplete}
+              onOpenVideoGallery={handleOpenVideoGallery}
             />
           ) : (
             <VideoPlayer
@@ -677,6 +687,20 @@ const Index = () => {
 
         {/* Welcome Overlay - shown on first visit */}
         {showWelcomeOverlay && <WelcomeOverlay onStart={handleWelcomeClose} />}
+
+        {/* Video Gallery Sheet */}
+        <Sheet open={showVideoGallerySheet} onOpenChange={setShowVideoGallerySheet}>
+          <SheetContent side="bottom" className="h-[85vh] p-0">
+            <VideoGallery
+              videos={videos}
+              isLoading={videosLoading}
+              error={videosError}
+              onSelectVideo={handleSelectVideoFromGallery}
+              onRetry={fetchVideos}
+              onUploadClick={() => setShowVideoGallerySheet(false)}
+            />
+          </SheetContent>
+        </Sheet>
       </div>
     );
   }
@@ -752,15 +776,12 @@ const Index = () => {
       {/* Desktop Main Content */}
       <main className="flex w-full pt-[56px] min-h-screen">
         <div className="flex-1 min-w-0 flex justify-center items-start p-6">
-          {/* Show gallery if no video selected and not in upload view */}
-          {!videoSrc && !showUploadView ? (
-            <VideoGallery
-              videos={videos}
-              isLoading={videosLoading}
-              error={videosError}
-              onSelectVideo={handleSelectVideoFromGallery}
-              onRetry={fetchVideos}
-              onUploadClick={() => setShowUploadView(true)}
+          {/* Show upload zone if no video selected (entry screen) */}
+          {!videoSrc ? (
+            <VideoUploadZone
+              onVideoLoad={handleVideoLoad}
+              onUploadComplete={handleUploadComplete}
+              onOpenVideoGallery={handleOpenVideoGallery}
             />
           ) : (
             <VideoPlayer
@@ -869,6 +890,20 @@ const Index = () => {
 
       {/* Welcome Overlay - shown on first visit */}
       {showWelcomeOverlay && <WelcomeOverlay onStart={handleWelcomeClose} />}
+
+      {/* Video Gallery Sheet (Desktop) */}
+      <Sheet open={showVideoGallerySheet} onOpenChange={setShowVideoGallerySheet}>
+        <SheetContent side="right" className="w-[400px] sm:w-[540px] p-0">
+          <VideoGallery
+            videos={videos}
+            isLoading={videosLoading}
+            error={videosError}
+            onSelectVideo={handleSelectVideoFromGallery}
+            onRetry={fetchVideos}
+            onUploadClick={() => setShowVideoGallerySheet(false)}
+          />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
