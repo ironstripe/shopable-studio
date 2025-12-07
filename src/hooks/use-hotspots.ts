@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { Hotspot, HotspotStyle, CardStyle, ClickBehavior } from "@/types/video";
-import { clampPositionToSafeZone, getMaxScaleAtPosition, SafeZonePreset } from "@/utils/safe-zone";
+import { clampPositionToSafeZone, clampHotspotToSafeZone, getHotspotDimensions, getMaxScaleAtPosition, SafeZonePreset, SAFE_ZONE_CONFIG } from "@/utils/safe-zone";
 
 export interface UseHotspotsOptions {
   safeZonePreset?: SafeZonePreset;
@@ -129,16 +129,34 @@ export function useHotspots(
     });
   }, [opts.safeZonePreset]);
 
-  // UPDATE SCALE (with safe zone clamping)
+  // UPDATE SCALE (with safe zone clamping and position adjustment)
   const updateHotspotScale = useCallback((id: string, scale: number) => {
     setHotspots(prev => {
       const hotspot = prev.find(h => h.id === id);
       if (!hotspot) return prev;
       
-      const maxScale = getMaxScaleAtPosition(hotspot.x, hotspot.y, opts.safeZonePreset);
-      const clampedScale = Math.min(scale, maxScale);
+      // Clamp scale to valid range first
+      const clampedScale = Math.min(2, Math.max(0.5, scale));
       
-      return prev.map(h => h.id === id ? { ...h, scale: clampedScale } : h);
+      // Get hotspot dimensions at new scale
+      const { width, height } = getHotspotDimensions(clampedScale);
+      
+      // Clamp position + dimensions to safe zone (may adjust position)
+      const { x: newX, y: newY, width: newWidth, height: newHeight } = 
+        clampHotspotToSafeZone(hotspot.x, hotspot.y, width, height, opts.safeZonePreset);
+      
+      // If dimensions had to be reduced, recalculate scale from the reduced dimensions
+      const finalScale = Math.min(
+        newWidth / SAFE_ZONE_CONFIG.baseHotspotSize, 
+        newHeight / SAFE_ZONE_CONFIG.baseHotspotSize
+      );
+      
+      return prev.map(h => h.id === id ? { 
+        ...h, 
+        x: newX, 
+        y: newY,
+        scale: Math.min(clampedScale, Math.max(0.5, finalScale))
+      } : h);
     });
   }, [opts.safeZonePreset]);
 
