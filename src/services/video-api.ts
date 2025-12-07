@@ -28,7 +28,6 @@ export async function listVideos(): Promise<VideoDto[]> {
   console.log('[Videos] Fetching video list from:', API_BASE_URL);
   const res = await fetch(`${API_BASE_URL}/videos`, {
     method: "GET",
-    credentials: "include",
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
@@ -48,7 +47,6 @@ export async function registerUpload(
   const res = await fetch(`${API_BASE_URL}/uploads/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify(payload),
   });
   if (!res.ok) {

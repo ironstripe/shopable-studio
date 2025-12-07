@@ -33,7 +33,6 @@ export type UpdateHotspotPayload = Partial<CreateHotspotPayload>;
 export async function listHotspots(videoId: string): Promise<HotspotDto[]> {
   const res = await fetch(`${API_BASE_URL}/videos/${videoId}/hotspots`, {
     method: "GET",
-    credentials: "include",
   });
   if (!res.ok) {
     throw new Error(`Failed to load hotspots (${res.status})`);
@@ -48,7 +47,6 @@ export async function createHotspot(
   const res = await fetch(`${API_BASE_URL}/videos/${videoId}/hotspots`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
@@ -67,7 +65,6 @@ export async function updateHotspot(
     {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify(payload),
     }
   );
@@ -85,7 +82,6 @@ export async function deleteHotspot(
     `${API_BASE_URL}/videos/${videoId}/hotspots/${hotspotId}`,
     {
       method: "DELETE",
-      credentials: "include",
     }
   );
   if (!res.ok) {
