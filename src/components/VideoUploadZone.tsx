@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { isIOS } from "@/utils/ios-detection";
 import { useLocale } from "@/lib/i18n";
 import { registerUpload, uploadToS3 } from "@/services/video-api";
+import { isApiConfigured } from "@/services/api-config";
 
 interface VideoUploadZoneProps {
   onVideoLoad: (src: string, videoId?: string) => void;
@@ -33,6 +34,13 @@ const VideoUploadZone = ({ onVideoLoad, onUploadComplete }: VideoUploadZoneProps
     
     if (!file || !file.type.startsWith("video/")) {
       toast.error(t("upload.invalidFile"));
+      return;
+    }
+
+    // Check if API is configured before attempting upload
+    if (!isApiConfigured) {
+      console.error('[VideoUpload] API not configured - using placeholder URL');
+      toast.error("Backend not configured. Please set the VITE_API_BASE_URL environment variable.");
       return;
     }
 
