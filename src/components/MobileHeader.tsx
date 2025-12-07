@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronLeft, RefreshCw, Download, HelpCircle, Trash2, Settings, MoreVertical, Check, Globe } from "lucide-react";
+import { ChevronLeft, RefreshCw, Download, HelpCircle, Trash2, Settings, MoreVertical, Check, Globe, FolderOpen } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +18,7 @@ interface MobileHeaderProps {
   hasVideo: boolean;
   onBack?: () => void;
   onDeleteVideo?: () => void;
+  onOpenVideoGallery?: () => void;
 }
 
 const MobileHeader = ({
@@ -28,6 +29,7 @@ const MobileHeader = ({
   hasVideo,
   onBack,
   onDeleteVideo,
+  onOpenVideoGallery,
 }: MobileHeaderProps) => {
   const { t, locale, setLocale } = useLocale();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -110,8 +112,20 @@ const MobileHeader = ({
           )}
         </div>
 
-        {/* Right: Three-dot menu */}
-        <DropdownMenu>
+        {/* Right: My Videos button + Three-dot menu */}
+        <div className="flex items-center gap-1">
+          {/* My Videos button - show when on entry screen (no video) */}
+          {!hasVideo && onOpenVideoGallery && (
+            <button
+              onClick={onOpenVideoGallery}
+              className="h-9 px-3 flex items-center gap-1.5 rounded-full hover:bg-white/10 transition-colors text-muted-foreground text-sm font-medium"
+            >
+              <FolderOpen className="w-4 h-4" />
+              <span className="hidden sm:inline">My Videos</span>
+            </button>
+          )}
+          
+          <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors text-muted-foreground -mr-1">
               <MoreVertical className="w-5 h-5" />
@@ -151,7 +165,8 @@ const MobileHeader = ({
               {t("header.help")}
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+          </DropdownMenu>
+        </div>
       </div>
     </header>
   );

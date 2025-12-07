@@ -10,11 +10,12 @@ import { isApiConfigured } from "@/services/api-config";
 interface VideoUploadZoneProps {
   onVideoLoad: (src: string, videoId?: string) => void;
   onUploadComplete?: () => void;
+  onOpenVideoGallery?: () => void;
 }
 
 type UploadState = "idle" | "registering" | "uploading" | "processing";
 
-const VideoUploadZone = ({ onVideoLoad, onUploadComplete }: VideoUploadZoneProps) => {
+const VideoUploadZone = ({ onVideoLoad, onUploadComplete, onOpenVideoGallery }: VideoUploadZoneProps) => {
   const { t } = useLocale();
   const [isDragging, setIsDragging] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
@@ -205,6 +206,20 @@ const VideoUploadZone = ({ onVideoLoad, onUploadComplete }: VideoUploadZoneProps
             {uploadState === "idle" && t("upload.subtitle")}
           </p>
         </div>
+
+        {/* Secondary link to open saved videos */}
+        {uploadState === "idle" && onOpenVideoGallery && (
+          <button
+            onClick={onOpenVideoGallery}
+            className={cn(
+              "mt-6 text-[15px] text-primary font-medium underline underline-offset-2 hover:text-primary/80 transition-colors",
+              hasAnimated ? "animate-fade-in" : "opacity-0"
+            )}
+            style={{ animationDelay: "150ms" }}
+          >
+            Oder gespeichertes Video wählen
+          </button>
+        )}
       </div>
     </div>
   );
