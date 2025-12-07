@@ -25,11 +25,14 @@ export interface RegisterUploadResponse {
  * Fetch all videos for the current user from the backend
  */
 export async function listVideos(): Promise<VideoDto[]> {
+  console.log('[Videos] Fetching video list from:', API_BASE_URL);
   const res = await fetch(`${API_BASE_URL}/videos`, {
     method: "GET",
     credentials: "include",
   });
   if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    console.error("[Videos] listVideos failed", res.status, text);
     throw new Error(`Failed to load videos (${res.status})`);
   }
   return res.json();
@@ -41,6 +44,7 @@ export async function listVideos(): Promise<VideoDto[]> {
 export async function registerUpload(
   payload: RegisterUploadRequest
 ): Promise<RegisterUploadResponse> {
+  console.log('[Uploads] Registering upload:', payload);
   const res = await fetch(`${API_BASE_URL}/uploads/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -48,6 +52,8 @@ export async function registerUpload(
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    console.error("[Uploads] register failed", res.status, text);
     throw new Error(`Failed to register upload (${res.status})`);
   }
   return res.json();
@@ -57,12 +63,16 @@ export async function registerUpload(
  * Upload a file directly to S3 using the presigned URL
  */
 export async function uploadToS3(uploadUrl: string, file: File): Promise<void> {
+  console.log('[Uploads] Uploading to S3, size:', file.size, 'type:', file.type);
   const res = await fetch(uploadUrl, {
     method: "PUT",
     headers: { "Content-Type": file.type },
     body: file,
   });
   if (!res.ok) {
-    throw new Error(`Failed to upload to S3 (${res.status})`);
+    const text = await res.text().catch(() => "");
+    console.error("[Uploads] S3 PUT failed", res.status, text);
+    throw new Error(`S3 upload failed (${res.status})`);
   }
+  console.log('[Uploads] S3 upload complete');
 }

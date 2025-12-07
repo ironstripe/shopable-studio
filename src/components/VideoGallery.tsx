@@ -49,7 +49,11 @@ const VideoGallery = ({
             <h2 className="text-lg font-semibold text-foreground mb-1">
               Failed to load videos
             </h2>
-            <p className="text-muted-foreground text-sm">{error}</p>
+            <p className="text-muted-foreground text-sm">
+              {error.includes("Failed to fetch") 
+                ? "Cannot connect to server. Check your network or API configuration."
+                : error}
+            </p>
           </div>
           <Button onClick={onRetry} variant="outline" className="gap-2">
             <RefreshCw className="w-4 h-4" />
