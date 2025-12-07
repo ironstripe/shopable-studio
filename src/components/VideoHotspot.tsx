@@ -3,7 +3,7 @@ import HotspotIcon from "./HotspotIcon";
 import EmptyHotspotIndicator from "./EmptyHotspotIndicator";
 import HotspotCountdown from "./HotspotCountdown";
 import { cn } from "@/lib/utils";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 
 interface VideoHotspotProps {
   hotspot: Hotspot;
@@ -24,6 +24,7 @@ interface VideoHotspotProps {
   isNew?: boolean;
   isAnyEditing?: boolean; // True when ANY hotspot has toolbar/sheet open
   forceVisible?: boolean; // When true, always render even if outside time range
+  onMeasure?: (id: string, width: number, height: number) => void; // Report measured dimensions
 }
 
 const VideoHotspot = ({ 
@@ -45,15 +46,26 @@ const VideoHotspot = ({
   isNew = false,
   isAnyEditing = false,
   forceVisible = false,
+  onMeasure,
 }: VideoHotspotProps) => {
-  console.log('[VideoHotspot] render:', hotspot.id, 'style:', hotspot.style, 'revision:', hotspot.revision);
   const countdown = Math.ceil(hotspot.timeEnd - currentTime);
   const isActive = currentTime >= hotspot.timeStart && currentTime <= hotspot.timeEnd;
+  
+  // Ref for measuring actual DOM dimensions
+  const hotspotRef = useRef<HTMLDivElement>(null);
   
   // Track if pop-in animation should play
   const [showPopIn, setShowPopIn] = useState(isNew);
   const [showSelectionHalo, setShowSelectionHalo] = useState(false);
   const prevSelectedRef = useRef(isSelected);
+  
+  // Measure actual DOM dimensions after render and report to parent
+  useLayoutEffect(() => {
+    if (hotspotRef.current && onMeasure) {
+      const rect = hotspotRef.current.getBoundingClientRect();
+      onMeasure(hotspot.id, rect.width, rect.height);
+    }
+  }, [hotspot.id, hotspot.style, hotspot.scale, hasProduct, onMeasure]);
 
   // Clear pop-in after animation completes
   useEffect(() => {
@@ -82,6 +94,7 @@ const VideoHotspot = ({
 
   return (
     <div
+      ref={hotspotRef}
       className={cn(
         "absolute select-none pointer-events-auto hotspot-draggable",
         isDragging ? "" : "transition-all duration-150",
