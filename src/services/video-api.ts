@@ -58,22 +58,34 @@ export async function listVideos(): Promise<VideoDto[]> {
 export async function registerUpload(
   payload: RegisterUploadRequest
 ): Promise<RegisterUploadResponse> {
-  console.log('[Uploads] Registering upload:', payload);
-  const res = await fetch(`${API_BASE_URL}/uploads/register`, {
+  const url = `${API_BASE_URL}/uploads/register`;
+  console.log('[Uploads] Calling:', 'POST', url);
+  console.log('[Uploads] Payload:', payload);
+  
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
+  
+  // Log raw response before parsing
+  const responseText = await res.clone().text();
+  console.log('[Uploads] registerUpload response:', url, 'POST', res.status, responseText);
+  
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    console.error("[Uploads] register failed", res.status, text);
+    console.error("[Uploads] register failed", res.status, responseText);
     throw new Error(`Failed to register upload (${res.status})`);
   }
   
-  const data = await res.json();
-  console.log('[Uploads] Register response:', data);
+  const data = JSON.parse(responseText);
   
-  // Validate response has required fields
+  // Validate response - if we see "items", we hit the wrong endpoint
+  if (data.items) {
+    console.error("[Uploads] ERROR: Got video list response instead of upload URL. Check backend routing!");
+    console.error("[Uploads] Called URL:", url, "Method: POST");
+    throw new Error("Backend returned video list instead of upload URL - check API routing");
+  }
+  
   if (!data.uploadUrl) {
     console.error("[Uploads] Backend did not return uploadUrl:", data);
     throw new Error("Backend did not return upload URL");
@@ -86,7 +98,7 @@ export async function registerUpload(
   return {
     uploadUrl: data.uploadUrl,
     videoId: data.videoId,
-    fileUrl: data.fileUrl || undefined,
+    fileUrl: data.fileUrl ?? undefined,
   };
 }
 
@@ -94,8 +106,9 @@ export async function registerUpload(
  * Upload a file directly to S3 using the presigned URL
  */
 export async function uploadToS3(uploadUrl: string, file: File): Promise<void> {
-  console.log('[Uploads] Using uploadUrl:', uploadUrl);
-  console.log('[Uploads] File:', file.name, 'type:', file.type, 'size:', file.size);
+  console.log('[Uploads] S3 PUT to:', uploadUrl);
+  console.log('[Uploads] File details:', { name: file.name, type: file.type, size: file.size });
+  console.log('[Uploads] URL includes query params:', uploadUrl.includes('?'));
   
   const res = await fetch(uploadUrl, {
     method: "PUT",
@@ -109,5 +122,5 @@ export async function uploadToS3(uploadUrl: string, file: File): Promise<void> {
     throw new Error(`S3 upload failed (${res.status})`);
   }
   
-  console.log('[Uploads] S3 upload complete');
+  console.log('[Uploads] S3 upload complete, status:', res.status);
 }
