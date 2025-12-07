@@ -151,17 +151,9 @@ export const clampHotspotCenterToSafeZone = (
   
   let wasConstrained = false;
   
-  // Clamp left edge (center - halfWidth must be >= safe.x)
-  if (centerPixelX - halfWidth < safeZone.x) {
-    centerPixelX = safeZone.x + halfWidth;
-    wasConstrained = true;
-  }
-  
-  // Clamp top edge (center - halfHeight must be >= safe.y)
-  if (centerPixelY - halfHeight < safeZone.y) {
-    centerPixelY = safeZone.y + halfHeight;
-    wasConstrained = true;
-  }
+  // Note: Left and top edges are NOT clamped - only right (platform icons) and bottom (captions/controls)
+  // Left edge: No clamping needed - no platform UI on left side
+  // Top edge: No clamping needed - no platform UI at top
   
   // Clamp right edge (center + halfWidth must be <= safe.x + safe.width)
   const safeRight = safeZone.x + safeZone.width;
