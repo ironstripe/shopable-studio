@@ -130,6 +130,7 @@ export interface Product {
   thumbnail?: string;
   ctaLabel?: string;
   defaultClickBehavior?: ClickBehavior;
+  promoCode?: string; // Promo/discount code
 }
 
 export interface VideoProject {

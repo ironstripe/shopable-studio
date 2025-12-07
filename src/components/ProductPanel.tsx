@@ -32,13 +32,14 @@ const ProductPanel = ({
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [creatingProduct, setCreatingProduct] = useState({
+const [creatingProduct, setCreatingProduct] = useState({
     title: "",
     description: "",
     link: "",
     ctaLabel: "Kaufen",
     price: "",
     thumbnail: "",
+    promoCode: "",
   });
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
@@ -117,6 +118,7 @@ const ProductPanel = ({
       ctaLabel: "Kaufen",
       price: "",
       thumbnail: "",
+      promoCode: "",
     });
     setThumbnailFile(null);
     setThumbnailPreview("");
@@ -248,9 +250,19 @@ const ProductPanel = ({
                 className="h-9 text-[13px] bg-white border-[#E0E0E0] text-[#111827]"
               />
             </div>
+
+            <div>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Promo code</Label>
+              <Input
+                value={creatingProduct.promoCode}
+                onChange={(e) => setCreatingProduct({ ...creatingProduct, promoCode: e.target.value })}
+                placeholder="e.g. SAVE20"
+                className="h-9 text-[13px] bg-white border-[#E0E0E0] text-[#111827]"
+              />
+            </div>
             
             <div>
-              <Label className="text-[12px] text-[#6B7280] mb-1.5">Thumbnail</Label>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Image URL</Label>
               
               {/* Upload button */}
               <div className="flex items-center gap-3 mb-2">
@@ -271,7 +283,7 @@ const ProductPanel = ({
                 {(thumbnailPreview || creatingProduct.thumbnail) && (
                   <img 
                     src={thumbnailPreview || creatingProduct.thumbnail} 
-                    className="w-10 h-10 rounded object-cover border border-[#E0E0E0]" 
+                    className="w-12 h-12 rounded object-cover border border-[#E0E0E0]" 
                     alt="Preview"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
@@ -282,7 +294,7 @@ const ProductPanel = ({
               
               {/* Or divider */}
               <div className="flex items-center gap-2 text-[11px] text-[#9CA3AF] mb-2">
-                <span>or</span>
+                <span>or paste URL</span>
               </div>
               
               {/* URL input */}
@@ -293,7 +305,7 @@ const ProductPanel = ({
                   setThumbnailPreview("");
                   setThumbnailFile(null);
                 }}
-                placeholder="https://example.com/image.jpg"
+                placeholder="https://…"
                 className="h-9 text-[13px] bg-white border-[#E0E0E0] text-[#111827]"
               />
             </div>
@@ -307,13 +319,14 @@ const ProductPanel = ({
           <Button
             onClick={() => {
               setViewMode("list");
-              setCreatingProduct({
+            setCreatingProduct({
                 title: "",
                 description: "",
                 link: "",
                 ctaLabel: "Kaufen",
                 price: "",
                 thumbnail: "",
+                promoCode: "",
               });
               setThumbnailFile(null);
               setThumbnailPreview("");
@@ -408,16 +421,26 @@ const ProductPanel = ({
               <Input
                 value={editingProduct.price}
                 onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })}
-                className="h-9 text-[13px]"
+                className="h-9 text-[13px] bg-white border-[#E0E0E0] text-[#111827]"
+              />
+            </div>
+
+            <div>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Promo code</Label>
+              <Input
+                value={editingProduct.promoCode || ""}
+                onChange={(e) => setEditingProduct({ ...editingProduct, promoCode: e.target.value })}
+                placeholder="e.g. SAVE20"
+                className="h-9 text-[13px] bg-white border-[#E0E0E0] text-[#111827]"
               />
             </div>
             
             <div>
-              <Label className="text-[12px] text-[#6B7280] mb-1.5">Thumbnail URL</Label>
+              <Label className="text-[12px] text-[#6B7280] mb-1.5">Image URL</Label>
               <Input
                 value={editingProduct.thumbnail || ""}
                 onChange={(e) => setEditingProduct({ ...editingProduct, thumbnail: e.target.value })}
-                placeholder="https://example.com/image.jpg"
+                placeholder="https://…"
                 className="h-9 text-[13px] bg-white border-[#E0E0E0] text-[#111827]"
               />
               {editingProduct.thumbnail && (
@@ -425,7 +448,7 @@ const ProductPanel = ({
                   <img 
                     src={editingProduct.thumbnail} 
                     alt="Thumbnail preview" 
-                    className="w-16 h-16 rounded-md object-cover border border-[#E0E0E0]"
+                    className="w-12 h-12 rounded-md object-cover border border-[#E0E0E0]"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
                     }}
@@ -523,7 +546,7 @@ const ProductPanel = ({
               )}
             >
               {/* Thumbnail */}
-              <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-neutral-100 flex items-center justify-center overflow-hidden">
+              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-neutral-100 flex items-center justify-center overflow-hidden">
                 {product.thumbnail ? (
                   <img src={product.thumbnail} alt={product.title} className="w-full h-full object-cover" />
                 ) : (
