@@ -2,7 +2,7 @@
 // The actual URL will be injected via environment variables
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
-  "https://YOUR_API_GATEWAY_URL_HERE"; // placeholder - replace with actual URL
+  "https://skyc5xwjcf.execute-api.eu-west-1.amazonaws.com";
 
 // Log the API URL on startup for debugging
 console.log('[API Config] Base URL:', API_BASE_URL);
