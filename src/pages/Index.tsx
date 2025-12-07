@@ -357,6 +357,17 @@ const Index = () => {
     toast.success("Product updated");
   };
 
+  const handleRemoveProductFromHotspot = () => {
+    if (!productAssignmentHotspotId) return;
+    
+    updateHotspot({
+      id: productAssignmentHotspotId,
+      productId: null,
+    } as Hotspot);
+    
+    toast.success("Product removed from hotspot");
+  };
+
   const handleCreateProduct = (newProduct: Omit<Product, "id">): string => {
     const id = `product-${Date.now()}`;
     setProducts({ ...products, [id]: { ...newProduct, id } });
@@ -556,7 +567,10 @@ const Index = () => {
           onOpenChange={setSelectProductSheetOpen}
           products={products}
           selectedProductId={productAssignmentHotspotId ? hotspots.find(h => h.id === productAssignmentHotspotId)?.productId : null}
+          assignedProductId={productAssignmentHotspotId ? hotspots.find(h => h.id === productAssignmentHotspotId)?.productId : null}
           onSelectProduct={handleAssignProduct}
+          onUpdateProduct={handleUpdateProduct}
+          onRemoveProduct={handleRemoveProductFromHotspot}
           onOpenNewProduct={() => setNewProductSheetOpen(true)}
           showFTUXHint={showProductSheetHint}
           onFTUXHintDismiss={() => advanceStep("postProduct")}
@@ -731,7 +745,10 @@ const Index = () => {
           onOpenChange={setSelectProductSheetOpen}
           products={products}
           selectedProductId={productAssignmentHotspotId ? hotspots.find(h => h.id === productAssignmentHotspotId)?.productId : null}
+          assignedProductId={productAssignmentHotspotId ? hotspots.find(h => h.id === productAssignmentHotspotId)?.productId : null}
           onSelectProduct={handleAssignProduct}
+          onUpdateProduct={handleUpdateProduct}
+          onRemoveProduct={handleRemoveProductFromHotspot}
           onOpenNewProduct={() => setNewProductSheetOpen(true)}
           showFTUXHint={showProductSheetHint}
           onFTUXHintDismiss={() => advanceStep("postProduct")}
