@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { Hotspot, ClickBehavior, HotspotStyle, CountdownStyle, CountdownPosition } from "@/types/video";
 import {
+  TemplateFamilyId,
+  getFamilyById,
+  getFamilyFromStyle,
+} from "@/types/templates";
+import {
   Sheet,
   SheetContent,
 } from "@/components/ui/sheet";
@@ -8,67 +13,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import HotspotStylePreview from "./HotspotStylePreview";
-
-// Template families
-type TemplateFamily = "ecommerce" | "luxury" | "seasonal";
-
-// Style option interface
-interface StyleOption {
-  id: HotspotStyle;
-  label: string;
-}
-
-// Family configuration
-interface FamilyConfig {
-  label: string;
-  description: string;
-  mainStyle: HotspotStyle;
-  styles: StyleOption[];
-}
-
-const FAMILY_CONFIG: Record<TemplateFamily, FamilyConfig> = {
-  ecommerce: {
-    label: "E-Commerce",
-    description: "Clean cards for classic shop setups",
-    mainStyle: "ecommerce-light-card",
-    styles: [
-      { id: "ecommerce-light-card", label: "Light Card" },
-      { id: "ecommerce-sale-boost", label: "Sale Boost" },
-      { id: "ecommerce-minimal", label: "Minimal" },
-    ],
-  },
-  luxury: {
-    label: "Luxury",
-    description: "Ultra-clean, subtle, premium brands",
-    mainStyle: "luxury-fine-line",
-    styles: [
-      { id: "luxury-fine-line", label: "Fine Line" },
-      { id: "luxury-elegance-card", label: "Elegance Card" },
-      { id: "luxury-dot", label: "Luxury Dot" },
-    ],
-  },
-  seasonal: {
-    label: "Seasonal",
-    description: "Special event templates (Valentine, Easter, BF)",
-    mainStyle: "seasonal-valentine",
-    styles: [
-      { id: "seasonal-valentine", label: "Valentine" },
-      { id: "seasonal-easter", label: "Easter" },
-      { id: "seasonal-black-friday", label: "Black Friday" },
-    ],
-  },
-};
-
-// Default CTA labels per family
-const FAMILY_CTA_DEFAULTS: Record<TemplateFamily, string> = {
-  ecommerce: "Shop Now",
-  luxury: "Discover",
-  seasonal: "Get the Deal",
-};
+import TemplateFamilySelector from "./TemplateFamilySelector";
 
 // CTA presets
 const CTA_PRESETS = ["Shop Now", "Buy", "Learn More", "Get Deal"];
@@ -92,18 +40,10 @@ const LayoutBehaviorSheet = ({
 }: LayoutBehaviorSheetProps) => {
   const { toast } = useToast();
 
-  // Parse current style into family
-  const parseFamily = (style: HotspotStyle): TemplateFamily => {
-    if (style.startsWith("ecommerce")) return "ecommerce";
-    if (style.startsWith("luxury")) return "luxury";
-    if (style.startsWith("seasonal")) return "seasonal";
-    return "ecommerce";
-  };
-
-  const initialFamily = hotspot ? parseFamily(hotspot.style) : "ecommerce";
+  const initialFamily = hotspot ? getFamilyFromStyle(hotspot.style) : "ecommerce";
   const initialStyle = hotspot?.style || "ecommerce-light-card";
   
-  const [selectedFamily, setSelectedFamily] = useState<TemplateFamily>(initialFamily);
+  const [selectedFamily, setSelectedFamily] = useState<TemplateFamilyId>(initialFamily);
   const [selectedStyle, setSelectedStyle] = useState<HotspotStyle>(initialStyle);
   const [ctaLabel, setCtaLabel] = useState(hotspot?.ctaLabel || "Shop Now");
   const [clickBehavior, setClickBehavior] = useState<ClickBehavior>(hotspot?.clickBehavior || "show-card");
@@ -129,10 +69,11 @@ const LayoutBehaviorSheet = ({
   // Reset form when hotspot changes or when sheet opens
   useEffect(() => {
     if (hotspot && open) {
-      const family = parseFamily(hotspot.style);
+      const family = getFamilyFromStyle(hotspot.style);
+      const familyConfig = getFamilyById(family);
       setSelectedFamily(family);
       setSelectedStyle(hotspot.style);
-      setCtaLabel(hotspot.ctaLabel || FAMILY_CTA_DEFAULTS[family]);
+      setCtaLabel(hotspot.ctaLabel || familyConfig?.defaultCtaLabel || "Shop Now");
       setClickBehavior(hotspot.clickBehavior || "show-card");
       setDuration(hotspot.timeEnd - hotspot.timeStart);
       setCountdownActive(hotspot.countdown?.active ?? false);
@@ -142,12 +83,14 @@ const LayoutBehaviorSheet = ({
   }, [hotspot?.id, hotspot?.style, hotspot?.revision, open]);
 
   // Update defaults when family changes
-  const handleFamilyChange = (family: TemplateFamily) => {
+  const handleFamilyChange = (family: TemplateFamilyId) => {
     if (isPreviewMode) return;
     setSelectedFamily(family);
-    const newStyle = FAMILY_CONFIG[family].mainStyle;
-    setSelectedStyle(newStyle);
-    setCtaLabel(FAMILY_CTA_DEFAULTS[family]);
+    const familyConfig = getFamilyById(family);
+    if (familyConfig) {
+      setSelectedStyle(familyConfig.mainStyle);
+      setCtaLabel(familyConfig.defaultCtaLabel);
+    }
   };
 
   const handleStyleChange = (style: HotspotStyle) => {
@@ -181,7 +124,7 @@ const LayoutBehaviorSheet = ({
 
   const isDisabled = isPreviewMode;
   const endTime = (hotspot?.timeStart || 0) + duration;
-  const currentFamilyConfig = FAMILY_CONFIG[selectedFamily];
+  const currentFamilyConfig = getFamilyById(selectedFamily);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -221,64 +164,16 @@ const LayoutBehaviorSheet = ({
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto overscroll-contain px-4 pt-5 pb-40 space-y-6">
           
-          {/* Section 1: Template Family - Compact horizontal cards */}
+          {/* Section 1: Template Family - Compact list */}
           <section>
             <h3 className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
               Template Family
             </h3>
-            
-            <div className="space-y-2">
-              {(Object.keys(FAMILY_CONFIG) as TemplateFamily[]).map((family) => {
-                const config = FAMILY_CONFIG[family];
-                const isActive = selectedFamily === family;
-                
-                return (
-                  <button
-                    key={family}
-                    onClick={() => handleFamilyChange(family)}
-                    disabled={isDisabled}
-                    className={cn(
-                      "w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all duration-150",
-                      isActive
-                        ? "border-primary bg-primary/5"
-                        : "border-[#E5E5E5] hover:border-[#D0D0D0]",
-                      isDisabled && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    {/* Preview thumbnail - approx 40px */}
-                    <div className="w-10 h-10 flex-shrink-0 rounded-lg overflow-hidden">
-                      <HotspotStylePreview
-                        family={family}
-                        hotspotStyle={config.mainStyle}
-                        isActive={isActive}
-                        ctaLabel="Shop"
-                        compact
-                      />
-                    </div>
-                    
-                    {/* Title + description */}
-                    <div className="flex-1 text-left">
-                      <div className={cn(
-                        "text-[14px] font-medium",
-                        isActive ? "text-primary" : "text-[#111111]"
-                      )}>
-                        {config.label}
-                      </div>
-                      <div className="text-[12px] text-[#888888]">
-                        {config.description}
-                      </div>
-                    </div>
-                    
-                    {/* Checkmark when selected */}
-                    {isActive && (
-                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                        <Check className="w-3 h-3 text-white" />
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            <TemplateFamilySelector
+              value={selectedFamily}
+              onChange={handleFamilyChange}
+              disabled={isDisabled}
+            />
           </section>
 
           {/* Section 2: Style Selection - Real HotspotIcon previews */}
@@ -288,7 +183,7 @@ const LayoutBehaviorSheet = ({
             </h3>
             
             <div className="grid grid-cols-3 gap-3">
-              {currentFamilyConfig.styles.map((styleOption) => {
+              {currentFamilyConfig?.styles.map((styleOption) => {
                 const isSelected = selectedStyle === styleOption.id;
                 
                 return (
