@@ -2,11 +2,17 @@ import { API_BASE_URL } from "./api-config";
 
 export interface VideoDto {
   id: string;
-  title?: string;
-  durationSeconds?: number;
+  title: string;
+  createdAt: number;
+  status: "REGISTERED" | "UPLOADED" | "READY" | "FAILED" | string;
   thumbnailUrl?: string;
-  fileUrl?: string; // public or signed playback URL
-  createdAt?: string;
+  fileUrl?: string;
+}
+
+function extractTitleFromObjectKey(objectKey: string | undefined, fallbackId: string): string {
+  if (!objectKey) return fallbackId;
+  const filename = objectKey.split('/').pop() || objectKey;
+  return filename.replace(/\.[^/.]+$/, "") || fallbackId;
 }
 
 export interface RegisterUploadRequest {
@@ -35,15 +41,14 @@ export async function listVideos(): Promise<VideoDto[]> {
     throw new Error(`Failed to load videos (${res.status})`);
   }
   const data = await res.json();
-  // API returns { items: [...] }, extract and map to VideoDto
   const items = data.items || [];
-  return items.map((item: any) => ({
+  return items.map((item: any): VideoDto => ({
     id: item.videoId || item.id,
-    title: item.title || item.objectKey?.replace(/\.[^/.]+$/, "") || "Untitled",
+    title: extractTitleFromObjectKey(item.objectKey, item.videoId || item.id),
+    createdAt: item.createdAt || Date.now(),
+    status: item.status || "UPLOADED",
     thumbnailUrl: item.thumbnailUrl,
     fileUrl: item.fileUrl,
-    createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : undefined,
-    durationSeconds: item.durationSeconds,
   }));
 }
 
