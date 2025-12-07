@@ -4,17 +4,23 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { isIOS } from "@/utils/ios-detection";
 import { useLocale } from "@/lib/i18n";
+import { registerUpload, uploadToS3 } from "@/services/video-api";
 
 interface VideoUploadZoneProps {
-  onVideoLoad: (src: string) => void;
+  onVideoLoad: (src: string, videoId?: string) => void;
+  onUploadComplete?: () => void;
 }
 
-const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
+type UploadState = "idle" | "registering" | "uploading" | "processing";
+
+const VideoUploadZone = ({ onVideoLoad, onUploadComplete }: VideoUploadZoneProps) => {
   const { t } = useLocale();
   const [isDragging, setIsDragging] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [uploadState, setUploadState] = useState<UploadState>("idle");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isLoading = uploadState !== "idle";
 
   useEffect(() => {
     // Trigger animations after mount
@@ -22,52 +28,76 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     console.log('[VideoUpload] File received:', file.name, 'Type:', file.type, 'Size:', file.size);
-    console.log('[VideoUpload] isIOS() result:', isIOS());
-    console.log('[VideoUpload] User Agent:', navigator.userAgent);
     
     if (!file || !file.type.startsWith("video/")) {
       toast.error(t("upload.invalidFile"));
       return;
     }
 
-    // iOS Safari/Chrome: use FileReader to create data URL (blob URLs cause black screen)
-    // Other browsers: use createObjectURL (faster)
-    if (isIOS()) {
-      console.log('[VideoUpload] iOS detected - using FileReader for data URL');
-      setIsLoading(true);
+    try {
+      // Step 1: Register the upload with the backend
+      setUploadState("registering");
+      console.log('[VideoUpload] Registering upload with backend...');
       
-      const reader = new FileReader();
+      const { uploadUrl, videoId, fileUrl } = await registerUpload({
+        filename: file.name,
+        contentType: file.type,
+        sizeBytes: file.size,
+      });
       
-      reader.onloadend = () => {
-        setIsLoading(false);
-        const dataUrl = reader.result as string;
-        console.log('[VideoUpload] Data URL created, length:', dataUrl.length);
-        onVideoLoad(dataUrl);
+      console.log('[VideoUpload] Got presigned URL, videoId:', videoId);
+      
+      // Step 2: Upload to S3
+      setUploadState("uploading");
+      console.log('[VideoUpload] Uploading to S3...');
+      
+      await uploadToS3(uploadUrl, file);
+      
+      console.log('[VideoUpload] S3 upload complete');
+      
+      // Step 3: Show processing state briefly, then complete
+      setUploadState("processing");
+      
+      // If we have a fileUrl from the response, use it directly
+      if (fileUrl) {
+        console.log('[VideoUpload] Using fileUrl from response:', fileUrl);
+        onVideoLoad(fileUrl, videoId);
         toast.success(t("upload.success"));
-      };
+        setUploadState("idle");
+        onUploadComplete?.();
+        return;
+      }
       
-      reader.onerror = () => {
-        setIsLoading(false);
-        console.error('[VideoUpload] FileReader error:', reader.error);
-        toast.error(t("upload.error"));
-      };
+      // Otherwise, for local preview while backend processes, use local blob
+      // This provides immediate feedback while the video is being processed
+      if (isIOS()) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const dataUrl = reader.result as string;
+          onVideoLoad(dataUrl, videoId);
+          toast.success(t("upload.success"));
+          setUploadState("idle");
+          onUploadComplete?.();
+        };
+        reader.onerror = () => {
+          toast.error(t("upload.error"));
+          setUploadState("idle");
+        };
+        reader.readAsDataURL(file);
+      } else {
+        const url = URL.createObjectURL(file);
+        onVideoLoad(url, videoId);
+        toast.success(t("upload.success"));
+        setUploadState("idle");
+        onUploadComplete?.();
+      }
       
-      reader.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percent = Math.round((event.loaded / event.total) * 100);
-          console.log('[VideoUpload] Loading progress:', percent + '%');
-        }
-      };
-      
-      reader.readAsDataURL(file);
-    } else {
-      // Standard approach for desktop browsers
-      const url = URL.createObjectURL(file);
-      console.log('[VideoUpload] Blob URL created:', url);
-      onVideoLoad(url);
-      toast.success(t("upload.success"));
+    } catch (error) {
+      console.error('[VideoUpload] Upload failed:', error);
+      toast.error(error instanceof Error ? error.message : t("upload.error"));
+      setUploadState("idle");
     }
   };
 
@@ -154,10 +184,16 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
           hasAnimated ? "animate-fade-in" : "opacity-0"
         )}>
           <h1 className="text-[22px] font-semibold text-neutral-900 tracking-tight">
-            {isLoading ? t("upload.loading") : t("upload.title")}
+            {uploadState === "registering" && "Preparing upload..."}
+            {uploadState === "uploading" && "Uploading..."}
+            {uploadState === "processing" && "Processing..."}
+            {uploadState === "idle" && t("upload.title")}
           </h1>
           <p className="mt-2 text-[15px] text-neutral-500">
-            {isLoading ? t("upload.loadingHint") : t("upload.subtitle")}
+            {uploadState === "registering" && "Connecting to server"}
+            {uploadState === "uploading" && "Sending video to cloud"}
+            {uploadState === "processing" && "Almost ready..."}
+            {uploadState === "idle" && t("upload.subtitle")}
           </p>
         </div>
       </div>

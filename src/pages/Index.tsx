@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Hotspot, Product, VideoProject, VideoCTA, EditorMode } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
+import VideoGallery from "@/components/VideoGallery";
 import HotspotSidebar from "@/components/HotspotSidebar";
 import MobileHeader from "@/components/MobileHeader";
 import MobileBottomControls from "@/components/MobileBottomControls";
@@ -30,6 +31,7 @@ import { useFTUX } from "@/hooks/use-ftux";
 import { useHotspots } from "@/hooks/use-hotspots";
 import { useLocale } from "@/lib/i18n";
 import shopableLogo from "@/assets/shopable-logo.png";
+import { listVideos, VideoDto } from "@/services/video-api";
 
 const Index = () => {
   const isMobile = useIsMobile();
@@ -50,6 +52,13 @@ const Index = () => {
     updateHotspotScale,
     setHotspots,
   } = useHotspots([]);
+  
+  // Backend video state
+  const [videos, setVideos] = useState<VideoDto[]>([]);
+  const [videosLoading, setVideosLoading] = useState(true);
+  const [videosError, setVideosError] = useState<string | null>(null);
+  const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
+  const [showUploadView, setShowUploadView] = useState(false);
   
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>("edit");
@@ -117,10 +126,53 @@ const Index = () => {
 
   const isPreviewMode = editorMode === "preview";
 
-  // No need to normalize on mount - clamping happens in VideoPlayer during drag/creation
+  // Fetch videos from backend on mount
+  const fetchVideos = useCallback(async () => {
+    setVideosLoading(true);
+    setVideosError(null);
+    try {
+      const data = await listVideos();
+      setVideos(data);
+    } catch (error) {
+      console.error('[Index] Failed to fetch videos:', error);
+      setVideosError(error instanceof Error ? error.message : 'Failed to load videos');
+    } finally {
+      setVideosLoading(false);
+    }
+  }, []);
 
-  const handleVideoLoad = (src: string) => {
+  useEffect(() => {
+    fetchVideos();
+  }, [fetchVideos]);
+
+  // Handle selecting a video from the gallery
+  const handleSelectVideoFromGallery = (video: VideoDto) => {
+    if (video.fileUrl) {
+      setVideoSrc(video.fileUrl);
+      setCurrentVideoId(video.id);
+      setVideoTitle(video.title || t("header.untitled"));
+      setShowUploadView(false);
+      
+      // FTUX: Advance to videoLoaded step
+      if (!ftuxComplete && ftuxStep === "emptyEditor") {
+        advanceStep("videoLoaded");
+      }
+    } else {
+      toast.error("Video is still processing, please try again later.");
+    }
+  };
+
+  // Handle upload complete - refresh video list
+  const handleUploadComplete = () => {
+    setShowUploadView(false);
+    fetchVideos();
+  };
+
+  const handleVideoLoad = (src: string, videoId?: string) => {
     setVideoSrc(src);
+    if (videoId) {
+      setCurrentVideoId(videoId);
+    }
     const filename = src.split('/').pop()?.split('.')[0] || t("header.untitled");
     setVideoTitle(filename);
     toast.success(t("upload.success"));
@@ -352,6 +404,7 @@ const Index = () => {
   const handleReplaceVideo = () => {
     // Clear all video-related state
     setVideoSrc(null);
+    setCurrentVideoId(null);
     clearHotspots(); // Use centralized clear
     setHighlightedHotspotId(null);
     setPendingPanelHotspotId(null);
@@ -362,6 +415,24 @@ const Index = () => {
     setSelectProductSheetOpen(false);
     setNewProductSheetOpen(false);
     setHotspotDrawerOpen(false);
+    setVideoCTA({
+      label: "Shop Now",
+      url: "",
+      mode: "off",
+      enabled: false,
+      type: "visible-button",
+      style: "ecommerce-solid-white",
+      timing: { mode: "entire-video" },
+      position: { x: 0.85, y: 0.85 },
+    });
+    setVideoTitle(t("header.untitled"));
+    setEditorMode("edit");
+    setShouldAutoOpenProductPanel(false);
+    setShowReplaceVideoDialog(false);
+    setShowUploadView(false);
+    // Refresh the video list to show all available videos
+    fetchVideos();
+    toast.success(t("video.removed"));
     setVideoCTA({
       label: "Shop Now",
       url: "",
@@ -454,44 +525,57 @@ const Index = () => {
           className="flex-1 flex items-center justify-center px-2"
           style={{
             paddingTop: 'calc(56px + env(safe-area-inset-top, 0px) + 8px)',
-            paddingBottom: 'calc(140px + env(safe-area-inset-bottom, 0px) + 8px)',
+            paddingBottom: videoSrc ? 'calc(140px + env(safe-area-inset-bottom, 0px) + 8px)' : 'env(safe-area-inset-bottom, 0px)',
           }}
         >
-          <VideoPlayer
-            videoSrc={videoSrc}
-            hotspots={hotspots}
-            products={products}
-            selectedHotspotId={selectedHotspotId}
-            isPreviewMode={isPreviewMode}
-            onTogglePreviewMode={handleToggleMode}
-            onAddHotspot={handleAddHotspot}
-            onUpdateHotspot={handleUpdateHotspot}
-            onDeleteHotspot={handleDeleteHotspot}
-            onSelectHotspot={handleHotspotSelect}
-            onUpdateHotspotPosition={handleUpdateHotspotPosition}
-            onUpdateHotspotScale={handleUpdateHotspotScale}
-            onOpenProductSelection={handleOpenProductSelection}
-            onOpenLayoutSheet={handleOpenLayoutSheet}
-            onVideoRef={(ref) => {
-              videoRef.current = ref;
-              if (ref) {
-                ref.addEventListener("timeupdate", () => setCurrentTime(ref.currentTime));
-                ref.addEventListener("durationchange", () => setDuration(ref.duration));
-                ref.addEventListener("play", () => setIsPlaying(true));
-                ref.addEventListener("pause", () => setIsPlaying(false));
-              }
-            }}
-            onVideoLoad={handleVideoLoad}
-            shouldAutoOpenProductPanel={shouldAutoOpenProductPanel}
-            highlightedHotspotId={highlightedHotspotId}
-            videoCTA={videoCTA}
-            onUpdateVideoCTA={setVideoCTA}
-            showSafeZones={editorMode === "edit"}
-            isMobile={true}
-            showPlacementHint={!!showPlacementHint}
-            onHotspotDragEnd={handleHotspotDragEnd}
-            isDeferringToolbar={isDeferringToolbar}
-          />
+          {/* Show gallery if no video selected and not in upload view */}
+          {!videoSrc && !showUploadView ? (
+            <VideoGallery
+              videos={videos}
+              isLoading={videosLoading}
+              error={videosError}
+              onSelectVideo={handleSelectVideoFromGallery}
+              onRetry={fetchVideos}
+              onUploadClick={() => setShowUploadView(true)}
+            />
+          ) : (
+            <VideoPlayer
+              videoSrc={videoSrc}
+              hotspots={hotspots}
+              products={products}
+              selectedHotspotId={selectedHotspotId}
+              isPreviewMode={isPreviewMode}
+              onTogglePreviewMode={handleToggleMode}
+              onAddHotspot={handleAddHotspot}
+              onUpdateHotspot={handleUpdateHotspot}
+              onDeleteHotspot={handleDeleteHotspot}
+              onSelectHotspot={handleHotspotSelect}
+              onUpdateHotspotPosition={handleUpdateHotspotPosition}
+              onUpdateHotspotScale={handleUpdateHotspotScale}
+              onOpenProductSelection={handleOpenProductSelection}
+              onOpenLayoutSheet={handleOpenLayoutSheet}
+              onVideoRef={(ref) => {
+                videoRef.current = ref;
+                if (ref) {
+                  ref.addEventListener("timeupdate", () => setCurrentTime(ref.currentTime));
+                  ref.addEventListener("durationchange", () => setDuration(ref.duration));
+                  ref.addEventListener("play", () => setIsPlaying(true));
+                  ref.addEventListener("pause", () => setIsPlaying(false));
+                }
+              }}
+              onVideoLoad={handleVideoLoad}
+              onUploadComplete={handleUploadComplete}
+              shouldAutoOpenProductPanel={shouldAutoOpenProductPanel}
+              highlightedHotspotId={highlightedHotspotId}
+              videoCTA={videoCTA}
+              onUpdateVideoCTA={setVideoCTA}
+              showSafeZones={editorMode === "edit"}
+              isMobile={true}
+              showPlacementHint={!!showPlacementHint}
+              onHotspotDragEnd={handleHotspotDragEnd}
+              isDeferringToolbar={isDeferringToolbar}
+            />
+          )}
         </main>
 
         {/* Mobile bottom controls */}
@@ -659,33 +743,46 @@ const Index = () => {
       {/* Desktop Main Content */}
       <main className="flex w-full pt-[56px] min-h-screen">
         <div className="flex-1 min-w-0 flex justify-center items-start p-6">
-          <VideoPlayer
-            videoSrc={videoSrc}
-            hotspots={hotspots}
-            products={products}
-            selectedHotspotId={selectedHotspotId}
-            isPreviewMode={isPreviewMode}
-            onTogglePreviewMode={handleToggleMode}
-            onAddHotspot={handleAddHotspot}
-            onUpdateHotspot={handleUpdateHotspot}
-            onDeleteHotspot={handleDeleteHotspot}
-            onSelectHotspot={handleHotspotSelect}
-            onUpdateHotspotPosition={handleUpdateHotspotPosition}
-            onUpdateHotspotScale={handleUpdateHotspotScale}
-            onOpenProductSelection={handleOpenProductSelection}
-            onOpenLayoutSheet={handleOpenLayoutSheet}
-            onVideoRef={(ref) => (videoRef.current = ref)}
-            onVideoLoad={handleVideoLoad}
-            shouldAutoOpenProductPanel={shouldAutoOpenProductPanel}
-            highlightedHotspotId={highlightedHotspotId}
-            videoCTA={videoCTA}
-            onUpdateVideoCTA={setVideoCTA}
-            showSafeZones={editorMode === "edit"}
-            isMobile={false}
-            showPlacementHint={!!showPlacementHint}
-            onHotspotDragEnd={handleHotspotDragEnd}
-            isDeferringToolbar={isDeferringToolbar}
-          />
+          {/* Show gallery if no video selected and not in upload view */}
+          {!videoSrc && !showUploadView ? (
+            <VideoGallery
+              videos={videos}
+              isLoading={videosLoading}
+              error={videosError}
+              onSelectVideo={handleSelectVideoFromGallery}
+              onRetry={fetchVideos}
+              onUploadClick={() => setShowUploadView(true)}
+            />
+          ) : (
+            <VideoPlayer
+              videoSrc={videoSrc}
+              hotspots={hotspots}
+              products={products}
+              selectedHotspotId={selectedHotspotId}
+              isPreviewMode={isPreviewMode}
+              onTogglePreviewMode={handleToggleMode}
+              onAddHotspot={handleAddHotspot}
+              onUpdateHotspot={handleUpdateHotspot}
+              onDeleteHotspot={handleDeleteHotspot}
+              onSelectHotspot={handleHotspotSelect}
+              onUpdateHotspotPosition={handleUpdateHotspotPosition}
+              onUpdateHotspotScale={handleUpdateHotspotScale}
+              onOpenProductSelection={handleOpenProductSelection}
+              onOpenLayoutSheet={handleOpenLayoutSheet}
+              onVideoRef={(ref) => (videoRef.current = ref)}
+              onVideoLoad={handleVideoLoad}
+              onUploadComplete={handleUploadComplete}
+              shouldAutoOpenProductPanel={shouldAutoOpenProductPanel}
+              highlightedHotspotId={highlightedHotspotId}
+              videoCTA={videoCTA}
+              onUpdateVideoCTA={setVideoCTA}
+              showSafeZones={editorMode === "edit"}
+              isMobile={false}
+              showPlacementHint={!!showPlacementHint}
+              onHotspotDragEnd={handleHotspotDragEnd}
+              isDeferringToolbar={isDeferringToolbar}
+            />
+          )}
         </div>
 
         {videoSrc && (

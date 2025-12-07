@@ -32,7 +32,8 @@ interface VideoPlayerProps {
   onOpenProductSelection: (hotspotId: string) => void;
   onOpenLayoutSheet: (hotspot: Hotspot) => void;
   onVideoRef?: (ref: HTMLVideoElement | null) => void;
-  onVideoLoad: (src: string) => void;
+  onVideoLoad: (src: string, videoId?: string) => void;
+  onUploadComplete?: () => void;
   shouldAutoOpenProductPanel?: boolean;
   highlightedHotspotId?: string | null;
   videoCTA?: VideoCTAType;
@@ -61,6 +62,7 @@ const VideoPlayer = ({
   onOpenLayoutSheet,
   onVideoRef,
   onVideoLoad,
+  onUploadComplete,
   shouldAutoOpenProductPanel,
   highlightedHotspotId,
   videoCTA,
@@ -791,7 +793,7 @@ const VideoPlayer = ({
               Your browser does not support the video tag.
             </video>
           ) : (
-            <VideoUploadZone onVideoLoad={onVideoLoad} />
+            <VideoUploadZone onVideoLoad={onVideoLoad} onUploadComplete={onUploadComplete} />
           )}
 
           {/* Safe Zone Overlay - Edit mode only, when video is ready */}
