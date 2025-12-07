@@ -15,6 +15,7 @@ import { Slider } from "@/components/ui/slider";
 
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useLocale } from "@/lib/i18n";
 import HotspotStylePreview from "./HotspotStylePreview";
 import TemplateFamilySelector from "./TemplateFamilySelector";
 
@@ -39,6 +40,7 @@ const LayoutBehaviorSheet = ({
   hasProductAssigned = true,
 }: LayoutBehaviorSheetProps) => {
   const { toast } = useToast();
+  const { t } = useLocale();
 
   const initialFamily = hotspot ? getFamilyFromStyle(hotspot.style) : "ecommerce";
   const initialStyle = hotspot?.style || "ecommerce-light-card";
@@ -58,13 +60,13 @@ const LayoutBehaviorSheet = ({
   useEffect(() => {
     if (open && !hasProductAssigned) {
       toast({
-        title: "Assign a product first",
-        description: "You need to assign a product before customizing layout & behavior.",
+        title: t("layout.assignProductFirst"),
+        description: t("layout.assignProductHint"),
         variant: "destructive",
       });
       onOpenChange(false);
     }
-  }, [open, hasProductAssigned, toast, onOpenChange]);
+  }, [open, hasProductAssigned, toast, onOpenChange, t]);
 
   // Reset form when hotspot changes or when sheet opens
   useEffect(() => {
@@ -146,11 +148,11 @@ const LayoutBehaviorSheet = ({
             onClick={handleCancel}
             className="text-[15px] text-[#666666] hover:text-[#333333] transition-colors min-w-[60px] text-left font-medium"
           >
-            Cancel
+            {t("actions.cancel")}
           </button>
           
           <h2 className="text-[17px] font-semibold text-[#111111]">
-            Layout & Behavior
+            {t("layout.title")}
           </h2>
           
           <Button
@@ -159,7 +161,7 @@ const LayoutBehaviorSheet = ({
             disabled={isDisabled}
             className="h-8 px-4 text-[14px] font-medium min-w-[60px] bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            Save
+            {t("actions.save")}
           </Button>
         </div>
 
@@ -169,7 +171,7 @@ const LayoutBehaviorSheet = ({
           {/* Section 1: Template Family - Compact list */}
           <section>
             <h3 className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
-              Template Family
+              {t("layout.templateFamily")}
             </h3>
             <TemplateFamilySelector
               value={selectedFamily}
@@ -181,7 +183,7 @@ const LayoutBehaviorSheet = ({
           {/* Section 2: Style Selection - Real HotspotIcon previews */}
           <section>
             <h3 className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
-              Style
+              {t("layout.style")}
             </h3>
             
             <div className="grid grid-cols-3 gap-3">
@@ -232,7 +234,7 @@ const LayoutBehaviorSheet = ({
           {/* Section 3: CTA Label */}
           <section>
             <h3 className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
-              CTA Label
+              {t("layout.ctaLabel")}
             </h3>
             
             <Input
@@ -267,14 +269,14 @@ const LayoutBehaviorSheet = ({
           {/* Section 4: Click Behavior - Pill buttons */}
           <section>
             <h3 className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
-              Click Behavior
+              {t("layout.clickBehavior")}
             </h3>
             
             <div className="flex gap-2">
               {[
-                { value: "show-card" as ClickBehavior, label: "Show Card" },
-                { value: "direct-link" as ClickBehavior, label: "Direct Link" },
-                { value: "no-action" as ClickBehavior, label: "No Click" },
+                { value: "show-card" as ClickBehavior, label: t("layout.clickBehavior.showCard") },
+                { value: "direct-link" as ClickBehavior, label: t("layout.clickBehavior.directLink") },
+                { value: "no-action" as ClickBehavior, label: t("layout.clickBehavior.noClick") },
               ].map((option) => (
                 <button
                   key={option.value}
@@ -297,12 +299,12 @@ const LayoutBehaviorSheet = ({
           {/* Section 5: Timing */}
           <section>
             <h3 className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
-              Timing
+              {t("layout.timing")}
             </h3>
             
             {/* Start Time - editable */}
             <div className="flex items-center justify-between py-3 border-b border-[#EBEBEB]">
-              <span className="text-[14px] text-[#666666]">Start Time</span>
+              <span className="text-[14px] text-[#666666]">{t("layout.timing.start")}</span>
               <span className="text-[14px] font-semibold text-[#111111]">
                 {hotspot?.timeStart.toFixed(1)}s
               </span>
@@ -311,7 +313,7 @@ const LayoutBehaviorSheet = ({
             {/* Duration slider */}
             <div className="py-4">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[14px] font-medium text-[#111111]">Duration</span>
+                <span className="text-[14px] font-medium text-[#111111]">{t("layout.timing.duration")}</span>
                 <span className="text-[14px] font-semibold text-primary">
                   {duration.toFixed(1)}s
                 </span>
@@ -333,7 +335,7 @@ const LayoutBehaviorSheet = ({
 
             {/* End Time - auto-calculated readonly */}
             <div className="flex items-center justify-between pt-2">
-              <span className="text-[12px] text-[#999999]">End Time (auto)</span>
+              <span className="text-[12px] text-[#999999]">{t("layout.timing.end")}</span>
               <span className="text-[12px] text-[#999999]">
                 {endTime.toFixed(1)}s
               </span>
@@ -343,14 +345,14 @@ const LayoutBehaviorSheet = ({
           {/* Section 6: Countdown Timer - Simplified */}
           <section>
             <h3 className="text-[11px] font-semibold text-[#888888] uppercase tracking-wider mb-3">
-              Countdown Timer
+              {t("layout.countdown.title")}
             </h3>
             
             {/* Toggle using pill buttons for visual consistency */}
             <div className="flex items-center justify-between py-3 border-b border-[#EBEBEB]">
               <div>
-                <span className="text-[14px] font-medium text-[#111111] block">Show countdown timer</span>
-                <span className="text-[12px] text-[#888888]">Counts down hotspot duration</span>
+                <span className="text-[14px] font-medium text-[#111111] block">{t("layout.countdown.show")}</span>
+                <span className="text-[12px] text-[#888888]">{t("layout.countdown.subtitle")}</span>
               </div>
               <div className="flex gap-1">
                 <button
@@ -449,14 +451,14 @@ const LayoutBehaviorSheet = ({
               onClick={handleCancel}
               className="text-[15px] font-medium text-[#666666] hover:text-[#333333] transition-colors px-2"
             >
-              Cancel
+              {t("actions.cancel")}
             </button>
             <Button
               onClick={handleSave}
               disabled={isDisabled}
               className="flex-1 h-12 rounded-xl text-[15px] font-medium bg-primary text-white hover:bg-primary/90"
             >
-              Save changes
+              {t("actions.saveChanges")}
             </Button>
           </div>
         </div>

@@ -3,12 +3,14 @@ import { Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { isIOS } from "@/utils/ios-detection";
+import { useLocale } from "@/lib/i18n";
 
 interface VideoUploadZoneProps {
   onVideoLoad: (src: string) => void;
 }
 
 const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
+  const { t } = useLocale();
   const [isDragging, setIsDragging] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +28,7 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
     console.log('[VideoUpload] User Agent:', navigator.userAgent);
     
     if (!file || !file.type.startsWith("video/")) {
-      toast.error("Please select a valid video file");
+      toast.error(t("upload.invalidFile"));
       return;
     }
 
@@ -43,13 +45,13 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
         const dataUrl = reader.result as string;
         console.log('[VideoUpload] Data URL created, length:', dataUrl.length);
         onVideoLoad(dataUrl);
-        toast.success("Video loaded successfully");
+        toast.success(t("upload.success"));
       };
       
       reader.onerror = () => {
         setIsLoading(false);
         console.error('[VideoUpload] FileReader error:', reader.error);
-        toast.error("Failed to load video");
+        toast.error(t("upload.error"));
       };
       
       reader.onprogress = (event) => {
@@ -65,7 +67,7 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
       const url = URL.createObjectURL(file);
       console.log('[VideoUpload] Blob URL created:', url);
       onVideoLoad(url);
-      toast.success("Video loaded successfully");
+      toast.success(t("upload.success"));
     }
   };
 
@@ -152,10 +154,10 @@ const VideoUploadZone = ({ onVideoLoad }: VideoUploadZoneProps) => {
           hasAnimated ? "animate-fade-in" : "opacity-0"
         )}>
           <h1 className="text-[22px] font-semibold text-neutral-900 tracking-tight">
-            {isLoading ? "Loading video..." : "Upload your video"}
+            {isLoading ? t("upload.loading") : t("upload.title")}
           </h1>
           <p className="mt-2 text-[15px] text-neutral-500">
-            {isLoading ? "This may take a moment on mobile devices." : "Tap to choose from your gallery."}
+            {isLoading ? t("upload.loadingHint") : t("upload.subtitle")}
           </p>
         </div>
       </div>

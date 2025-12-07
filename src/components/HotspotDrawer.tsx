@@ -10,6 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Plus, Pencil, Trash2, X, Target } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useLocale } from "@/lib/i18n";
 
 interface HotspotDrawerProps {
   open: boolean;
@@ -36,6 +37,7 @@ const HotspotDrawer = ({
   onDeleteHotspot,
   isPreviewMode,
 }: HotspotDrawerProps) => {
+  const { t } = useLocale();
   const sortedHotspots = [...hotspots].sort((a, b) => a.timeStart - b.timeStart);
   const hotspotRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const [highlightedRowId, setHighlightedRowId] = useState<string | null>(null);
@@ -96,7 +98,7 @@ const HotspotDrawer = ({
 
   const handleDeleteClick = (e: React.MouseEvent, hotspotId: string) => {
     e.stopPropagation();
-    if (window.confirm('Delete this hotspot?')) {
+    if (window.confirm(t("hotspots.deleteConfirm"))) {
       onDeleteHotspot?.(hotspotId);
     }
   };
@@ -107,7 +109,7 @@ const HotspotDrawer = ({
         {/* Header with close button */}
         <DrawerHeader className="flex items-center justify-between border-b border-border/10 pb-3 px-4">
           <DrawerTitle className="text-base font-semibold text-foreground">
-            Hotspots
+            {t("hotspots.title")}
           </DrawerTitle>
           <DrawerClose asChild>
             <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 transition-colors">
@@ -125,10 +127,10 @@ const HotspotDrawer = ({
                 <Target className="w-8 h-8 text-primary" />
               </div>
               <h3 className="text-base font-medium text-foreground mb-1">
-                No hotspots yet
+                {t("hotspots.empty")}
               </h3>
               <p className="text-sm text-muted-foreground text-center">
-                Tap <span className="font-medium text-primary">+ Hotspot</span> to add your first one
+                {t("hotspots.emptyHint")}
               </p>
             </div>
           ) : (
@@ -184,13 +186,13 @@ const HotspotDrawer = ({
                             isUnassigned ? "text-primary" : "text-foreground"
                           )}>
                             {isUnassigned 
-                              ? "New hotspot – assign product" 
-                              : product?.title || "Unknown Product"
+                              ? t("hotspots.new")
+                              : product?.title || t("hotspots.unknownProduct")
                             }
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {isUnassigned 
-                              ? "Tap to choose a product" 
+                              ? t("hotspots.newHint")
                               : `${hotspot.timeStart.toFixed(1)}s – ${hotspot.timeEnd.toFixed(1)}s`
                             }
                           </p>

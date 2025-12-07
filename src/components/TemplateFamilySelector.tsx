@@ -1,6 +1,7 @@
 import { Check, ShoppingBag, Sparkles, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TEMPLATE_FAMILIES, TemplateFamilyId } from "@/types/templates";
+import { useLocale } from "@/lib/i18n";
 
 interface TemplateFamilySelectorProps {
   value: TemplateFamilyId;
@@ -27,6 +28,8 @@ const TemplateFamilySelector = ({
   onChange,
   disabled = false,
 }: TemplateFamilySelectorProps) => {
+  const { t } = useLocale();
+
   return (
     <div className="space-y-2">
       {TEMPLATE_FAMILIES.map((family) => {
@@ -63,10 +66,10 @@ const TemplateFamilySelector = ({
                   isSelected ? "text-primary" : "text-foreground"
                 )}
               >
-                {family.name}
+                {t(`family.${family.id}.name`)}
               </div>
               <div className="text-[12px] text-muted-foreground truncate">
-                {family.subtitle}
+                {t(`family.${family.id}.subtitle`)}
               </div>
             </div>
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useLocale } from "@/lib/i18n";
 import shopableLogo from "@/assets/shopable-logo.png";
 
 interface WelcomeOverlayProps {
@@ -7,6 +8,7 @@ interface WelcomeOverlayProps {
 }
 
 const WelcomeOverlay = ({ onStart }: WelcomeOverlayProps) => {
+  const { t } = useLocale();
   const [isExiting, setIsExiting] = useState(false);
 
   const handleStart = () => {
@@ -34,12 +36,12 @@ const WelcomeOverlay = ({ onStart }: WelcomeOverlayProps) => {
 
         {/* Title */}
         <h1 className="text-[24px] font-semibold text-foreground mb-2">
-          Welcome to Shopable.
+          {t("ftux.welcome")}
         </h1>
 
         {/* Subtitle */}
         <p className="text-[16px] text-muted-foreground mb-10">
-          Turn your video into a shop.
+          {t("ftux.subtitle")}
         </p>
 
         {/* Start Button */}
@@ -54,7 +56,7 @@ const WelcomeOverlay = ({ onStart }: WelcomeOverlayProps) => {
             "shadow-sm"
           )}
         >
-          Start
+          {t("ftux.start")}
         </button>
       </div>
     </div>
