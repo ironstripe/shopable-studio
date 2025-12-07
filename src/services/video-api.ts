@@ -34,7 +34,17 @@ export async function listVideos(): Promise<VideoDto[]> {
     console.error("[Videos] listVideos failed", res.status, text);
     throw new Error(`Failed to load videos (${res.status})`);
   }
-  return res.json();
+  const data = await res.json();
+  // API returns { items: [...] }, extract and map to VideoDto
+  const items = data.items || [];
+  return items.map((item: any) => ({
+    id: item.videoId || item.id,
+    title: item.title || item.objectKey?.replace(/\.[^/.]+$/, "") || "Untitled",
+    thumbnailUrl: item.thumbnailUrl,
+    fileUrl: item.fileUrl,
+    createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : undefined,
+    durationSeconds: item.durationSeconds,
+  }));
 }
 
 /**
