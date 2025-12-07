@@ -1,13 +1,20 @@
-import { SafeZone } from "@/types/video";
 import { cn } from "@/lib/utils";
+import { SAFE_ZONE_MARGINS } from "@/utils/safe-zone";
 
 interface SafeZoneOverlayProps {
-  safeZone: SafeZone;
   className?: string;
   visible?: boolean;
 }
 
-const SafeZoneOverlay = ({ safeZone, className, visible = true }: SafeZoneOverlayProps) => {
+/**
+ * SafeZoneOverlay uses SAFE_ZONE_MARGINS directly to ensure
+ * the visual lines match the clamping logic exactly.
+ */
+const SafeZoneOverlay = ({ className, visible = true }: SafeZoneOverlayProps) => {
+  // Use the same margins as the clamp function
+  const rightPct = SAFE_ZONE_MARGINS.rightMargin * 100;
+  const bottomPct = SAFE_ZONE_MARGINS.bottomMargin * 100;
+  
   return (
     <div 
       className={cn(
@@ -16,10 +23,10 @@ const SafeZoneOverlay = ({ safeZone, className, visible = true }: SafeZoneOverla
         className
       )}
     >
-      {/* Right safe zone - Dotted vertical line */}
+      {/* Right safe zone - Dotted vertical line at (100% - rightMargin) from left */}
       <div
         className="absolute top-0 bottom-0"
-        style={{ right: `${safeZone.right * 100}%` }}
+        style={{ right: `${rightPct}%` }}
       >
         <div className="absolute inset-y-0 right-0 w-px border-r-2 border-dashed border-red-400/50" />
         {/* Small label */}
@@ -30,12 +37,12 @@ const SafeZoneOverlay = ({ safeZone, className, visible = true }: SafeZoneOverla
         </div>
       </div>
 
-      {/* Bottom safe zone - Dotted horizontal line */}
+      {/* Bottom safe zone - Dotted horizontal line at (100% - bottomMargin) from top */}
       <div
         className="absolute left-0"
         style={{
-          bottom: `${safeZone.bottom * 100}%`,
-          right: `${safeZone.right * 100}%`,
+          bottom: `${bottomPct}%`,
+          right: `${rightPct}%`,
         }}
       >
         <div className="absolute inset-x-0 bottom-0 h-px border-b-2 border-dashed border-red-400/50" />
@@ -51,8 +58,8 @@ const SafeZoneOverlay = ({ safeZone, className, visible = true }: SafeZoneOverla
       <div
         className="absolute"
         style={{
-          right: `${safeZone.right * 100}%`,
-          bottom: `${safeZone.bottom * 100}%`,
+          right: `${rightPct}%`,
+          bottom: `${bottomPct}%`,
         }}
       >
         <div className="w-2 h-2 rounded-full bg-red-400/40 transform translate-x-1/2 translate-y-1/2" />

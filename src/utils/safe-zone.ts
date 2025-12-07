@@ -1,75 +1,238 @@
 import { HotspotStyle } from "@/types/video";
 
-// Safe zone presets for different platforms
-export type SafeZonePreset = 'vertical_social' | 'none';
+// ========================================
+// Unified Safe Zone Configuration
+// ========================================
 
-// Safe rect (left, top, right, bottom as percentages 0-1)
-export interface SafeRect {
-  left: number;
-  top: number;
-  right: number;  // maximum X position for hotspot right edge
-  bottom: number; // maximum Y position for hotspot bottom edge
+export interface SafeZoneConfig {
+  leftMargin: number;    // 0.0 means no left margin
+  rightMargin: number;   // 0.15 means 15% reserved on right
+  topMargin: number;     // 0.0 means no top margin
+  bottomMargin: number;  // 0.18 means 18% reserved on bottom
 }
 
-// Pixel rectangle for calculations
-export interface PixelRect {
-  x: number;      // left edge in pixels
-  y: number;      // top edge in pixels
-  width: number;  // width in pixels
-  height: number; // height in pixels
-}
-
-// ========================================
-// Configurable Safe Zone Constants
-// ========================================
-export const SAFE_ZONE_CONFIG = {
-  // Platform UI reserved areas (as fraction 0-1)
+// Single source of truth for safe zone margins
+export const SAFE_ZONE_MARGINS: SafeZoneConfig = {
+  leftMargin: 0,
   rightMargin: 0.15,   // 15% for TikTok/IG/YT icons column
+  topMargin: 0,
   bottomMargin: 0.18,  // 18% for captions/controls area
-  
-  // Hotspot constraints
+};
+
+// Hotspot constraints
+export const HOTSPOT_CONSTRAINTS = {
   baseHotspotSize: 0.08,  // 8% of video dimension
   minScale: 0.5,
   maxScale: 2.0,
 } as const;
 
+// Legacy type for backward compatibility
+export type SafeZonePreset = 'vertical_social' | 'none';
+
+// Legacy interface for backward compatibility  
+export interface SafeRect {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+// Legacy interface for backward compatibility
+export interface PixelRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 /**
  * Get safe rect boundaries for a given preset (as percentages 0-1)
+ * @deprecated Use SAFE_ZONE_MARGINS directly
  */
 export const getSafeRect = (preset: SafeZonePreset): SafeRect => {
   if (preset === 'none') {
     return { left: 0, top: 0, right: 1, bottom: 1 };
   }
   
-  // vertical_social: reserves configured margins
   return {
-    left: 0,
-    top: 0,
-    right: 1 - SAFE_ZONE_CONFIG.rightMargin,
-    bottom: 1 - SAFE_ZONE_CONFIG.bottomMargin,
+    left: SAFE_ZONE_MARGINS.leftMargin,
+    top: SAFE_ZONE_MARGINS.topMargin,
+    right: 1 - SAFE_ZONE_MARGINS.rightMargin,
+    bottom: 1 - SAFE_ZONE_MARGINS.bottomMargin,
   };
 };
 
 /**
- * Get safe zone as pixel rectangle
+ * Check if a point is inside the safe zone
  */
-export const getSafeZonePixelRect = (
-  containerWidth: number,
-  containerHeight: number,
-  preset: SafeZonePreset
-): PixelRect => {
-  const safe = getSafeRect(preset);
-  return {
-    x: safe.left * containerWidth,
-    y: safe.top * containerHeight,
-    width: (safe.right - safe.left) * containerWidth,
-    height: (safe.bottom - safe.top) * containerHeight,
-  };
+export const isPointInSafeZone = (x: number, y: number, preset: SafeZonePreset): boolean => {
+  if (preset === 'none') return true;
+  
+  const safeLeft = SAFE_ZONE_MARGINS.leftMargin;
+  const safeRight = 1 - SAFE_ZONE_MARGINS.rightMargin;
+  const safeTop = SAFE_ZONE_MARGINS.topMargin;
+  const safeBottom = 1 - SAFE_ZONE_MARGINS.bottomMargin;
+  
+  return x >= safeLeft && x <= safeRight && y >= safeTop && y <= safeBottom;
 };
+
+// ========================================
+// SINGLE UNIFIED CLAMP FUNCTION
+// ========================================
+
+export interface ClampOptions {
+  centerX: number;           // in pixels
+  centerY: number;           // in pixels
+  hotspotWidth: number;      // in pixels
+  hotspotHeight: number;     // in pixels
+  containerWidth: number;    // in pixels
+  containerHeight: number;   // in pixels
+  safeZone?: SafeZoneConfig; // optional, defaults to SAFE_ZONE_MARGINS
+}
+
+export interface ClampResult {
+  centerX: number;
+  centerY: number;
+  wasConstrained: boolean;
+}
+
+/**
+ * UNIFIED clamp function with symmetric left/right logic.
+ * 
+ * Guarantees for every hotspot:
+ *   safeLeft <= hotspotLeft
+ *   hotspotRight <= safeRight
+ *   safeTop <= hotspotTop
+ *   hotspotBottom <= safeBottom
+ * 
+ * All inputs and outputs are in PIXELS.
+ */
+export function clampHotspotCenterToSafeZone(options: ClampOptions): ClampResult {
+  const { 
+    centerX: cxIn, 
+    centerY: cyIn, 
+    hotspotWidth, 
+    hotspotHeight, 
+    containerWidth, 
+    containerHeight, 
+    safeZone = SAFE_ZONE_MARGINS 
+  } = options;
+
+  let cx = cxIn;
+  let cy = cyIn;
+  let constrained = false;
+
+  // Compute safe boundaries in PIXELS
+  const safeLeft   = containerWidth  * safeZone.leftMargin;
+  const safeRight  = containerWidth  * (1 - safeZone.rightMargin);
+  const safeTop    = containerHeight * safeZone.topMargin;
+  const safeBottom = containerHeight * (1 - safeZone.bottomMargin);
+
+  const halfW = hotspotWidth / 2;
+  const halfH = hotspotHeight / 2;
+
+  // LEFT: hotspotLeft >= safeLeft  →  cx - halfW >= safeLeft
+  if (cx - halfW < safeLeft) {
+    cx = safeLeft + halfW;
+    constrained = true;
+  }
+
+  // RIGHT: hotspotRight <= safeRight  →  cx + halfW <= safeRight
+  if (cx + halfW > safeRight) {
+    cx = safeRight - halfW;
+    constrained = true;
+  }
+
+  // TOP: hotspotTop >= safeTop  →  cy - halfH >= safeTop
+  if (cy - halfH < safeTop) {
+    cy = safeTop + halfH;
+    constrained = true;
+  }
+
+  // BOTTOM: hotspotBottom <= safeBottom  →  cy + halfH <= safeBottom
+  if (cy + halfH > safeBottom) {
+    cy = safeBottom - halfH;
+    constrained = true;
+  }
+
+  // Handle case where hotspot is larger than safe zone (center it)
+  const safeWidth = safeRight - safeLeft;
+  const safeHeight = safeBottom - safeTop;
+  
+  if (hotspotWidth > safeWidth) {
+    cx = safeLeft + safeWidth / 2;
+    constrained = true;
+  }
+  if (hotspotHeight > safeHeight) {
+    cy = safeTop + safeHeight / 2;
+    constrained = true;
+  }
+
+  // Development assertion
+  if (process.env.NODE_ENV !== "production") {
+    const left  = cx - halfW;
+    const right = cx + halfW;
+    const top   = cy - halfH;
+    const bottom = cy + halfH;
+    
+    // Allow 0.5px tolerance for floating point
+    if (left < safeLeft - 0.5 || right > safeRight + 0.5 ||
+        top < safeTop - 0.5 || bottom > safeBottom + 0.5) {
+      console.error("[SafeZone] Clamp failed!", { 
+        left, right, top, bottom, 
+        safeLeft, safeRight, safeTop, safeBottom,
+        hotspotWidth, hotspotHeight,
+        containerWidth, containerHeight
+      });
+    }
+  }
+
+  return { centerX: cx, centerY: cy, wasConstrained: constrained };
+}
+
+/**
+ * Convenience wrapper that takes percentage inputs and returns percentage outputs.
+ * Internally converts to pixels, clamps, then converts back.
+ */
+export function clampHotspotPercentage(
+  centerXPct: number,      // 0-1 percentage
+  centerYPct: number,      // 0-1 percentage  
+  hotspotWidth: number,    // pixels
+  hotspotHeight: number,   // pixels
+  containerWidth: number,  // pixels
+  containerHeight: number, // pixels
+  preset: SafeZonePreset = 'vertical_social'
+): { x: number; y: number; wasConstrained: boolean } {
+  if (preset === 'none') {
+    return { x: centerXPct, y: centerYPct, wasConstrained: false };
+  }
+
+  // Convert percentage center to pixel center
+  const centerPixelX = centerXPct * containerWidth;
+  const centerPixelY = centerYPct * containerHeight;
+
+  // Clamp in pixel space
+  const result = clampHotspotCenterToSafeZone({
+    centerX: centerPixelX,
+    centerY: centerPixelY,
+    hotspotWidth,
+    hotspotHeight,
+    containerWidth,
+    containerHeight,
+    safeZone: SAFE_ZONE_MARGINS,
+  });
+
+  // Convert back to percentage
+  return {
+    x: result.centerX / containerWidth,
+    y: result.centerY / containerHeight,
+    wasConstrained: result.wasConstrained,
+  };
+}
 
 /**
  * Get estimated hotspot pixel dimensions based on style
- * These match the actual rendered sizes in HotspotIcon.tsx
+ * Used as fallback when DOM measurements aren't available
  */
 export const getHotspotPixelDimensions = (
   style: HotspotStyle,
@@ -82,13 +245,12 @@ export const getHotspotPixelDimensions = (
     return { width: size, height: size };
   }
   
-  // Product-assigned hotspot dimensions (from HotspotIcon.tsx actual renders)
   let baseWidth = 160;
   let baseHeight = 60;
   
   switch (style) {
     case "ecommerce-light-card":
-      baseWidth = 192; baseHeight = 72; break; // padding + content
+      baseWidth = 192; baseHeight = 72; break;
     case "ecommerce-sale-boost":
       baseWidth = 212; baseHeight = 160; break;
     case "ecommerce-minimal":
@@ -114,102 +276,6 @@ export const getHotspotPixelDimensions = (
 };
 
 /**
- * Check if a point is inside the safe zone
- */
-export const isPointInSafeZone = (x: number, y: number, preset: SafeZonePreset): boolean => {
-  const safe = getSafeRect(preset);
-  return x >= safe.left && x <= safe.right && y >= safe.top && y <= safe.bottom;
-};
-
-/**
- * Clamp hotspot CENTER position to safe zone using pixel coordinates
- * Input: center position as percentage (0-1), hotspot pixel dimensions
- * Output: clamped center position as percentage (0-1)
- */
-export const clampHotspotCenterToSafeZone = (
-  centerX: number,       // 0-1 percentage from left (center of hotspot)
-  centerY: number,       // 0-1 percentage from top (center of hotspot)
-  hotspotWidth: number,  // pixels
-  hotspotHeight: number, // pixels
-  containerWidth: number,
-  containerHeight: number,
-  preset: SafeZonePreset
-): { x: number; y: number; wasConstrained: boolean } => {
-  if (preset === 'none') {
-    return { x: centerX, y: centerY, wasConstrained: false };
-  }
-  
-  const safeZone = getSafeZonePixelRect(containerWidth, containerHeight, preset);
-  
-  // Convert center percentage to pixel center
-  let centerPixelX = centerX * containerWidth;
-  let centerPixelY = centerY * containerHeight;
-  
-  // Calculate hotspot bounding box (from center)
-  const halfWidth = hotspotWidth / 2;
-  const halfHeight = hotspotHeight / 2;
-  
-  let wasConstrained = false;
-  
-  // Note: Left and top edges are NOT clamped - only right (platform icons) and bottom (captions/controls)
-  // Left edge: No clamping needed - no platform UI on left side
-  // Top edge: No clamping needed - no platform UI at top
-  
-  // Clamp right edge: hotspot must not exceed 85% of container width (15% reserved for platform icons)
-  const safeRightEdge = containerWidth * (1 - SAFE_ZONE_CONFIG.rightMargin);
-  if (centerPixelX + halfWidth > safeRightEdge) {
-    centerPixelX = safeRightEdge - halfWidth;
-    wasConstrained = true;
-  }
-  
-  // Clamp bottom edge (center + halfHeight must be <= safe.y + safe.height)
-  const safeBottom = safeZone.y + safeZone.height;
-  if (centerPixelY + halfHeight > safeBottom) {
-    centerPixelY = safeBottom - halfHeight;
-    wasConstrained = true;
-  }
-  
-  // Handle case where hotspot is larger than safe zone (center it)
-  if (hotspotWidth > safeZone.width) {
-    centerPixelX = safeZone.x + safeZone.width / 2;
-    wasConstrained = true;
-  }
-  if (hotspotHeight > safeZone.height) {
-    centerPixelY = safeZone.y + safeZone.height / 2;
-    wasConstrained = true;
-  }
-  
-  // Convert back to percentage
-  return {
-    x: centerPixelX / containerWidth,
-    y: centerPixelY / containerHeight,
-    wasConstrained,
-  };
-};
-
-/**
- * Clamp hotspot using MEASURED DOM dimensions (the new preferred method)
- * This uses actual rendered sizes instead of hardcoded estimates
- */
-export const clampWithMeasuredDimensions = (
-  centerX: number,           // 0-1 percentage from left (center of hotspot)
-  centerY: number,           // 0-1 percentage from top (center of hotspot)
-  measuredWidth: number,     // actual DOM width in pixels
-  measuredHeight: number,    // actual DOM height in pixels
-  containerWidth: number,
-  containerHeight: number,
-  preset: SafeZonePreset
-): { x: number; y: number; wasConstrained: boolean } => {
-  // Just delegate to existing function but with measured dimensions
-  return clampHotspotCenterToSafeZone(
-    centerX, centerY,
-    measuredWidth, measuredHeight,
-    containerWidth, containerHeight,
-    preset
-  );
-};
-
-/**
  * Calculate maximum allowed scale for a hotspot at given position within safe zone
  */
 export const getMaxScaleInSafeZone = (
@@ -221,9 +287,7 @@ export const getMaxScaleInSafeZone = (
   containerHeight: number,
   preset: SafeZonePreset
 ): number => {
-  if (preset === 'none') return SAFE_ZONE_CONFIG.maxScale;
-  
-  const safeZone = getSafeZonePixelRect(containerWidth, containerHeight, preset);
+  if (preset === 'none') return HOTSPOT_CONSTRAINTS.maxScale;
   
   // Get base dimensions at scale 1
   const { width: baseWidth, height: baseHeight } = getHotspotPixelDimensions(style, 1, hasProduct);
@@ -232,11 +296,17 @@ export const getMaxScaleInSafeZone = (
   const centerPixelX = centerX * containerWidth;
   const centerPixelY = centerY * containerHeight;
   
+  // Calculate safe boundaries
+  const safeLeft = containerWidth * SAFE_ZONE_MARGINS.leftMargin;
+  const safeRight = containerWidth * (1 - SAFE_ZONE_MARGINS.rightMargin);
+  const safeTop = containerHeight * SAFE_ZONE_MARGINS.topMargin;
+  const safeBottom = containerHeight * (1 - SAFE_ZONE_MARGINS.bottomMargin);
+  
   // Calculate max half-dimensions that fit from current center position
-  const maxHalfLeft = centerPixelX - safeZone.x;
-  const maxHalfRight = (safeZone.x + safeZone.width) - centerPixelX;
-  const maxHalfTop = centerPixelY - safeZone.y;
-  const maxHalfBottom = (safeZone.y + safeZone.height) - centerPixelY;
+  const maxHalfLeft = centerPixelX - safeLeft;
+  const maxHalfRight = safeRight - centerPixelX;
+  const maxHalfTop = centerPixelY - safeTop;
+  const maxHalfBottom = safeBottom - centerPixelY;
   
   // Max half-dimensions we can use
   const maxHalfWidth = Math.min(maxHalfLeft, maxHalfRight);
@@ -248,25 +318,7 @@ export const getMaxScaleInSafeZone = (
   
   // Return the most restrictive, clamped to valid range
   return Math.max(
-    SAFE_ZONE_CONFIG.minScale, 
-    Math.min(SAFE_ZONE_CONFIG.maxScale, Math.min(maxScaleByWidth, maxScaleByHeight))
+    HOTSPOT_CONSTRAINTS.minScale, 
+    Math.min(HOTSPOT_CONSTRAINTS.maxScale, Math.min(maxScaleByWidth, maxScaleByHeight))
   );
-};
-
-// Legacy function for backward compatibility
-export const clampPositionToSafeZone = (
-  x: number, 
-  y: number, 
-  scale: number,
-  preset: SafeZonePreset
-): { x: number; y: number; wasConstrained: boolean } => {
-  // This is a simplified version that doesn't account for actual hotspot size
-  // Use clampHotspotCenterToSafeZone for accurate clamping with pixel dimensions
-  const safe = getSafeRect(preset);
-  
-  let newX = Math.max(safe.left, Math.min(safe.right, x));
-  let newY = Math.max(safe.top, Math.min(safe.bottom, y));
-  
-  const wasConstrained = newX !== x || newY !== y;
-  return { x: newX, y: newY, wasConstrained };
 };
