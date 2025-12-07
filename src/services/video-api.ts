@@ -15,6 +15,14 @@ function extractTitleFromObjectKey(objectKey: string | undefined, fallbackId: st
   return filename.replace(/\.[^/.]+$/, "") || fallbackId;
 }
 
+/**
+ * Build direct S3 URL from bucket and objectKey for immediate playback
+ */
+function buildS3Url(bucket: string, objectKey: string): string {
+  const encodedKey = objectKey.split('/').map(encodeURIComponent).join('/');
+  return `https://${bucket}.s3.eu-west-1.amazonaws.com/${encodedKey}`;
+}
+
 export interface RegisterUploadRequest {
   filename: string;
   contentType: string;
@@ -42,14 +50,23 @@ export async function listVideos(): Promise<VideoDto[]> {
   }
   const data = await res.json();
   const items = data.items || [];
-  return items.map((item: any): VideoDto => ({
-    id: item.videoId || item.id,
-    title: extractTitleFromObjectKey(item.objectKey, item.videoId || item.id),
-    createdAt: item.createdAt || Date.now(),
-    status: item.status || "UPLOADED",
-    thumbnailUrl: item.thumbnailUrl,
-    fileUrl: item.fileUrl,
-  }));
+  return items.map((item: any): VideoDto => {
+    // Build fallback URL for videos missing fileUrl
+    let fileUrl = item.fileUrl;
+    if (!fileUrl && item.bucket && item.objectKey) {
+      fileUrl = buildS3Url(item.bucket, item.objectKey);
+      console.log('[Videos] Built fallback S3 URL for video:', item.videoId, fileUrl);
+    }
+    
+    return {
+      id: item.videoId || item.id,
+      title: extractTitleFromObjectKey(item.objectKey, item.videoId || item.id),
+      createdAt: item.createdAt || Date.now(),
+      status: item.status || "UPLOADED",
+      thumbnailUrl: item.thumbnailUrl,
+      fileUrl,
+    };
+  });
 }
 
 /**
