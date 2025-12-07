@@ -107,10 +107,64 @@ const VideoPlayer = ({
   // Store measured DOM dimensions per hotspot
   const hotspotDimensionsRef = useRef<Map<string, { width: number; height: number }>>(new Map());
   
+  // Track previous dimensions to detect changes that need re-clamping
+  const prevDimensionsRef = useRef<Map<string, { width: number; height: number }>>(new Map());
+  
+  // Queue for hotspots that need re-clamping after dimension change
+  const [reclampQueue, setReclampQueue] = useState<string[]>([]);
+  
   // Callback for VideoHotspot to report measured dimensions
   const handleHotspotMeasure = useCallback((id: string, width: number, height: number) => {
+    const prev = hotspotDimensionsRef.current.get(id);
     hotspotDimensionsRef.current.set(id, { width, height });
+    
+    // If dimensions changed significantly (more than 5px), queue for re-clamping
+    if (prev && (Math.abs(prev.width - width) > 5 || Math.abs(prev.height - height) > 5)) {
+      console.log('[VideoPlayer] Hotspot dimensions changed:', id, { prev, new: { width, height } });
+      setReclampQueue(q => q.includes(id) ? q : [...q, id]);
+    } else if (!prev) {
+      // First measurement - also queue for initial clamp verification
+      setReclampQueue(q => q.includes(id) ? q : [...q, id]);
+    }
   }, []);
+  
+  // Re-clamp hotspots when their dimensions change
+  useEffect(() => {
+    if (reclampQueue.length === 0 || !containerRef.current) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    
+    reclampQueue.forEach(hotspotId => {
+      const hotspot = hotspots.find(h => h.id === hotspotId);
+      const measured = hotspotDimensionsRef.current.get(hotspotId);
+      
+      if (!hotspot || !measured) return;
+      
+      // Clamp using actual measured dimensions
+      const { x, y, wasConstrained } = clampWithMeasuredDimensions(
+        hotspot.x, hotspot.y,
+        measured.width, measured.height,
+        rect.width, rect.height,
+        'vertical_social'
+      );
+      
+      if (wasConstrained) {
+        console.log('[VideoPlayer] Re-clamping hotspot after dimension change:', hotspotId, { 
+          from: { x: hotspot.x, y: hotspot.y }, 
+          to: { x, y },
+          measured 
+        });
+        onUpdateHotspotPosition(hotspotId, x, y);
+      }
+      
+      // Update previous dimensions after processing
+      prevDimensionsRef.current.set(hotspotId, { ...measured });
+    });
+    
+    // Clear the queue
+    setReclampQueue([]);
+  }, [reclampQueue, hotspots, onUpdateHotspotPosition]);
 
   const removeTapIndicator = useCallback((id: string) => {
     setTapIndicators(prev => prev.filter(t => t.id !== id));
