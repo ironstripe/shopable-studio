@@ -475,7 +475,7 @@ const Index = () => {
   // Mobile layout
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-white flex flex-col">
         <MobileHeader
           videoTitle={videoTitle}
           onTitleChange={setVideoTitle}
