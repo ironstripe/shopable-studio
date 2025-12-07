@@ -69,7 +69,7 @@ const VideoGallery = ({
   // Loading state - show 3 skeleton cards
   if (isLoading) {
     return (
-      <div className="w-full min-h-screen px-4 py-6 bg-background">
+      <div className="w-full h-full overflow-y-auto px-4 py-6 bg-background">
         <div className="max-w-lg mx-auto space-y-4">
           <h1 className="text-xl font-semibold text-foreground mb-4">Your Videos</h1>
           <SkeletonCard />
@@ -83,7 +83,7 @@ const VideoGallery = ({
   // Error state
   if (error) {
     return (
-      <div className="w-full min-h-screen px-4 py-6 bg-background">
+      <div className="w-full h-full overflow-y-auto px-4 py-6 bg-background">
         <div className="max-w-lg mx-auto">
           <h1 className="text-xl font-semibold text-foreground mb-4">Your Videos</h1>
           <div className="flex flex-col items-center gap-4 py-12 text-center">
@@ -107,7 +107,7 @@ const VideoGallery = ({
   // Empty state
   if (videos.length === 0) {
     return (
-      <div className="w-full min-h-screen px-4 py-6 bg-background flex flex-col">
+      <div className="w-full h-full overflow-y-auto px-4 py-6 bg-background flex flex-col">
         <div className="max-w-lg mx-auto w-full">
           <h1 className="text-xl font-semibold text-foreground mb-4">Your Videos</h1>
         </div>
@@ -130,7 +130,7 @@ const VideoGallery = ({
 
   // Video list
   return (
-    <div className="w-full min-h-screen px-4 py-6 bg-background">
+    <div className="w-full h-full overflow-y-auto px-4 py-6 bg-background">
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
