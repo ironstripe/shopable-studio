@@ -69,23 +69,45 @@ export async function registerUpload(
     console.error("[Uploads] register failed", res.status, text);
     throw new Error(`Failed to register upload (${res.status})`);
   }
-  return res.json();
+  
+  const data = await res.json();
+  console.log('[Uploads] Register response:', data);
+  
+  // Validate response has required fields
+  if (!data.uploadUrl) {
+    console.error("[Uploads] Backend did not return uploadUrl:", data);
+    throw new Error("Backend did not return upload URL");
+  }
+  if (!data.videoId) {
+    console.error("[Uploads] Backend did not return videoId:", data);
+    throw new Error("Backend did not return video ID");
+  }
+  
+  return {
+    uploadUrl: data.uploadUrl,
+    videoId: data.videoId,
+    fileUrl: data.fileUrl || undefined,
+  };
 }
 
 /**
  * Upload a file directly to S3 using the presigned URL
  */
 export async function uploadToS3(uploadUrl: string, file: File): Promise<void> {
-  console.log('[Uploads] Uploading to S3, size:', file.size, 'type:', file.type);
+  console.log('[Uploads] Using uploadUrl:', uploadUrl);
+  console.log('[Uploads] File:', file.name, 'type:', file.type, 'size:', file.size);
+  
   const res = await fetch(uploadUrl, {
     method: "PUT",
     headers: { "Content-Type": file.type },
     body: file,
   });
+  
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    console.error("[Uploads] S3 PUT failed", res.status, text);
+    console.error("[Uploads] S3 upload failed", res.status, text);
     throw new Error(`S3 upload failed (${res.status})`);
   }
+  
   console.log('[Uploads] S3 upload complete');
 }

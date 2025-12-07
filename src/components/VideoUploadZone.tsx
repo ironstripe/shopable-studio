@@ -55,7 +55,8 @@ const VideoUploadZone = ({ onVideoLoad, onUploadComplete }: VideoUploadZoneProps
         sizeBytes: file.size,
       });
       
-      console.log('[VideoUpload] Got presigned URL, videoId:', videoId);
+      console.log('[VideoUpload] Got presigned URL:', uploadUrl);
+      console.log('[VideoUpload] Video ID:', videoId);
       
       // Step 2: Upload to S3
       setUploadState("uploading");
