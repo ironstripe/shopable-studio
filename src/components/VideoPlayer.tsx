@@ -9,6 +9,7 @@ import SafeZoneOverlay from "./SafeZoneOverlay";
 import TapIndicator from "./TapIndicator";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { useLocale } from "@/lib/i18n";
 import { 
   isPointInSafeZone, 
   clampHotspotCenterToSafeZone, 
@@ -71,6 +72,7 @@ const VideoPlayer = ({
   onHotspotDragEnd,
   isDeferringToolbar = false,
 }: VideoPlayerProps) => {
+  const { t } = useLocale();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
@@ -765,7 +767,7 @@ const VideoPlayer = ({
                 </div>
                 
                 <p className="font-semibold text-[16px] leading-snug">
-                  Tap on the video to place your first hotspot.
+                  {t("editor.hint.tapToAddHotspot")}
                 </p>
               </div>
             </div>
