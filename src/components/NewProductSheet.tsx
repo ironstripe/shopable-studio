@@ -35,6 +35,7 @@ const NewProductSheet = ({
     ctaLabel: "Shop Now",
     price: "",
     thumbnail: "",
+    promoCode: "",
   });
   const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
   const [nameTouched, setNameTouched] = useState(false);
@@ -52,6 +53,7 @@ const NewProductSheet = ({
         ctaLabel: editingProduct.ctaLabel || "Shop Now",
         price: editingProduct.price || "",
         thumbnail: editingProduct.thumbnail || "",
+        promoCode: editingProduct.promoCode || "",
       });
       setThumbnailPreview(editingProduct.thumbnail || "");
     }
@@ -65,6 +67,7 @@ const NewProductSheet = ({
       ctaLabel: "Shop Now",
       price: "",
       thumbnail: "",
+      promoCode: "",
     });
     setThumbnailPreview("");
     setNameTouched(false);
@@ -119,6 +122,7 @@ const NewProductSheet = ({
         ctaLabel: formData.ctaLabel || "Shop Now",
         price: formData.price || undefined,
         thumbnail: formData.thumbnail || undefined,
+        promoCode: formData.promoCode || undefined,
       });
     } else {
       const newId = onCreateProduct({
@@ -128,6 +132,7 @@ const NewProductSheet = ({
         ctaLabel: formData.ctaLabel || "Shop Now",
         price: formData.price || undefined,
         thumbnail: formData.thumbnail || undefined,
+        promoCode: formData.promoCode || undefined,
       });
       onProductCreated?.(newId);
     }
@@ -198,7 +203,7 @@ const NewProductSheet = ({
                 className="block cursor-pointer"
               >
                 <div className={cn(
-                  "aspect-square w-full max-w-[240px] mx-auto rounded-2xl",
+                  "aspect-square w-full max-w-[180px] mx-auto rounded-2xl",
                   "bg-[#F5F5F5] border-2 border-dashed border-[#D0D0D0]",
                   "hover:border-primary/60 hover:bg-[#F0F0F0]",
                   "focus-within:border-primary focus-within:border-solid",
@@ -223,13 +228,32 @@ const NewProductSheet = ({
                     </div>
                   ) : (
                     <>
-                      <Camera className="w-10 h-10 text-[#999999] mb-3" strokeWidth={1.5} />
-                      <span className="text-[15px] font-medium text-[#333333]">Add product image</span>
-                      <span className="text-[13px] text-[#888888] mt-1">Upload from library or take a photo</span>
+                      <Camera className="w-8 h-8 text-[#999999] mb-2" strokeWidth={1.5} />
+                      <span className="text-[14px] font-medium text-[#333333]">Add image</span>
                     </>
                   )}
                 </div>
               </label>
+              
+              {/* Image URL alternative */}
+              <div className="flex items-center gap-2 my-3 max-w-[180px] mx-auto">
+                <div className="flex-1 h-px bg-[#E0E0E0]" />
+                <span className="text-[11px] text-[#888888]">or</span>
+                <div className="flex-1 h-px bg-[#E0E0E0]" />
+              </div>
+              
+              <div className="max-w-[280px] mx-auto">
+                <Input
+                  value={formData.thumbnail}
+                  onChange={(e) => {
+                    setFormData({ ...formData, thumbnail: e.target.value });
+                    setThumbnailPreview("");
+                  }}
+                  placeholder="https://…"
+                  className="h-10 text-[14px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+                <p className="text-[11px] text-[#888888] mt-1 text-center">Paste image URL</p>
+              </div>
             </div>
 
             {/* B) PRODUCT NAME (required) */}
@@ -281,6 +305,19 @@ const NewProductSheet = ({
                   className="h-12 text-[15px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl pl-8 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
+            </div>
+
+            {/* D2) PROMO CODE (optional) */}
+            <div>
+              <label className="text-[13px] font-medium text-[#666666] mb-1.5 block">
+                Promo code
+              </label>
+              <Input
+                value={formData.promoCode}
+                onChange={(e) => setFormData({ ...formData, promoCode: e.target.value })}
+                placeholder="e.g. SAVE20"
+                className="h-12 text-[15px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
             </div>
 
             {/* E) PRODUCT URL (required) */}
