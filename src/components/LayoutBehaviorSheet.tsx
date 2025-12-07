@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
+
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import HotspotStylePreview from "./HotspotStylePreview";
@@ -78,7 +78,9 @@ const LayoutBehaviorSheet = ({
       setDuration(hotspot.timeEnd - hotspot.timeStart);
       setCountdownActive(hotspot.countdown?.active ?? false);
       setCountdownStyle(hotspot.countdown?.style ?? "light");
-      setCountdownPosition(hotspot.countdown?.position ?? "below");
+      // Migrate old "top-right" to "corner" (cast for legacy data compatibility)
+      const pos = hotspot.countdown?.position as string | undefined;
+      setCountdownPosition(pos === "top-right" ? "corner" : (pos as CountdownPosition) ?? "corner");
     }
   }, [hotspot?.id, hotspot?.style, hotspot?.revision, open]);
 
@@ -344,17 +346,40 @@ const LayoutBehaviorSheet = ({
               Countdown Timer
             </h3>
             
-            {/* Toggle */}
+            {/* Toggle using pill buttons for visual consistency */}
             <div className="flex items-center justify-between py-3 border-b border-[#EBEBEB]">
               <div>
                 <span className="text-[14px] font-medium text-[#111111] block">Show countdown timer</span>
                 <span className="text-[12px] text-[#888888]">Counts down hotspot duration</span>
               </div>
-              <Switch
-                checked={countdownActive}
-                onCheckedChange={(checked) => !isDisabled && setCountdownActive(checked)}
-                disabled={isDisabled}
-              />
+              <div className="flex gap-1">
+                <button
+                  onClick={() => !isDisabled && setCountdownActive(false)}
+                  disabled={isDisabled}
+                  className={cn(
+                    "px-3 py-1.5 text-[12px] font-medium rounded-full border transition-all",
+                    !countdownActive
+                      ? "bg-primary text-white border-primary"
+                      : "bg-white text-[#666666] border-[#E0E0E0] hover:border-[#CCCCCC]",
+                    isDisabled && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  Off
+                </button>
+                <button
+                  onClick={() => !isDisabled && setCountdownActive(true)}
+                  disabled={isDisabled}
+                  className={cn(
+                    "px-3 py-1.5 text-[12px] font-medium rounded-full border transition-all",
+                    countdownActive
+                      ? "bg-primary text-white border-primary"
+                      : "bg-white text-[#666666] border-[#E0E0E0] hover:border-[#CCCCCC]",
+                    isDisabled && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  On
+                </button>
+              </div>
             </div>
 
             {/* Settings (only show when active) */}
@@ -393,7 +418,7 @@ const LayoutBehaviorSheet = ({
                     {[
                       { value: "above" as CountdownPosition, label: "Above" },
                       { value: "below" as CountdownPosition, label: "Below" },
-                      { value: "top-right" as CountdownPosition, label: "Corner" },
+                      { value: "corner" as CountdownPosition, label: "Corner" },
                     ].map((option) => (
                       <button
                         key={option.value}
