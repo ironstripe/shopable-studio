@@ -43,6 +43,7 @@ interface VideoPlayerProps {
   showPlacementHint?: boolean;
   onHotspotDragEnd?: (hotspotId: string) => void;
   isDeferringToolbar?: boolean;
+  hotspotsLoading?: boolean;
 }
 
 const VideoPlayer = ({
@@ -72,6 +73,7 @@ const VideoPlayer = ({
   showPlacementHint = false,
   onHotspotDragEnd,
   isDeferringToolbar = false,
+  hotspotsLoading = false,
 }: VideoPlayerProps) => {
   const { t } = useLocale();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -755,6 +757,14 @@ const VideoPlayer = ({
             <div className="flex flex-col items-center gap-3 py-20">
               <Loader2 className="w-8 h-8 text-primary animate-spin" />
               <p className="text-sm text-neutral-500">Loading video...</p>
+            </div>
+          )}
+          
+          {/* Loading indicator for hotspots - shown as small overlay */}
+          {videoSrc && isVideoReady && hotspotsLoading && (
+            <div className="absolute top-4 left-4 z-50 flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
+              <Loader2 className="w-4 h-4 text-primary animate-spin" />
+              <span className="text-xs text-neutral-600">Loading hotspots...</span>
             </div>
           )}
 
