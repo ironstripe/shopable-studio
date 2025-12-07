@@ -196,6 +196,28 @@ export const clampHotspotCenterToSafeZone = (
 };
 
 /**
+ * Clamp hotspot using MEASURED DOM dimensions (the new preferred method)
+ * This uses actual rendered sizes instead of hardcoded estimates
+ */
+export const clampWithMeasuredDimensions = (
+  centerX: number,           // 0-1 percentage from left (center of hotspot)
+  centerY: number,           // 0-1 percentage from top (center of hotspot)
+  measuredWidth: number,     // actual DOM width in pixels
+  measuredHeight: number,    // actual DOM height in pixels
+  containerWidth: number,
+  containerHeight: number,
+  preset: SafeZonePreset
+): { x: number; y: number; wasConstrained: boolean } => {
+  // Just delegate to existing function but with measured dimensions
+  return clampHotspotCenterToSafeZone(
+    centerX, centerY,
+    measuredWidth, measuredHeight,
+    containerWidth, containerHeight,
+    preset
+  );
+};
+
+/**
  * Calculate maximum allowed scale for a hotspot at given position within safe zone
  */
 export const getMaxScaleInSafeZone = (
