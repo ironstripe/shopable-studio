@@ -155,10 +155,10 @@ export const clampHotspotCenterToSafeZone = (
   // Left edge: No clamping needed - no platform UI on left side
   // Top edge: No clamping needed - no platform UI at top
   
-  // Clamp right edge (center + halfWidth must be <= safe.x + safe.width)
-  const safeRight = safeZone.x + safeZone.width;
-  if (centerPixelX + halfWidth > safeRight) {
-    centerPixelX = safeRight - halfWidth;
+  // Clamp right edge: hotspot must not exceed 85% of container width (15% reserved for platform icons)
+  const safeRightEdge = containerWidth * (1 - SAFE_ZONE_CONFIG.rightMargin);
+  if (centerPixelX + halfWidth > safeRightEdge) {
+    centerPixelX = safeRightEdge - halfWidth;
     wasConstrained = true;
   }
   
