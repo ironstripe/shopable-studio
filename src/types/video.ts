@@ -106,6 +106,7 @@ export type CardStyle =
 
 export interface Hotspot {
   id: string;
+  backendId?: string; // Backend-generated ID for API operations
   timeStart: number;
   timeEnd: number;
   x: number;

@@ -140,15 +140,22 @@ export function useHotspots(
         const payload = mapHotspotToPayload(newHotspot, videoId);
         createHotspotApi(videoId, payload)
           .then((createdDto) => {
-            // Replace temp hotspot with real one from backend
+            // Map backend response but KEEP the client-generated id stable
+            const backendHotspot = mapDtoToHotspot(createdDto);
+            
             setHotspots((prev) =>
-              prev.map((h) => (h.id === tempId ? mapDtoToHotspot(createdDto) : h))
+              prev.map((h) => {
+                if (h.id !== tempId) return h;
+                return {
+                  ...backendHotspot,
+                  id: tempId, // Keep stable client ID
+                  backendId: backendHotspot.id, // Store backend ID separately
+                };
+              })
             );
-            // Update selection to real ID
-            setSelectedHotspotId((prevId) =>
-              prevId === tempId ? createdDto.id : prevId
-            );
-            console.log("[useHotspots] Created hotspot on backend:", createdDto.id);
+            
+            // Don't change selectedHotspotId - it already has tempId which is stable
+            console.log("[useHotspots] Created hotspot on backend:", createdDto.id, "-> client id:", tempId);
           })
           .catch((error) => {
             console.error("[useHotspots] Failed to create hotspot:", error);
@@ -182,13 +189,15 @@ export function useHotspots(
       );
 
       // Persist to backend if videoId is available
-      // Skip temp IDs (they haven't been created yet)
-      if (videoId && !updated.id.startsWith("hotspot-temp-")) {
+      // Use backendId for API calls, skip if not yet synced
+      const hotspotForUpdate = hotspots.find(h => h.id === updated.id);
+      const apiId = hotspotForUpdate?.backendId;
+      if (videoId && apiId) {
         const payload = mapHotspotUpdateToPayload(updated);
         if (Object.keys(payload).length > 0) {
-          updateHotspotApi(videoId, updated.id, payload)
+          updateHotspotApi(videoId, apiId, payload)
             .then(() => {
-              console.log("[useHotspots] Updated hotspot on backend:", updated.id);
+              console.log("[useHotspots] Updated hotspot on backend:", apiId);
             })
             .catch((error) => {
               console.error("[useHotspots] Failed to update hotspot:", error);
@@ -208,15 +217,16 @@ export function useHotspots(
       setSelectedHotspotId((prev) => (prev === id ? null : prev));
 
       // Persist to backend if videoId is available
-      // Skip temp IDs (they haven't been created yet)
-      if (videoId && !id.startsWith("hotspot-temp-")) {
-        deleteHotspotApi(videoId, id)
+      // Use backendId for API calls
+      const hotspotToDelete = hotspots.find(h => h.id === id);
+      const apiId = hotspotToDelete?.backendId;
+      if (videoId && apiId) {
+        deleteHotspotApi(videoId, apiId)
           .then(() => {
-            console.log("[useHotspots] Deleted hotspot from backend:", id);
+            console.log("[useHotspots] Deleted hotspot from backend:", apiId);
           })
           .catch((error) => {
             console.error("[useHotspots] Failed to delete hotspot:", error);
-            // Optionally reload to restore state
           });
       }
     },
@@ -244,18 +254,16 @@ export function useHotspots(
   // PERSIST POSITION UPDATE - called on drag end to sync position to backend
   const persistPositionUpdate = useCallback(
     (id: string) => {
-      if (!videoId || id.startsWith("hotspot-temp-")) return;
-
       const hotspot = hotspots.find((h) => h.id === id);
-      if (!hotspot) return;
+      if (!hotspot || !videoId || !hotspot.backendId) return;
 
       // Only sync if there's a pending update
       if (!pendingPositionUpdates.has(id)) return;
 
       const payload = mapHotspotUpdateToPayload({ x: hotspot.x, y: hotspot.y });
-      updateHotspotApi(videoId, id, payload)
+      updateHotspotApi(videoId, hotspot.backendId, payload)
         .then(() => {
-          console.log("[useHotspots] Persisted position update:", id);
+          console.log("[useHotspots] Persisted position update:", hotspot.backendId);
           setPendingPositionUpdates((prev) => {
             const next = new Set(prev);
             next.delete(id);
@@ -277,10 +285,11 @@ export function useHotspots(
         prev.map((h) => (h.id === id ? { ...h, scale: clampedScale } : h))
       );
 
-      // Persist to backend
-      if (videoId && !id.startsWith("hotspot-temp-")) {
+      // Persist to backend using backendId
+      const hotspotForScale = hotspots.find(h => h.id === id);
+      if (videoId && hotspotForScale?.backendId) {
         const payload = mapHotspotUpdateToPayload({ scale: clampedScale });
-        updateHotspotApi(videoId, id, payload).catch((error) => {
+        updateHotspotApi(videoId, hotspotForScale.backendId, payload).catch((error) => {
           console.error("[useHotspots] Failed to update scale:", error);
         });
       }
