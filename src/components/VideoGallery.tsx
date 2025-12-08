@@ -64,6 +64,7 @@ interface SwipeableCardProps {
 function SwipeableCard({ video, onSelect, onDelete }: SwipeableCardProps) {
   const [swipeX, setSwipeX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
+  const [thumbnailFailed, setThumbnailFailed] = useState(false);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const isHorizontalSwipe = useRef(false);
@@ -123,6 +124,8 @@ function SwipeableCard({ video, onSelect, onDelete }: SwipeableCardProps) {
     }
   };
 
+  const showThumbnail = video.thumbnailUrl && !thumbnailFailed;
+
   return (
     <div className="relative overflow-hidden rounded-xl">
       {/* Delete button behind */}
@@ -153,8 +156,27 @@ function SwipeableCard({ video, onSelect, onDelete }: SwipeableCardProps) {
         )}
       >
         {/* Left: Thumbnail */}
-        <div className="w-[120px] shrink-0 aspect-video bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center">
-          <Play className="w-6 h-6 text-primary/70" fill="currentColor" />
+        <div className="w-[120px] shrink-0 aspect-video bg-muted relative overflow-hidden">
+          {showThumbnail ? (
+            <>
+              <img 
+                src={video.thumbnailUrl} 
+                alt={video.title}
+                className="w-full h-full object-cover"
+                onError={() => setThumbnailFailed(true)}
+              />
+              {/* Play overlay */}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center">
+                  <Play className="w-4 h-4 text-primary ml-0.5" fill="currentColor" />
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center">
+              <Play className="w-6 h-6 text-primary/70" fill="currentColor" />
+            </div>
+          )}
         </div>
 
         {/* Right: Info */}
