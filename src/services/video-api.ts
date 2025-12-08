@@ -76,26 +76,45 @@ export async function registerUpload(
   payload: RegisterUploadRequest
 ): Promise<RegisterUploadResponse> {
   const url = `${API_BASE_URL}/uploads/register`;
-  console.log('[Uploads] Calling:', 'POST', url);
-  console.log('[Uploads] Payload:', payload);
-  
+  console.log("[Uploads] Calling:", "POST", url);
+  console.log("[Uploads] Payload:", payload);
+
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(payload)
   });
-  
-  // Log raw response before parsing
+
   const responseText = await res.clone().text();
-  console.log('[Uploads] registerUpload response:', url, 'POST', res.status, responseText);
-  
+  console.log("[Uploads] registerUpload response:", url, "POST", res.status, responseText);
+
   if (!res.ok) {
     console.error("[Uploads] register failed", res.status, responseText);
     throw new Error(`Failed to register upload (${res.status})`);
   }
-  
-  const data = JSON.parse(responseText);
-  
+
+  // First parse the outer JSON
+  let data;
+  try {
+    data = JSON.parse(responseText);
+  } catch (err) {
+    console.error("[Uploads] Failed to parse JSON response", err);
+    throw new Error("Backend returned invalid JSON");
+  }
+
+  // Handle Lambda proxy format (body holds inner JSON)
+  if (!data.uploadUrl && data.body) {
+    try {
+      const inner = typeof data.body === "string" ? JSON.parse(data.body) : data.body;
+      console.log("[Uploads] Parsed inner body:", inner);
+      data = inner;
+    } catch (err) {
+      console.error("[Uploads] Failed to parse inner body JSON", err, data);
+      throw new Error("Backend did not return upload URL");
+    }
+  }
+
+  // Validate fields
   if (!data.uploadUrl) {
     console.error("[Uploads] Backend did not return uploadUrl:", data);
     throw new Error("Backend did not return upload URL");
@@ -104,11 +123,11 @@ export async function registerUpload(
     console.error("[Uploads] Backend did not return videoId:", data);
     throw new Error("Backend did not return video ID");
   }
-  
+
   return {
     uploadUrl: data.uploadUrl,
     videoId: data.videoId,
-    fileUrl: data.fileUrl ?? undefined,
+    fileUrl: data.fileUrl ?? undefined
   };
 }
 
