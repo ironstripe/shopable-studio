@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 interface HotspotInlineEditorProps {
   hotspot: Hotspot;
   products: Record<string, Product>;
-  onUpdateHotspot: (hotspot: Hotspot) => void;
+  onUpdateHotspot: (updated: Partial<Hotspot> & { id: string }) => void;
   onDeleteHotspot: () => void;
   onOpenProductSelection: (hotspotId: string) => void;
   onOpenLayoutSheet: (hotspot: Hotspot) => void;
@@ -60,7 +60,7 @@ const HotspotInlineEditor = ({
       };
 
       onUpdateHotspotRef.current({
-        ...hotspotRef.current,
+        id: hotspotRef.current.id,
         toolbarOffset: newOffset,
       });
     };
