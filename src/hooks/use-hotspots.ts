@@ -27,7 +27,7 @@ export interface UseHotspotsReturn {
   // Operations
   addHotspot: (x: number, y: number, time: number) => Hotspot;
   updateHotspot: (updated: Partial<Hotspot> & { id: string }) => void;
-  deleteHotspot: (id: string) => void;
+  deleteHotspot: (id: string) => Promise<void>;
   selectHotspot: (id: string | null) => void;
   clearHotspots: () => void;
 
@@ -224,28 +224,34 @@ export function useHotspots(
   );
 
   // DELETE - removes from local state immediately, then syncs to backend
+  // Returns a Promise so caller can handle success/failure (e.g., for toasts)
   const deleteHotspot = useCallback(
-    (id: string) => {
-      setHotspots((prev) => prev.filter((h) => h.id !== id));
+    async (id: string): Promise<void> => {
+      // Capture state BEFORE deletion for potential rollback
+      const hotspotToDelete = hotspots.find(h => h.id === id);
+      const previousHotspots = [...hotspots];
+      const previousSelectedId = selectedHotspotId;
 
-      // Clear selection if deleted hotspot was selected
+      // Optimistic removal
+      setHotspots((prev) => prev.filter((h) => h.id !== id));
       setSelectedHotspotId((prev) => (prev === id ? null : prev));
 
       // Persist to backend if videoId is available
-      // Use backendId for API calls
-      const hotspotToDelete = hotspots.find(h => h.id === id);
-      const apiId = hotspotToDelete?.backendId;
+      const apiId = hotspotToDelete?.backendId ?? hotspotToDelete?.id;
       if (videoId && apiId) {
-        deleteHotspotApi(videoId, apiId)
-          .then(() => {
-            console.log("[useHotspots] Deleted hotspot from backend:", apiId);
-          })
-          .catch((error) => {
-            console.error("[useHotspots] Failed to delete hotspot:", error);
-          });
+        try {
+          await deleteHotspotApi(videoId, apiId);
+          console.log("[useHotspots] Deleted hotspot from backend:", apiId);
+        } catch (error) {
+          console.error("[useHotspots] Failed to delete hotspot:", error);
+          // Rollback: restore previous state
+          setHotspots(previousHotspots);
+          setSelectedHotspotId(previousSelectedId);
+          throw error; // Re-throw so caller can show error toast
+        }
       }
     },
-    [videoId]
+    [videoId, hotspots, selectedHotspotId]
   );
 
   // SELECT

@@ -276,9 +276,13 @@ const Index = () => {
     });
   };
 
-  const handleDeleteHotspot = (hotspotId: string) => {
-    deleteHotspotCore(hotspotId);
-    toast.success(t("hotspots.deleted"));
+  const handleDeleteHotspot = async (hotspotId: string) => {
+    try {
+      await deleteHotspotCore(hotspotId);
+      toast.success(t("hotspots.deleted"));
+    } catch (error) {
+      toast.error(t("hotspots.deleteFailed"));
+    }
   };
 
   const handleUpdateHotspotPosition = (hotspotId: string, x: number, y: number) => {

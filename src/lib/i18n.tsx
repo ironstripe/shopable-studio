@@ -46,6 +46,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "hotspots.deleteConfirm": "Delete this hotspot?",
     "hotspots.created": "Hotspot created!",
     "hotspots.deleted": "Hotspot deleted",
+    "hotspots.deleteFailed": "Failed to delete hotspot. Please try again.",
     "hotspots.unknownProduct": "Unknown Product",
     
     // Layout
@@ -188,6 +189,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "hotspots.deleteConfirm": "Diesen Hotspot löschen?",
     "hotspots.created": "Hotspot erstellt!",
     "hotspots.deleted": "Hotspot gelöscht",
+    "hotspots.deleteFailed": "Hotspot konnte nicht gelöscht werden. Bitte erneut versuchen.",
     "hotspots.unknownProduct": "Unbekanntes Produkt",
     
     // Layout
