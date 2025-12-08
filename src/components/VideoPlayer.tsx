@@ -289,6 +289,12 @@ const VideoPlayer = ({
   }, [hotspots, pendingDragPosition, draggingHotspot]);
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    console.log("[VideoPlayer] tap to add hotspot (click)", { 
+      currentTime: videoRef.current?.currentTime,
+      clientX: e.clientX,
+      clientY: e.clientY 
+    });
+    
     if (!videoRef.current || !containerRef.current) return;
     
     const actualTime = videoRef.current.currentTime;

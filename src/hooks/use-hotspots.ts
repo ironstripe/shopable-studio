@@ -159,9 +159,12 @@ export function useHotspots(
           })
           .catch((error) => {
             console.error("[useHotspots] Failed to create hotspot:", error);
-            // Remove the temp hotspot on failure
-            setHotspots((prev) => prev.filter((h) => h.id !== tempId));
-            setSelectedHotspotId((prevId) => (prevId === tempId ? null : prevId));
+            // DON'T remove - keep the hotspot visible for local editing
+            // User can continue editing even if backend save failed
+            // Show error toast to inform user
+            import('sonner').then(({ toast }) => {
+              toast.error("Failed to save hotspot. Changes are local only.");
+            });
           });
       }
 
