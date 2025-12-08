@@ -334,24 +334,46 @@ const Index = () => {
     }
   };
 
-  const handleAssignProduct = (productId: string, overrideClickBehavior?: import("@/types/video").ClickBehavior) => {
-    if (!productAssignmentHotspotId) return;
-    
-    const product = products[productId];
-    const clickBehavior = overrideClickBehavior || product?.defaultClickBehavior;
-    const targetHotspotId = productAssignmentHotspotId;
-    
-    // Use centralized updateHotspot
+  const handleAssignProduct = (
+    productId: string,
+    overrideClickBehavior?: import("@/types/video").ClickBehavior
+  ) => {
+    // Prefer the explicit assignment id, fall back to the currently selected hotspot
+    const targetHotspotId = productAssignmentHotspotId ?? selectedHotspotId;
+
+    if (!targetHotspotId) {
+      console.warn("[Hotspots] handleAssignProduct: no target hotspot id", {
+        productAssignmentHotspotId,
+        selectedHotspotId,
+      });
+      return;
+    }
+
+    const targetHotspot = hotspots.find((h) => h.id === targetHotspotId);
+    if (!targetHotspot) {
+      console.warn("[Hotspots] handleAssignProduct: hotspot not found", {
+        targetHotspotId,
+        hotspots,
+      });
+      return;
+    }
+
     updateHotspot({
       id: targetHotspotId,
       productId,
-      ...(clickBehavior && { clickBehavior }),
+      clickBehavior:
+        overrideClickBehavior ?? targetHotspot.clickBehavior ?? "show-card",
     });
-    
+
+    // Close the product sheet and clear assignment helper state
     setSelectProductSheetOpen(false);
     setProductAssignmentHotspotId(null);
+
+    // Make sure the hotspot stays selected so the inline toolbar is visible
+    selectHotspot(targetHotspotId);
+
     toast.success(t("product.assigned"));
-    
+
     // FTUX: Show preview hint and then export hint
     if (!ftuxComplete && ftuxStep === "productSelect" && !shownPreviewHint) {
       advanceStep("postProduct");
