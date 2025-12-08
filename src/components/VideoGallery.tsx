@@ -1,6 +1,7 @@
+import { useState, useRef } from "react";
 import { VideoDto } from "@/services/video-api";
 import { cn } from "@/lib/utils";
-import { Play, Film, RefreshCw, AlertCircle, Upload } from "lucide-react";
+import { Play, Film, RefreshCw, AlertCircle, Upload, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface VideoGalleryProps {
@@ -10,6 +11,7 @@ interface VideoGalleryProps {
   onSelectVideo: (video: VideoDto) => void;
   onRetry: () => void;
   onUploadClick: () => void;
+  onDeleteVideo?: (video: VideoDto) => void;
 }
 
 function formatDate(timestamp: number): string {
@@ -53,6 +55,128 @@ function SkeletonCard() {
   );
 }
 
+interface SwipeableCardProps {
+  video: VideoDto;
+  onSelect: () => void;
+  onDelete?: () => void;
+}
+
+function SwipeableCard({ video, onSelect, onDelete }: SwipeableCardProps) {
+  const [swipeX, setSwipeX] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const isHorizontalSwipe = useRef(false);
+  
+  const SWIPE_THRESHOLD = 80;
+  const DELETE_ZONE = 70;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isHorizontalSwipe.current = false;
+    setIsSwiping(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isSwiping) return;
+    
+    const deltaX = e.touches[0].clientX - touchStartX.current;
+    const deltaY = e.touches[0].clientY - touchStartY.current;
+    
+    // Determine swipe direction on first significant movement
+    if (!isHorizontalSwipe.current && (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10)) {
+      isHorizontalSwipe.current = Math.abs(deltaX) > Math.abs(deltaY);
+    }
+    
+    if (isHorizontalSwipe.current) {
+      // Only allow left swipe (negative), clamp to max delete zone
+      const newX = Math.max(-DELETE_ZONE, Math.min(0, deltaX));
+      setSwipeX(newX);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsSwiping(false);
+    
+    if (swipeX < -SWIPE_THRESHOLD * 0.6) {
+      // Snap to delete zone
+      setSwipeX(-DELETE_ZONE);
+    } else {
+      // Snap back
+      setSwipeX(0);
+    }
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete?.();
+    setSwipeX(0);
+  };
+
+  const handleCardClick = () => {
+    if (swipeX < -10) {
+      // If swiped, reset instead of selecting
+      setSwipeX(0);
+    } else {
+      onSelect();
+    }
+  };
+
+  return (
+    <div className="relative overflow-hidden rounded-xl">
+      {/* Delete button behind */}
+      {onDelete && (
+        <div 
+          className="absolute inset-y-0 right-0 w-[70px] bg-destructive flex items-center justify-center"
+          onClick={handleDelete}
+        >
+          <Trash2 className="w-5 h-5 text-destructive-foreground" />
+        </div>
+      )}
+      
+      {/* Swipeable card */}
+      <button
+        onClick={handleCardClick}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{ 
+          transform: `translateX(${swipeX}px)`,
+          transition: isSwiping ? 'none' : 'transform 0.2s ease-out'
+        }}
+        className={cn(
+          "w-full flex rounded-xl overflow-hidden bg-card border border-border shadow-sm",
+          "text-left transition-shadow duration-150",
+          "hover:shadow-md hover:border-primary/20",
+          "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+        )}
+      >
+        {/* Left: Thumbnail */}
+        <div className="w-[120px] shrink-0 aspect-video bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center">
+          <Play className="w-6 h-6 text-primary/70" fill="currentColor" />
+        </div>
+
+        {/* Right: Info */}
+        <div className="flex-1 p-3 flex flex-col justify-center min-w-0">
+          <p className="font-medium text-sm text-foreground line-clamp-2 mb-1">
+            {video.title}
+          </p>
+          <p className="text-muted-foreground text-xs mb-1.5">
+            {formatDate(video.createdAt)}
+          </p>
+          <span className={cn(
+            "self-start px-1.5 py-0.5 rounded text-[10px] font-medium",
+            getStatusBadgeClasses(video.status)
+          )}>
+            {video.status.toUpperCase()}
+          </span>
+        </div>
+      </button>
+    </div>
+  );
+}
+
 const VideoGallery = ({
   videos,
   isLoading,
@@ -60,6 +184,7 @@ const VideoGallery = ({
   onSelectVideo,
   onRetry,
   onUploadClick,
+  onDeleteVideo,
 }: VideoGalleryProps) => {
 
   // Sort videos by newest first
@@ -143,37 +268,12 @@ const VideoGallery = ({
         {/* Video cards */}
         <div className="space-y-3">
           {sortedVideos.map((video) => (
-            <button
+            <SwipeableCard
               key={video.id}
-              onClick={() => onSelectVideo(video)}
-              className={cn(
-                "w-full flex rounded-xl overflow-hidden bg-card border border-border shadow-sm",
-                "text-left transition-all duration-150",
-                "hover:shadow-md hover:border-primary/20",
-                "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
-              )}
-            >
-              {/* Left: Thumbnail */}
-              <div className="w-[120px] shrink-0 aspect-video bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center">
-                <Play className="w-6 h-6 text-primary/70" fill="currentColor" />
-              </div>
-
-              {/* Right: Info */}
-              <div className="flex-1 p-3 flex flex-col justify-center min-w-0">
-                <p className="font-medium text-sm text-foreground line-clamp-2 mb-1">
-                  {video.title}
-                </p>
-                <p className="text-muted-foreground text-xs mb-1.5">
-                  {formatDate(video.createdAt)}
-                </p>
-                <span className={cn(
-                  "self-start px-1.5 py-0.5 rounded text-[10px] font-medium",
-                  getStatusBadgeClasses(video.status)
-                )}>
-                  {video.status.toUpperCase()}
-                </span>
-              </div>
-            </button>
+              video={video}
+              onSelect={() => onSelectVideo(video)}
+              onDelete={onDeleteVideo ? () => onDeleteVideo(video) : undefined}
+            />
           ))}
         </div>
       </div>
