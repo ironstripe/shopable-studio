@@ -70,12 +70,18 @@ export async function listVideos(): Promise<VideoDto[]> {
 }
 
 /**
- * Register a new video upload and correctly parse Lambda proxy responses.
+ * Register a new video upload and get a presigned S3 URL.
+ * Very robust JSON decoding to handle multiple possible Lambda/API Gateway wrappers.
  */
 export async function registerUpload(
-  payload: RegisterUploadRequest
-): Promise<RegisterUploadResponse> {
+  payload: {
+    filename: string;
+    contentType: string;
+    sizeBytes: number;
+  }
+): Promise<{ uploadUrl: string; videoId: string; fileUrl?: string }> {
   const url = `${API_BASE_URL}/uploads/register`;
+
   console.log("[Uploads] Calling:", "POST", url);
   console.log("[Uploads] Payload:", payload);
 
@@ -85,48 +91,56 @@ export async function registerUpload(
     body: JSON.stringify(payload),
   });
 
-  const raw = await res.clone().text();
-  console.log("[Uploads] registerUpload response:", url, "POST", res.status, raw);
+  const raw = await res.text();
+  console.log("[Uploads] registerUpload raw HTTP response:", res.status, raw);
 
   if (!res.ok) {
     console.error("[Uploads] register failed", res.status, raw);
     throw new Error(`Failed to register upload (${res.status})`);
   }
 
-  let data;
-  try {
-    data = JSON.parse(raw);
-  } catch (err) {
-    console.error("[Uploads] Failed to parse JSON response", err);
-    throw new Error("Backend returned invalid JSON");
-  }
+  // ---- Robust multi-layer JSON decode ------------------------------------
+  let current: any = raw;
 
-  // Handle Lambda proxy response: { statusCode, headers, body: "JSON-string" }
-  if (!data.uploadUrl && data.body) {
-    try {
-      const inner = typeof data.body === "string" ? JSON.parse(data.body) : data.body;
-      console.log("[Uploads] Parsed inner body:", inner);
-      data = inner;
-    } catch (err) {
-      console.error("[Uploads] Failed to parse inner body JSON", err, data);
-      throw new Error("Backend did not return upload URL");
+  // Try up to 3 levels of decoding (stringified JSON → wrapped body → final payload)
+  for (let depth = 0; depth < 3; depth++) {
+    if (typeof current === "string") {
+      try {
+        const parsed = JSON.parse(current);
+        console.log(`[Uploads] depth ${depth} parsed string ->`, parsed);
+        current = parsed;
+      } catch {
+        break; // string is not JSON anymore
+      }
     }
+
+    if (current && typeof current === "object" && current.uploadUrl) break;
+
+    if (current && typeof current === "object" && "body" in current) {
+      console.log(`[Uploads] depth ${depth} found body wrapper ->`, current.body);
+      current = current.body;
+      continue;
+    }
+
+    break;
   }
 
-  if (!data.uploadUrl) {
-    console.error("[Uploads] Backend did not return uploadUrl:", data);
+  console.log("[Uploads] final decoded object:", current);
+
+  if (!current || typeof current !== "object" || !current.uploadUrl) {
+    console.error("[Uploads] Backend did not return uploadUrl:", current);
     throw new Error("Backend did not return upload URL");
   }
 
-  if (!data.videoId) {
-    console.error("[Uploads] Backend did not return videoId:", data);
+  if (!current.videoId) {
+    console.error("[Uploads] Backend did not return videoId:", current);
     throw new Error("Backend did not return video ID");
   }
 
   return {
-    uploadUrl: data.uploadUrl,
-    videoId: data.videoId,
-    fileUrl: data.fileUrl ?? undefined,
+    uploadUrl: current.uploadUrl,
+    videoId: current.videoId,
+    fileUrl: current.fileUrl ?? undefined,
   };
 }
 
