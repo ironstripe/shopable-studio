@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Hotspot, Product, VideoProject, VideoCTA, EditorMode } from "@/types/video";
+import { Hotspot, Product, VideoProject, VideoCTA, EditorMode, ClickBehavior } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import VideoGallery from "@/components/VideoGallery";
 import VideoUploadZone from "@/components/VideoUploadZone";
@@ -334,74 +334,91 @@ const Index = () => {
     }
   };
 
-  const handleAssignProduct = (
-    productId: string,
-    overrideClickBehavior?: import("@/types/video").ClickBehavior
-  ) => {
-    // Prefer the explicit assignment id, fall back to the currently selected hotspot
-    const targetHotspotId = productAssignmentHotspotId ?? selectedHotspotId;
+  const handleAssignProduct = useCallback(
+    (productId: string, overrideClickBehavior?: ClickBehavior) => {
+      // Prefer the explicit assignment id, fall back to the currently selected hotspot
+      const targetHotspotId = productAssignmentHotspotId ?? selectedHotspotId;
 
-    if (!targetHotspotId) {
-      console.warn("[Hotspots] handleAssignProduct: no target hotspot id", {
-        productAssignmentHotspotId,
-        selectedHotspotId,
-      });
-      return;
-    }
-
-    const targetHotspot = hotspots.find((h) => h.id === targetHotspotId);
-    if (!targetHotspot) {
-      console.warn("[Hotspots] handleAssignProduct: hotspot not found", {
-        targetHotspotId,
-        hotspots,
-      });
-      return;
-    }
-
-    updateHotspot({
-      id: targetHotspotId,
-      productId,
-      clickBehavior:
-        overrideClickBehavior ?? targetHotspot.clickBehavior ?? "show-card",
-    });
-
-    // Close the product sheet and clear assignment helper state
-    setSelectProductSheetOpen(false);
-    setProductAssignmentHotspotId(null);
-
-    // Make sure the hotspot stays selected so the inline toolbar is visible
-    selectHotspot(targetHotspotId);
-
-    toast.success(t("product.assigned"));
-
-    // FTUX: Show preview hint and then export hint
-    if (!ftuxComplete && ftuxStep === "productSelect" && !shownPreviewHint) {
-      advanceStep("postProduct");
-      setShownPreviewHint(true);
-      setTimeout(() => {
-        toast(t("ftux.previewHint"), {
-          duration: 4000,
-          icon: "👀",
+      if (!targetHotspotId) {
+        console.warn("[Hotspots] handleAssignProduct: no target hotspot id", {
+          productAssignmentHotspotId,
+          selectedHotspotId,
         });
-      }, 500);
-      
-      // Then show export hint
-      setTimeout(() => {
-        if (!shownExportHint) {
-          setShownExportHint(true);
-          advanceStep("exportHint");
-          toast(t("ftux.exportHint"), {
+        return;
+      }
+
+      const targetHotspot = hotspots.find((h) => h.id === targetHotspotId);
+      if (!targetHotspot) {
+        console.warn("[Hotspots] handleAssignProduct: hotspot not found", {
+          targetHotspotId,
+          hotspots,
+        });
+        return;
+      }
+
+      const nextClickBehavior: ClickBehavior =
+        overrideClickBehavior ?? targetHotspot.clickBehavior ?? "show-card";
+
+      updateHotspot({
+        id: targetHotspot.id,
+        productId,
+        clickBehavior: nextClickBehavior,
+      });
+
+      // Close the product sheet and clear assignment helper state
+      setSelectProductSheetOpen(false);
+      setProductAssignmentHotspotId(null);
+
+      // Make sure the hotspot stays selected so the inline toolbar is visible
+      selectHotspot(targetHotspot.id);
+
+      toast.success(t("product.assigned"));
+
+      // FTUX: Show preview hint and then export hint
+      if (!ftuxComplete && ftuxStep === "productSelect" && !shownPreviewHint) {
+        advanceStep("postProduct");
+        setShownPreviewHint(true);
+        setTimeout(() => {
+          toast(t("ftux.previewHint"), {
             duration: 4000,
-            icon: "🎉",
+            icon: "👀",
           });
-          // Mark FTUX complete after export hint
-          setTimeout(() => {
-            completeFTUX();
-          }, 4000);
-        }
-      }, 5000);
-    }
-  };
+        }, 500);
+
+        // Then show export hint
+        setTimeout(() => {
+          if (!shownExportHint) {
+            setShownExportHint(true);
+            advanceStep("exportHint");
+            toast(t("ftux.exportHint"), {
+              duration: 4000,
+              icon: "🎉",
+            });
+            // Mark FTUX complete after export hint
+            setTimeout(() => {
+              completeFTUX();
+            }, 4000);
+          }
+        }, 5000);
+      }
+    },
+    [
+      hotspots,
+      productAssignmentHotspotId,
+      selectedHotspotId,
+      updateHotspot,
+      selectHotspot,
+      t,
+      ftuxComplete,
+      ftuxStep,
+      shownPreviewHint,
+      shownExportHint,
+      advanceStep,
+      setShownPreviewHint,
+      setShownExportHint,
+      completeFTUX,
+    ]
+  );
 
   const handleProductCreatedFromSheet = (productId: string, clickBehavior?: import("@/types/video").ClickBehavior) => {
     // Auto-assign the newly created product to the active hotspot
