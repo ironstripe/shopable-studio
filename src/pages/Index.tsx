@@ -334,91 +334,51 @@ const Index = () => {
     }
   };
 
-  const handleAssignProduct = useCallback(
-    (productId: string, overrideClickBehavior?: ClickBehavior) => {
-      // Prefer the explicit assignment id, fall back to the currently selected hotspot
-      const targetHotspotId = productAssignmentHotspotId ?? selectedHotspotId;
+  const handleAssignProduct = (
+    productId: string,
+    overrideClickBehavior?: ClickBehavior
+  ) => {
+    // 1) Determine correct hotspot ID - fallback to selectedHotspotId for backend ID updates
+    const candidateId = productAssignmentHotspotId || selectedHotspotId;
 
-      if (!targetHotspotId) {
-        console.warn("[Hotspots] handleAssignProduct: no target hotspot id", {
-          productAssignmentHotspotId,
-          selectedHotspotId,
-        });
-        return;
-      }
-
-      const targetHotspot = hotspots.find((h) => h.id === targetHotspotId);
-      if (!targetHotspot) {
-        console.warn("[Hotspots] handleAssignProduct: hotspot not found", {
-          targetHotspotId,
-          hotspots,
-        });
-        return;
-      }
-
-      const nextClickBehavior: ClickBehavior =
-        overrideClickBehavior ?? targetHotspot.clickBehavior ?? "show-card";
-
-      updateHotspot({
-        id: targetHotspot.id,
-        productId,
-        clickBehavior: nextClickBehavior,
+    if (!candidateId) {
+      console.warn("[Hotspots] handleAssignProduct: no hotspot id", {
+        productAssignmentHotspotId,
+        selectedHotspotId,
       });
+      return;
+    }
 
-      // Close the product sheet and clear assignment helper state
-      setSelectProductSheetOpen(false);
-      setProductAssignmentHotspotId(null);
+    // 2) Find hotspot in local state
+    const target = hotspots.find((h) => h.id === candidateId);
 
-      // Make sure the hotspot stays selected so the inline toolbar is visible
-      selectHotspot(targetHotspot.id);
+    if (!target) {
+      console.warn("[Hotspots] handleAssignProduct: hotspot not found", {
+        candidateId,
+        productAssignmentHotspotId,
+        selectedHotspotId,
+        hotspots,
+      });
+      return;
+    }
 
-      toast.success(t("product.assigned"));
+    const clickBehavior =
+      overrideClickBehavior ?? target.clickBehavior ?? "show-card";
 
-      // FTUX: Show preview hint and then export hint
-      if (!ftuxComplete && ftuxStep === "productSelect" && !shownPreviewHint) {
-        advanceStep("postProduct");
-        setShownPreviewHint(true);
-        setTimeout(() => {
-          toast(t("ftux.previewHint"), {
-            duration: 4000,
-            icon: "👀",
-          });
-        }, 500);
+    // 3) Update hotspot with selected product
+    updateHotspot({
+      id: target.id,
+      productId,
+      clickBehavior,
+    });
 
-        // Then show export hint
-        setTimeout(() => {
-          if (!shownExportHint) {
-            setShownExportHint(true);
-            advanceStep("exportHint");
-            toast(t("ftux.exportHint"), {
-              duration: 4000,
-              icon: "🎉",
-            });
-            // Mark FTUX complete after export hint
-            setTimeout(() => {
-              completeFTUX();
-            }, 4000);
-          }
-        }, 5000);
-      }
-    },
-    [
-      hotspots,
-      productAssignmentHotspotId,
-      selectedHotspotId,
-      updateHotspot,
-      selectHotspot,
-      t,
-      ftuxComplete,
-      ftuxStep,
-      shownPreviewHint,
-      shownExportHint,
-      advanceStep,
-      setShownPreviewHint,
-      setShownExportHint,
-      completeFTUX,
-    ]
-  );
+    // 4) Close product selector and clear temp state
+    setSelectProductSheetOpen(false);
+    setProductAssignmentHotspotId(null);
+
+    // 5) Ensure hotspot stays selected → toolbar stays visible
+    selectHotspot(target.id);
+  };
 
   const handleProductCreatedFromSheet = (productId: string, clickBehavior?: import("@/types/video").ClickBehavior) => {
     // Auto-assign the newly created product to the active hotspot
