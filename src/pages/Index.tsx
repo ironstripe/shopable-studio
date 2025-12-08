@@ -265,6 +265,18 @@ const Index = () => {
     }
   }, [pendingPanelHotspotId, isDeferringToolbar, ftuxComplete, ftuxStep, advanceStep, selectHotspot]);
 
+  // Sync productAssignmentHotspotId when selectedHotspotId changes (e.g., backend returns new ID)
+  useEffect(() => {
+    if (productAssignmentHotspotId && selectedHotspotId && productAssignmentHotspotId !== selectedHotspotId) {
+      // If we have a temp ID stored but selectedHotspotId has been updated (by backend response),
+      // update productAssignmentHotspotId to match the new real ID
+      if (productAssignmentHotspotId.startsWith('hotspot-temp-') && !selectedHotspotId.startsWith('hotspot-temp-')) {
+        console.log('[Index] Syncing productAssignmentHotspotId to new backend ID:', selectedHotspotId);
+        setProductAssignmentHotspotId(selectedHotspotId);
+      }
+    }
+  }, [selectedHotspotId, productAssignmentHotspotId]);
+
   const handleUpdateHotspot = (updatedHotspot: Hotspot) => {
     updateHotspot(updatedHotspot);
     console.log('[Index.handleUpdateHotspot] Updated:', {
