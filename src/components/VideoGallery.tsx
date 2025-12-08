@@ -217,7 +217,9 @@ const VideoGallery = ({
     return (
       <div className="w-full h-full overflow-y-auto px-3 py-4 bg-background">
         <div className="max-w-lg mx-auto space-y-3">
-          <h1 className="text-lg font-semibold text-foreground mb-3">Your Videos</h1>
+          <div className="py-2 mb-3">
+            <h1 className="text-lg font-semibold text-foreground">Your Videos</h1>
+          </div>
           <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
@@ -231,7 +233,9 @@ const VideoGallery = ({
     return (
       <div className="w-full h-full overflow-y-auto px-3 py-4 bg-background">
         <div className="max-w-lg mx-auto">
-          <h1 className="text-lg font-semibold text-foreground mb-3">Your Videos</h1>
+          <div className="py-2 mb-3">
+            <h1 className="text-lg font-semibold text-foreground">Your Videos</h1>
+          </div>
           <div className="flex flex-col items-center gap-3 py-10 text-center">
             <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
               <AlertCircle className="w-6 h-6 text-destructive" />
@@ -255,7 +259,9 @@ const VideoGallery = ({
     return (
       <div className="w-full h-full overflow-y-auto px-3 py-4 bg-background flex flex-col">
         <div className="max-w-lg mx-auto w-full">
-          <h1 className="text-lg font-semibold text-foreground mb-3">Your Videos</h1>
+          <div className="py-2 mb-3">
+            <h1 className="text-lg font-semibold text-foreground">Your Videos</h1>
+          </div>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center px-3 -mt-16">
           <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-3">
@@ -279,12 +285,8 @@ const VideoGallery = ({
     <div className="w-full h-full overflow-y-auto px-3 py-4 bg-background">
       <div className="max-w-lg mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="py-2 mb-3">
           <h1 className="text-lg font-semibold text-foreground">Your Videos</h1>
-          <Button onClick={onUploadClick} variant="outline" size="sm" className="gap-1.5 h-8 text-xs">
-            <Upload className="w-3.5 h-3.5" />
-            Upload
-          </Button>
         </div>
 
         {/* Video cards */}
