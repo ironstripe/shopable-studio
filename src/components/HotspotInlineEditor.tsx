@@ -34,6 +34,16 @@ const HotspotInlineEditor = ({
   const dragStartRef = useRef({ x: 0, y: 0 });
   const initialOffsetRef = useRef({ x: 0, y: 0 });
 
+  // Refs for stable access to current values in event listeners
+  const hotspotRef = useRef(hotspot);
+  const onUpdateHotspotRef = useRef(onUpdateHotspot);
+
+  // Keep refs in sync
+  useEffect(() => {
+    hotspotRef.current = hotspot;
+    onUpdateHotspotRef.current = onUpdateHotspot;
+  });
+
   // Document-level pointer tracking for reliable dragging
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
@@ -49,8 +59,8 @@ const HotspotInlineEditor = ({
         y: initialOffsetRef.current.y + dy,
       };
 
-      onUpdateHotspot({
-        ...hotspot,
+      onUpdateHotspotRef.current({
+        ...hotspotRef.current,
         toolbarOffset: newOffset,
       });
     };
@@ -70,7 +80,7 @@ const HotspotInlineEditor = ({
       document.removeEventListener('pointerup', handlePointerUp);
       document.removeEventListener('pointercancel', handlePointerUp);
     };
-  }, [hotspot, onUpdateHotspot, containerRef]);
+  }, [containerRef]);
 
   // Calculate toolbar position using bounding rects
   useLayoutEffect(() => {
