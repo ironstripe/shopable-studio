@@ -34,6 +34,44 @@ const HotspotInlineEditor = ({
   const dragStartRef = useRef({ x: 0, y: 0 });
   const initialOffsetRef = useRef({ x: 0, y: 0 });
 
+  // Document-level pointer tracking for reliable dragging
+  useEffect(() => {
+    const handlePointerMove = (e: PointerEvent) => {
+      if (!isDraggingRef.current || !containerRef.current) return;
+
+      e.preventDefault();
+
+      const dx = e.clientX - dragStartRef.current.x;
+      const dy = e.clientY - dragStartRef.current.y;
+
+      const newOffset = {
+        x: initialOffsetRef.current.x + dx,
+        y: initialOffsetRef.current.y + dy,
+      };
+
+      onUpdateHotspot({
+        ...hotspot,
+        toolbarOffset: newOffset,
+      });
+    };
+
+    const handlePointerUp = () => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      document.body.style.cursor = '';
+    };
+
+    document.addEventListener('pointermove', handlePointerMove);
+    document.addEventListener('pointerup', handlePointerUp);
+    document.addEventListener('pointercancel', handlePointerUp);
+
+    return () => {
+      document.removeEventListener('pointermove', handlePointerMove);
+      document.removeEventListener('pointerup', handlePointerUp);
+      document.removeEventListener('pointercancel', handlePointerUp);
+    };
+  }, [hotspot, onUpdateHotspot, containerRef]);
+
   // Calculate toolbar position using bounding rects
   useLayoutEffect(() => {
     if (!containerRef.current || !toolbarRef.current) return;
@@ -68,7 +106,7 @@ const HotspotInlineEditor = ({
     setIsPositioned(true);
   }, [hotspot.x, hotspot.y, hotspot.toolbarOffset, containerRef]);
 
-  // Drag handlers
+  // Drag handler - only starts the drag, document listeners handle the rest
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     // Don't start drag if clicking a button
     if ((e.target as HTMLElement).closest('button')) return;
@@ -81,40 +119,7 @@ const HotspotInlineEditor = ({
     initialOffsetRef.current = hotspot.toolbarOffset ?? { x: 0, y: 0 };
     
     document.body.style.cursor = 'grabbing';
-    
-    // Capture pointer for reliable tracking
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
   }, [hotspot.toolbarOffset]);
-
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDraggingRef.current || !containerRef.current) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    const dx = e.clientX - dragStartRef.current.x;
-    const dy = e.clientY - dragStartRef.current.y;
-
-    const newOffset = {
-      x: initialOffsetRef.current.x + dx,
-      y: initialOffsetRef.current.y + dy,
-    };
-
-    onUpdateHotspot({
-      ...hotspot,
-      toolbarOffset: newOffset,
-    });
-  }, [hotspot, onUpdateHotspot, containerRef]);
-
-  const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    if (!isDraggingRef.current) return;
-    
-    isDraggingRef.current = false;
-    document.body.style.cursor = '';
-    
-    // Release pointer capture
-    (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-  }, []);
 
   // Auto-open product selection when requested
   useEffect(() => {
@@ -152,9 +157,6 @@ const HotspotInlineEditor = ({
       }}
       onClick={(e) => e.stopPropagation()}
       onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
     >
       {/* Grip handle for dragging */}
       <div 
