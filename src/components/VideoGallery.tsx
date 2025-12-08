@@ -40,18 +40,14 @@ function getStatusBadgeClasses(status: string): string {
 
 function SkeletonCard() {
   return (
-    <div className="w-full rounded-lg overflow-hidden bg-card border border-border shadow-sm animate-pulse">
-      {/* Top area skeleton */}
-      <div className="h-[140px] bg-muted flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full bg-muted-foreground/10" />
-      </div>
-      {/* Bottom bar skeleton */}
-      <div className="p-3 space-y-2">
+    <div className="w-full flex rounded-xl overflow-hidden bg-card border border-border shadow-sm animate-pulse">
+      {/* Left: Thumbnail skeleton */}
+      <div className="w-[120px] shrink-0 aspect-video bg-muted" />
+      {/* Right: Info skeleton */}
+      <div className="flex-1 p-3 flex flex-col justify-center space-y-2">
         <div className="h-4 bg-muted-foreground/10 rounded w-3/4" />
-        <div className="flex items-center justify-between">
-          <div className="h-3 bg-muted-foreground/10 rounded w-1/3" />
-          <div className="h-4 bg-muted-foreground/10 rounded w-14" />
-        </div>
+        <div className="h-3 bg-muted-foreground/10 rounded w-1/2" />
+        <div className="h-4 bg-muted-foreground/10 rounded w-16" />
       </div>
     </div>
   );
@@ -151,35 +147,31 @@ const VideoGallery = ({
               key={video.id}
               onClick={() => onSelectVideo(video)}
               className={cn(
-                "w-full rounded-lg overflow-hidden bg-card border border-border shadow-sm",
+                "w-full flex rounded-xl overflow-hidden bg-card border border-border shadow-sm",
                 "text-left transition-all duration-150",
                 "hover:shadow-md hover:border-primary/20",
                 "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
               )}
             >
-              {/* Top area with play icon */}
-              <div className="h-[140px] bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center relative">
-                <div className="w-10 h-10 rounded-full bg-background/90 shadow-md flex items-center justify-center">
-                  <Play className="w-5 h-5 text-primary ml-0.5" fill="currentColor" />
-                </div>
+              {/* Left: Thumbnail */}
+              <div className="w-[120px] shrink-0 aspect-video bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center">
+                <Play className="w-6 h-6 text-primary/70" fill="currentColor" />
               </div>
 
-              {/* Bottom bar */}
-              <div className="p-3 bg-card">
+              {/* Right: Info */}
+              <div className="flex-1 p-3 flex flex-col justify-center min-w-0">
                 <p className="font-medium text-sm text-foreground line-clamp-2 mb-1">
                   {video.title}
                 </p>
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-muted-foreground text-xs">
-                    {formatDate(video.createdAt)}
-                  </p>
-                  <span className={cn(
-                    "px-1.5 py-0.5 rounded-full text-[10px] font-medium shrink-0",
-                    getStatusBadgeClasses(video.status)
-                  )}>
-                    {video.status.toUpperCase()}
-                  </span>
-                </div>
+                <p className="text-muted-foreground text-xs mb-1.5">
+                  {formatDate(video.createdAt)}
+                </p>
+                <span className={cn(
+                  "self-start px-1.5 py-0.5 rounded text-[10px] font-medium",
+                  getStatusBadgeClasses(video.status)
+                )}>
+                  {video.status.toUpperCase()}
+                </span>
               </div>
             </button>
           ))}
