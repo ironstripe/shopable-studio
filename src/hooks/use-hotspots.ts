@@ -173,12 +173,22 @@ export function useHotspots(
   // UPDATE - updates local state immediately, then syncs to backend
   const updateHotspot = useCallback(
     (updated: Partial<Hotspot> & { id: string }) => {
+      // Check if this is ONLY a toolbarOffset update (no revision bump needed)
+      // toolbarOffset is client-only and doesn't need backend sync
+      const updateKeys = Object.keys(updated);
+      const isToolbarOffsetOnly = 
+        updateKeys.length === 2 && 
+        updateKeys.includes('id') && 
+        updateKeys.includes('toolbarOffset');
+
       setHotspots((prev) =>
         prev.map((h) => {
           if (h.id !== updated.id) return h;
 
-          // Always bump revision to force React re-mount via key change
-          const nextRevision = (h.revision ?? 0) + 1;
+          // Skip revision bump for toolbar offset updates to prevent remount during drag
+          const nextRevision = isToolbarOffsetOnly 
+            ? (h.revision ?? 0) 
+            : (h.revision ?? 0) + 1;
 
           return {
             ...h,
@@ -187,6 +197,11 @@ export function useHotspots(
           };
         })
       );
+
+      // Don't persist toolbarOffset to backend (it's client-side only)
+      if (isToolbarOffsetOnly) {
+        return;
+      }
 
       // Persist to backend if videoId is available
       // Use backendId for API calls, skip if not yet synced
@@ -205,7 +220,7 @@ export function useHotspots(
         }
       }
     },
-    [videoId]
+    [videoId, hotspots]
   );
 
   // DELETE - removes from local state immediately, then syncs to backend
