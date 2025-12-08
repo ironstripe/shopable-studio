@@ -70,7 +70,7 @@ export async function listVideos(): Promise<VideoDto[]> {
 }
 
 /**
- * Register a new video upload and get a presigned S3 URL
+ * Register a new video upload and correctly parse Lambda proxy responses.
  */
 export async function registerUpload(
   payload: RegisterUploadRequest
@@ -82,27 +82,26 @@ export async function registerUpload(
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 
-  const responseText = await res.clone().text();
-  console.log("[Uploads] registerUpload response:", url, "POST", res.status, responseText);
+  const raw = await res.clone().text();
+  console.log("[Uploads] registerUpload response:", url, "POST", res.status, raw);
 
   if (!res.ok) {
-    console.error("[Uploads] register failed", res.status, responseText);
+    console.error("[Uploads] register failed", res.status, raw);
     throw new Error(`Failed to register upload (${res.status})`);
   }
 
-  // First parse the outer JSON
   let data;
   try {
-    data = JSON.parse(responseText);
+    data = JSON.parse(raw);
   } catch (err) {
     console.error("[Uploads] Failed to parse JSON response", err);
     throw new Error("Backend returned invalid JSON");
   }
 
-  // Handle Lambda proxy format (body holds inner JSON)
+  // Handle Lambda proxy response: { statusCode, headers, body: "JSON-string" }
   if (!data.uploadUrl && data.body) {
     try {
       const inner = typeof data.body === "string" ? JSON.parse(data.body) : data.body;
@@ -114,11 +113,11 @@ export async function registerUpload(
     }
   }
 
-  // Validate fields
   if (!data.uploadUrl) {
     console.error("[Uploads] Backend did not return uploadUrl:", data);
     throw new Error("Backend did not return upload URL");
   }
+
   if (!data.videoId) {
     console.error("[Uploads] Backend did not return videoId:", data);
     throw new Error("Backend did not return video ID");
@@ -127,7 +126,7 @@ export async function registerUpload(
   return {
     uploadUrl: data.uploadUrl,
     videoId: data.videoId,
-    fileUrl: data.fileUrl ?? undefined
+    fileUrl: data.fileUrl ?? undefined,
   };
 }
 
