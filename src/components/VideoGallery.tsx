@@ -124,8 +124,6 @@ function SwipeableCard({ video, onSelect, onDelete }: SwipeableCardProps) {
     }
   };
 
-  const showThumbnail = video.thumbnailUrl && !thumbnailFailed;
-
   return (
     <div className="relative overflow-hidden rounded-xl">
       {/* Delete button behind */}
@@ -156,17 +154,19 @@ function SwipeableCard({ video, onSelect, onDelete }: SwipeableCardProps) {
         )}
       >
         {/* Left: Thumbnail */}
-        <div className="w-[120px] shrink-0 aspect-video bg-muted relative overflow-hidden">
-          {showThumbnail ? (
+        <div className="w-[120px] shrink-0 aspect-video bg-muted relative overflow-hidden rounded-l-xl">
+          {video.fileUrl && !thumbnailFailed ? (
             <>
-              <img 
-                src={video.thumbnailUrl} 
-                alt={video.title}
+              <video
+                src={video.fileUrl}
+                preload="metadata"
+                muted
+                playsInline
                 className="w-full h-full object-cover"
                 onError={() => setThumbnailFailed(true)}
               />
               {/* Play overlay */}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/30 to-transparent">
                 <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center">
                   <Play className="w-4 h-4 text-primary ml-0.5" fill="currentColor" />
                 </div>
