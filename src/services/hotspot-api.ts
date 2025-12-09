@@ -236,3 +236,28 @@ export function mapHotspotUpdateToPayload(
 
   return payload;
 }
+
+/**
+ * Convert a FULL Hotspot object to backend payload for complete updates.
+ * Use this when you want to ensure ALL fields are persisted, not just changed ones.
+ */
+export function mapFullHotspotToUpdatePayload(
+  hotspot: Hotspot
+): UpdateHotspotPayload {
+  return {
+    timeStartMs: Math.round(hotspot.timeStart * 1000),
+    timeEndMs: Math.round(hotspot.timeEnd * 1000),
+    x: hotspot.x,
+    y: hotspot.y,
+    style: hotspot.style,
+    cardStyle: hotspot.cardStyle,
+    templateFamily: getFamilyFromStyle(hotspot.style),
+    countdownEnabled: hotspot.countdown?.active ?? false,
+    countdownStyle: hotspot.countdown?.style ?? null,
+    countdownPosition: hotspot.countdown?.position ?? null,
+    productId: hotspot.productId,
+    ctaLabel: hotspot.ctaLabel,
+    clickBehavior: hotspot.clickBehavior,
+    scale: hotspot.scale,
+  };
+}

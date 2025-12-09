@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { Hotspot, HotspotStyle, CardStyle, ClickBehavior } from "@/types/video";
+import { toast } from "sonner";
 import {
   listHotspots as listHotspotsApi,
   createHotspot as createHotspotApi,
@@ -8,6 +9,7 @@ import {
   mapDtoToHotspot,
   mapHotspotToPayload,
   mapHotspotUpdateToPayload,
+  mapFullHotspotToUpdatePayload,
 } from "@/services/hotspot-api";
 
 export interface UseHotspotsOptions {
@@ -165,12 +167,7 @@ export function useHotspots(
           })
           .catch((error) => {
             console.error("[useHotspots] Failed to create hotspot:", error);
-            // DON'T remove - keep the hotspot visible for local editing
-            // User can continue editing even if backend save failed
-            // Show error toast to inform user
-            import('sonner').then(({ toast }) => {
-              toast.error("Failed to save hotspot. Changes are local only.");
-            });
+            toast.error("Failed to save hotspot. Changes are local only.");
           });
       }
 
@@ -179,7 +176,7 @@ export function useHotspots(
     [opts.defaultStyle, opts.defaultDuration, videoId]
   );
 
-  // UPDATE - updates local state immediately, then syncs to backend
+  // UPDATE - updates local state immediately, then syncs FULL hotspot to backend
   const updateHotspot = useCallback(
     (updated: Partial<Hotspot> & { id: string }) => {
       // Check if this is ONLY a toolbarOffset update (no revision bump needed)
@@ -190,6 +187,9 @@ export function useHotspots(
         updateKeys.includes('id') && 
         updateKeys.includes('toolbarOffset');
 
+      // Track the merged hotspot for backend sync
+      let mergedHotspot: Hotspot | null = null;
+
       setHotspots((prev) =>
         prev.map((h) => {
           if (h.id !== updated.id) return h;
@@ -199,11 +199,18 @@ export function useHotspots(
             ? (h.revision ?? 0) 
             : (h.revision ?? 0) + 1;
 
-          return {
+          const merged = {
             ...h,
             ...updated,
             revision: nextRevision,
           };
+          
+          // Capture merged hotspot for backend sync
+          if (!isToolbarOffsetOnly) {
+            mergedHotspot = merged;
+          }
+          
+          return merged;
         })
       );
 
@@ -212,32 +219,38 @@ export function useHotspots(
         return;
       }
 
-      // Persist to backend if videoId is available
-      // Priority: use backendId from update object, fallback to lookup from current state via ref
-      const apiId = (updated as Hotspot).backendId || 
-                    hotspotsRef.current.find(h => h.id === updated.id)?.backendId;
+      // Persist FULL hotspot to backend if videoId is available
+      // Use the merged hotspot (with all fields) to ensure complete persistence
+      const currentHotspot = mergedHotspot || hotspotsRef.current.find(h => h.id === updated.id);
+      const apiId = currentHotspot?.backendId;
       
       console.log("[useHotspots] updateHotspot called:", { 
         id: updated.id, 
         apiId, 
         hasVideoId: !!videoId,
-        updateKeys: Object.keys(updated)
+        updateKeys: Object.keys(updated),
+        hasCurrentHotspot: !!currentHotspot
       });
       
-      if (videoId && apiId) {
-        const payload = mapHotspotUpdateToPayload(updated);
-        console.log("[useHotspots] Syncing update to backend:", { apiId, payload });
-        if (Object.keys(payload).length > 0) {
-          updateHotspotApi(videoId, apiId, payload)
-            .then(() => {
-              console.log("[useHotspots] Updated hotspot on backend:", apiId);
-            })
-            .catch((error) => {
-              console.error("[useHotspots] Failed to update hotspot:", error);
-            });
-        }
+      if (videoId && apiId && currentHotspot) {
+        // Send FULL hotspot payload to ensure all layout fields are persisted
+        const payload = mapFullHotspotToUpdatePayload(currentHotspot);
+        console.log("[useHotspots] Syncing FULL hotspot to backend:", { apiId, payload });
+        
+        updateHotspotApi(videoId, apiId, payload)
+          .then(() => {
+            console.log("[useHotspots] Updated hotspot on backend:", apiId);
+          })
+          .catch((error) => {
+            console.error("[useHotspots] Failed to update hotspot:", error);
+            toast.error("Failed to save hotspot changes");
+          });
       } else {
-        console.log("[useHotspots] Skipping backend sync - no videoId or apiId:", { videoId, apiId });
+        console.log("[useHotspots] Skipping backend sync - missing data:", { 
+          videoId, 
+          apiId, 
+          hasCurrentHotspot: !!currentHotspot 
+        });
       }
     },
     [videoId]
