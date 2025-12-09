@@ -277,6 +277,16 @@ const Index = () => {
   };
 
   const handleDeleteHotspot = async (hotspotId: string) => {
+    // Clear related state if this hotspot is being referenced
+    if (productAssignmentHotspotId === hotspotId) {
+      setProductAssignmentHotspotId(null);
+      setSelectProductSheetOpen(false);
+    }
+    if (layoutEditingHotspotId === hotspotId) {
+      setLayoutEditingHotspotId(null);
+      setLayoutBehaviorSheetOpen(false);
+    }
+    
     try {
       await deleteHotspotCore(hotspotId);
       toast.success(t("hotspots.deleted"));
@@ -663,6 +673,7 @@ const Index = () => {
           onOpenChange={setLayoutBehaviorSheetOpen}
           hotspot={layoutEditingHotspot}
           onUpdateHotspot={handleUpdateHotspot}
+          onDeleteHotspot={handleDeleteHotspot}
         />
 
         {/* Video CTA Sheet */}
@@ -866,6 +877,7 @@ const Index = () => {
           onOpenChange={setLayoutBehaviorSheetOpen}
           hotspot={layoutEditingHotspot}
           onUpdateHotspot={handleUpdateHotspot}
+          onDeleteHotspot={handleDeleteHotspot}
         />
 
         {/* Desktop: Video CTA Sheet */}
