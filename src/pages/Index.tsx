@@ -39,7 +39,8 @@ import { useHotspots } from "@/hooks/use-hotspots";
 import { useSceneState, isHotspotComplete } from "@/hooks/use-scene-state";
 import { useLocale } from "@/lib/i18n";
 import shopableLogo from "@/assets/shopable-logo.png";
-import { listVideos, VideoDto } from "@/services/video-api";
+import { listVideos, VideoDto, triggerRender } from "@/services/video-api";
+import VideoExportSection from "@/components/VideoExportSection";
 
 const Index = () => {
   const isMobile = useIsMobile();
@@ -81,6 +82,11 @@ const Index = () => {
   const [videosLoading, setVideosLoading] = useState(true);
   const [videosError, setVideosError] = useState<string | null>(null);
   const [showVideoGallerySheet, setShowVideoGallerySheet] = useState(false);
+  
+  // Export/render state
+  const [isExporting, setIsExporting] = useState(false);
+  const [currentVideoRenderStatus, setCurrentVideoRenderStatus] = useState<"NOT_STARTED" | "READY" | null>(null);
+  const [currentVideoRenderUpdatedAt, setCurrentVideoRenderUpdatedAt] = useState<string | null>(null);
   
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>("edit");
@@ -229,12 +235,44 @@ const Index = () => {
       setVideoTitle(video.title || t("header.untitled"));
       setShowVideoGallerySheet(false);
       
+      // Set render status from selected video
+      setCurrentVideoRenderStatus(video.renderStatus || null);
+      setCurrentVideoRenderUpdatedAt(video.renderUpdatedAt || null);
+      
       // FTUX: Advance to videoLoaded step
       if (!ftuxComplete && ftuxStep === "emptyEditor") {
         advanceStep("videoLoaded");
       }
     } else {
       toast.error("Video is still processing, please try again later.");
+    }
+  };
+  
+  // Handle export/render
+  const handleExportVideo = async () => {
+    if (!currentVideoId) return;
+    
+    setIsExporting(true);
+    try {
+      const result = await triggerRender(currentVideoId);
+      
+      // Update local state
+      setCurrentVideoRenderStatus("READY");
+      setCurrentVideoRenderUpdatedAt(result.renderUpdatedAt);
+      
+      // Update video in the list
+      setVideos(prev => prev.map(v => 
+        v.id === currentVideoId 
+          ? { ...v, renderStatus: "READY", renderUpdatedAt: result.renderUpdatedAt }
+          : v
+      ));
+      
+      toast.success(t("export.success"));
+    } catch (error) {
+      console.error('[Export] Failed:', error);
+      toast.error(t("export.failed"));
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -257,6 +295,11 @@ const Index = () => {
     }
     const filename = src.split('/').pop()?.split('.')[0] || t("header.untitled");
     setVideoTitle(filename);
+    
+    // Reset render status for newly loaded videos (we don't know the status yet)
+    setCurrentVideoRenderStatus(null);
+    setCurrentVideoRenderUpdatedAt(null);
+    
     toast.success(t("upload.success"));
     
     // FTUX: Advance to videoLoaded step
@@ -572,23 +615,14 @@ const Index = () => {
     setEditorMode("edit");
     setShouldAutoOpenProductPanel(false);
     setShowReplaceVideoDialog(false);
+    
+    // Reset export/render state
+    setCurrentVideoRenderStatus(null);
+    setCurrentVideoRenderUpdatedAt(null);
+    setIsExporting(false);
+    
     // Refresh the video list to show all available videos
     fetchVideos();
-    toast.success(t("video.removed"));
-    setVideoCTA({
-      label: "Shop Now",
-      url: "",
-      mode: "off",
-      enabled: false,
-      type: "visible-button",
-      style: "ecommerce-solid-white",
-      timing: { mode: "entire-video" },
-      position: { x: 0.85, y: 0.85 },
-    });
-    setVideoTitle(t("header.untitled"));
-    setEditorMode("edit");
-    setShouldAutoOpenProductPanel(false);
-    setShowReplaceVideoDialog(false);
     toast.success(t("video.removed"));
   };
 
@@ -739,6 +773,17 @@ const Index = () => {
             />
           )}
         </main>
+
+        {/* Export Section - below video, above bottom controls */}
+        {videoSrc && editorMode === "edit" && (
+          <VideoExportSection
+            renderStatus={currentVideoRenderStatus}
+            renderUpdatedAt={currentVideoRenderUpdatedAt}
+            fileUrl={videoSrc}
+            isExporting={isExporting}
+            onExport={handleExportVideo}
+          />
+        )}
 
         {/* Mobile bottom controls */}
         {videoSrc && (
