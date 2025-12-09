@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Play, Pause, List, Link2 } from "lucide-react";
+import { Play, Pause, Link2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +18,8 @@ interface MobileBottomControlsProps {
   onOpenHotspotDrawer: () => void;
   onOpenCTASettings: () => void;
   hotspotCount?: number;
+  isAddingHotspot?: boolean;
+  onToggleAddMode?: () => void;
 }
 
 const formatTime = (seconds: number): string => {
@@ -37,6 +39,8 @@ const MobileBottomControls = ({
   onOpenHotspotDrawer,
   onOpenCTASettings,
   hotspotCount = 0,
+  isAddingHotspot = false,
+  onToggleAddMode,
 }: MobileBottomControlsProps) => {
   const { toast } = useToast();
   const { t } = useLocale();
@@ -113,8 +117,8 @@ const MobileBottomControls = ({
         </div>
       </div>
 
-      {/* Row 2: Three-Tab Segmented Control + CTA Button */}
-      <div className="flex items-center justify-between px-4 pb-2 gap-3">
+      {/* Row 2: Three-Tab Segmented Control + Add Hotspot + CTA Button */}
+      <div className="flex items-center justify-between px-4 pb-2 gap-2">
         {/* Segmented Control */}
         <div className="flex-1 relative">
           <div className="inline-flex items-center w-full rounded-full bg-neutral-100 p-1 relative">
@@ -145,6 +149,22 @@ const MobileBottomControls = ({
             ))}
           </div>
         </div>
+
+        {/* Add Hotspot Button - only show in Edit mode */}
+        {editorMode === "edit" && (
+          <button
+            onClick={onToggleAddMode}
+            className={cn(
+              "w-10 h-10 flex items-center justify-center rounded-full transition-colors",
+              isAddingHotspot
+                ? "bg-primary text-primary-foreground"
+                : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
+            )}
+            title={isAddingHotspot ? "Cancel adding hotspot" : "Add hotspot"}
+          >
+            <Plus className={cn("w-5 h-5 transition-transform", isAddingHotspot && "rotate-45")} />
+          </button>
+        )}
 
         {/* CTA Button */}
         <button

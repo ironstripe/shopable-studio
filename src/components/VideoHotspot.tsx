@@ -99,13 +99,17 @@ const VideoHotspot = ({
         "absolute select-none pointer-events-auto hotspot-draggable",
         isDragging ? "" : "transition-all duration-150",
         isSelected ? "hotspot-pulse" : "hotspot-pulse",
-        isDragging ? "cursor-grabbing opacity-80" : isEditMode ? "cursor-grab" : "cursor-pointer",
+        // Cursor: always pointer for dimmed (to indicate clickability), grab for edit mode, pointer for preview
+        isDragging ? "cursor-grabbing opacity-80" 
+          : isDimmed ? "cursor-pointer" 
+          : isEditMode ? "cursor-grab" 
+          : "cursor-pointer",
         showPopIn && "animate-hotspot-pop-in",
         showSelectionHalo && "animate-selection-halo",
         isHighlighted && "hotspot-highlight-halo",
         // Active editing state
         isSelected && isAnyEditing && "hotspot-editing-active",
-        // Dimmed state when another hotspot is being edited
+        // Dimmed state when another hotspot is being edited - but STILL CLICKABLE
         isDimmed && "hotspot-editing-dimmed"
       )}
       style={{
@@ -119,9 +123,9 @@ const VideoHotspot = ({
         zIndex: isDragging || isResizing ? 100 : isSelected ? 50 : 10,
         touchAction: isEditMode ? 'none' : 'auto',
       }}
-      onClick={isDimmed ? undefined : onClick}
-      onMouseDown={isEditMode && !isDimmed ? onDragStart : undefined}
-      onTouchStart={isEditMode && !isDimmed ? onTouchDragStart : undefined}
+      onClick={onClick}
+      onMouseDown={isEditMode ? onDragStart : undefined}
+      onTouchStart={isEditMode ? onTouchDragStart : undefined}
     >
       {!hasProduct ? (
         // Unassigned hotspot - EmptyHotspotIndicator handles its own larger size in edit mode

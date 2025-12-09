@@ -44,6 +44,9 @@ interface VideoPlayerProps {
   onHotspotDragEnd?: (hotspotId: string) => void;
   isDeferringToolbar?: boolean;
   hotspotsLoading?: boolean;
+  isAddingHotspot?: boolean;
+  onExitAddMode?: () => void;
+  onToggleAddMode?: () => void;
 }
 
 const VideoPlayer = ({
@@ -74,6 +77,9 @@ const VideoPlayer = ({
   onHotspotDragEnd,
   isDeferringToolbar = false,
   hotspotsLoading = false,
+  isAddingHotspot = false,
+  onExitAddMode,
+  onToggleAddMode,
 }: VideoPlayerProps) => {
   const { t } = useLocale();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -288,10 +294,17 @@ const VideoPlayer = ({
     }
   }, [hotspots, pendingDragPosition, draggingHotspot]);
 
+  // Handle click on overlay - only creates hotspot in "add" mode
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // Don't create hotspot if click originated from an existing hotspot element
     if ((e.target as HTMLElement).closest('.hotspot-draggable')) {
       console.log("[VideoPlayer] Click originated from hotspot, ignoring overlay click");
+      return;
+    }
+    
+    // Only create hotspots in add mode
+    if (!isAddingHotspot) {
+      console.log("[VideoPlayer] Not in add mode, ignoring overlay click");
       return;
     }
     
@@ -334,13 +347,32 @@ const VideoPlayer = ({
     // Create real hotspot immediately
     onAddHotspot(safeX, safeY, actualTime);
     videoRef.current.pause();
+    
+    // Exit add mode after creating hotspot
+    onExitAddMode?.();
   };
 
-  // iOS touch event handler for hotspot placement - create real hotspot immediately
+  // Handle click on empty video area in SELECT mode - deselects hotspot
+  const handleSelectModeClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Don't deselect if click originated from a hotspot element
+    if ((e.target as HTMLElement).closest('.hotspot-draggable')) {
+      return;
+    }
+    // Deselect any selected hotspot
+    onSelectHotspot(null);
+  };
+
+  // iOS touch event handler for hotspot placement - only in ADD mode
   const handleOverlayTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     // Don't create hotspot if touch originated from an existing hotspot element
     if ((e.target as HTMLElement).closest('.hotspot-draggable')) {
       console.log("[VideoPlayer] Touch originated from hotspot, ignoring overlay touch");
+      return;
+    }
+    
+    // Only create hotspots in add mode
+    if (!isAddingHotspot) {
+      console.log("[VideoPlayer] Not in add mode, ignoring overlay touch");
       return;
     }
     
@@ -393,6 +425,9 @@ const VideoPlayer = ({
     // Create real hotspot immediately (no ghost hotspot)
     onAddHotspot(safeX, safeY, actualTime);
     videoRef.current.pause();
+    
+    // Exit add mode after creating hotspot
+    onExitAddMode?.();
   };
 
   // Mouse drag handlers
@@ -687,7 +722,9 @@ const VideoPlayer = ({
           break;
       }
     } else {
+      // In edit mode, clicking a hotspot selects it and exits add mode
       onSelectHotspot(hotspot.id);
+      onExitAddMode?.();
     }
   };
 
@@ -720,34 +757,57 @@ const VideoPlayer = ({
       {/* Mode Controls - Above Video (Desktop only) - Only show when video is ready */}
       {videoSrc && isVideoReady && !isMobile && (
         <div className="flex flex-col items-center mb-6">
-          <div className="inline-flex items-center rounded-lg bg-white border border-[rgba(0,0,0,0.12)] p-0.5 shadow-sm">
-            <button
-              onClick={() => isPreviewMode && onTogglePreviewMode()}
-              className={cn(
-                "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-150",
-                !isPreviewMode
-                  ? "bg-[#3B82F6] text-white shadow-sm"
-                  : "bg-transparent text-[#6B7280] hover:bg-[rgba(59,130,246,0.05)]"
-              )}
-            >
-              Edit Hotspots
-            </button>
-            <button
-              onClick={() => !isPreviewMode && onTogglePreviewMode()}
-              className={cn(
-                "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-150",
-                isPreviewMode
-                  ? "bg-[#3B82F6] text-white shadow-sm"
-                  : "bg-transparent text-[#6B7280] hover:bg-[rgba(59,130,246,0.05)]"
-              )}
-            >
-              Preview
-            </button>
+          <div className="inline-flex items-center gap-2">
+            <div className="inline-flex items-center rounded-lg bg-white border border-[rgba(0,0,0,0.12)] p-0.5 shadow-sm">
+              <button
+                onClick={() => isPreviewMode && onTogglePreviewMode()}
+                className={cn(
+                  "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-150",
+                  !isPreviewMode
+                    ? "bg-[#3B82F6] text-white shadow-sm"
+                    : "bg-transparent text-[#6B7280] hover:bg-[rgba(59,130,246,0.05)]"
+                )}
+              >
+                Edit Hotspots
+              </button>
+              <button
+                onClick={() => !isPreviewMode && onTogglePreviewMode()}
+                className={cn(
+                  "px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-150",
+                  isPreviewMode
+                    ? "bg-[#3B82F6] text-white shadow-sm"
+                    : "bg-transparent text-[#6B7280] hover:bg-[rgba(59,130,246,0.05)]"
+                )}
+              >
+                Preview
+              </button>
+            </div>
+            
+            {/* Add Hotspot Button - only in edit mode */}
+            {!isPreviewMode && (
+              <button
+                onClick={onToggleAddMode}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150",
+                  isAddingHotspot
+                    ? "bg-[#3B82F6] text-white shadow-sm"
+                    : "bg-white border border-[rgba(0,0,0,0.12)] text-[#374151] hover:bg-[rgba(59,130,246,0.05)] hover:border-[rgba(59,130,246,0.3)]"
+                )}
+              >
+                <svg className={cn("w-4 h-4 transition-transform", isAddingHotspot && "rotate-45")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                {isAddingHotspot ? "Cancel" : "Add Hotspot"}
+              </button>
+            )}
           </div>
 
           {!isPreviewMode && (
             <p className="text-[12px] text-[#6B7280] mt-3 text-center">
-              ✎ Edit mode – click in the video to add a hotspot.
+              {isAddingHotspot 
+                ? "✚ Click in the video to place a hotspot, or click Cancel to exit."
+                : "✎ Select mode – click hotspots to edit. Click 'Add Hotspot' to create new ones."
+              }
             </p>
           )}
         </div>
@@ -857,8 +917,8 @@ const VideoPlayer = ({
             </div>
           )}
 
-          {/* Click overlay for hotspot placement (edit mode only, when video is ready) */}
-          {videoSrc && isVideoReady && !isPreviewMode && (
+          {/* Click overlay for hotspot placement - ADD mode only (shows + cursor) */}
+          {videoSrc && isVideoReady && !isPreviewMode && isAddingHotspot && (
             <div
               className="absolute inset-0 bottom-[50px] hotspot-placement-cursor z-[5]"
               onClick={handleOverlayClick}
@@ -866,6 +926,21 @@ const VideoPlayer = ({
               onTouchEnd={(e) => e.preventDefault()} // Prevent click from double-firing
               style={{
                 touchAction: 'none', // Disable all browser touch actions for immediate response
+                WebkitUserSelect: 'none',
+                userSelect: 'none',
+                WebkitTapHighlightColor: 'transparent',
+                backgroundColor: 'rgba(0, 0, 0, 0.001)', // Nearly invisible but detectable on iOS
+              }}
+            />
+          )}
+
+          {/* Click overlay for SELECT mode - clicking empty space deselects hotspot */}
+          {videoSrc && isVideoReady && !isPreviewMode && !isAddingHotspot && (
+            <div
+              className="absolute inset-0 bottom-[50px] cursor-default z-[5]"
+              onClick={handleSelectModeClick}
+              style={{
+                touchAction: 'auto',
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
                 WebkitTapHighlightColor: 'transparent',
