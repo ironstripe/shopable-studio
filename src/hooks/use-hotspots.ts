@@ -210,8 +210,17 @@ export function useHotspots(
       // Use backendId for API calls, skip if not yet synced
       const hotspotForUpdate = hotspots.find(h => h.id === updated.id);
       const apiId = hotspotForUpdate?.backendId;
+      
+      console.log("[useHotspots] updateHotspot called:", { 
+        id: updated.id, 
+        apiId, 
+        hasVideoId: !!videoId,
+        updateKeys: Object.keys(updated)
+      });
+      
       if (videoId && apiId) {
         const payload = mapHotspotUpdateToPayload(updated);
+        console.log("[useHotspots] Syncing update to backend:", { apiId, payload });
         if (Object.keys(payload).length > 0) {
           updateHotspotApi(videoId, apiId, payload)
             .then(() => {
@@ -221,6 +230,8 @@ export function useHotspots(
               console.error("[useHotspots] Failed to update hotspot:", error);
             });
         }
+      } else {
+        console.log("[useHotspots] Skipping backend sync - no videoId or apiId:", { videoId, apiId });
       }
     },
     [videoId, hotspots]
