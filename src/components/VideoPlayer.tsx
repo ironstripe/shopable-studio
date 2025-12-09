@@ -10,10 +10,11 @@ import TapIndicator from "./TapIndicator";
 import HotspotNavigationPill from "./HotspotNavigationPill";
 import NextHotspotChip from "./NextHotspotChip";
 import HotspotSavedSnackbar from "./HotspotSavedSnackbar";
+import SceneStateBanner from "./SceneStateBanner";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
-import { isHotspotComplete } from "@/hooks/use-scene-state";
+import { isHotspotComplete, SceneState } from "@/hooks/use-scene-state";
 import { 
   isPointInSafeZone, 
   clampHotspotPercentage, 
@@ -68,6 +69,8 @@ interface VideoPlayerProps {
   allComplete?: boolean;
   onJumpToNext?: () => void;
   onSnackbarDismiss?: () => void;
+  // Scene state overlay props
+  sceneState?: SceneState;
 }
 
 const VideoPlayer = ({
@@ -118,6 +121,7 @@ const VideoPlayer = ({
   allComplete = false,
   onJumpToNext,
   onSnackbarDismiss,
+  sceneState,
 }: VideoPlayerProps) => {
   const { t } = useLocale();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -1009,6 +1013,17 @@ const VideoPlayer = ({
               }}
             >
               This area is reserved by platform UI
+            </div>
+          )}
+
+          {/* Scene state overlay - top right corner */}
+          {videoSrc && isVideoReady && !isPreviewMode && sceneState && onJumpToNext && (
+            <div className="absolute right-3 top-3 z-20">
+              <SceneStateBanner
+                sceneState={sceneState}
+                onJumpToNext={onJumpToNext}
+                isEditMode={!isPreviewMode}
+              />
             </div>
           )}
 
