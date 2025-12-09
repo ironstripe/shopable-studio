@@ -72,22 +72,24 @@ const HotspotDrawer = ({
   const handleRowClick = (hotspot: Hotspot) => {
     const isUnassigned = !hotspot.productId;
     
-    if (isPreviewMode) {
-      // In preview mode, just select and seek (view-only)
-      onSelectHotspot(hotspot);
-      onOpenChange(false);
-      return;
-    }
-
-    // Edit mode behavior
+    // First select and seek the video
     onSelectHotspot(hotspot);
-    onOpenChange(false);
     
-    if (isUnassigned) {
-      onOpenProductSelection(hotspot.id);
-    } else {
-      onOpenLayoutSheet(hotspot);
-    }
+    // Close drawer after a brief delay to allow video seek to complete
+    setTimeout(() => {
+      onOpenChange(false);
+      
+      // In edit mode, open the appropriate panel after drawer closes
+      if (!isPreviewMode) {
+        setTimeout(() => {
+          if (isUnassigned) {
+            onOpenProductSelection(hotspot.id);
+          } else {
+            onOpenLayoutSheet(hotspot);
+          }
+        }, 100);
+      }
+    }, 50);
   };
 
   const handleEditClick = (e: React.MouseEvent, hotspot: Hotspot) => {
