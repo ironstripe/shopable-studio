@@ -8,10 +8,10 @@ import {
   DrawerClose,
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
-import { Plus, Pencil, Trash2, X, Target } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Target, AlertCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocale } from "@/lib/i18n";
-
+import { isHotspotComplete } from "@/hooks/use-scene-state";
 interface HotspotDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -142,7 +142,7 @@ const HotspotDrawer = ({
                   const isSelected = selectedHotspotId === hotspot.id;
                   const isUnassigned = !hotspot.productId;
                   const hotspotNumber = getHotspotNumber(hotspot);
-
+                  const isComplete = isHotspotComplete(hotspot);
                   return (
                     <div
                       key={hotspot.id}
@@ -161,21 +161,29 @@ const HotspotDrawer = ({
                       onClick={() => handleRowClick(hotspot)}
                     >
                       <div className="flex items-center gap-3">
-                        {/* Circular Badge */}
-                        <div
-                          className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-                            isUnassigned
-                              ? "bg-primary/10 border-2 border-dashed border-primary/40"
-                              : "bg-primary text-primary-foreground"
-                          )}
-                        >
-                          {isUnassigned ? (
-                            <Plus className="w-4 h-4 text-primary" />
-                          ) : (
-                            <span className="text-xs font-bold">
-                              {hotspotNumber}
-                            </span>
+                        {/* Circular Badge with completion indicator */}
+                        <div className="relative flex-shrink-0">
+                          <div
+                            className={cn(
+                              "w-8 h-8 rounded-full flex items-center justify-center",
+                              isUnassigned
+                                ? "bg-primary/10 border-2 border-dashed border-primary/40"
+                                : "bg-primary text-primary-foreground"
+                            )}
+                          >
+                            {isUnassigned ? (
+                              <Plus className="w-4 h-4 text-primary" />
+                            ) : (
+                              <span className="text-xs font-bold">
+                                {hotspotNumber}
+                              </span>
+                            )}
+                          </div>
+                          {/* Incomplete warning badge */}
+                          {!isComplete && !isPreviewMode && (
+                            <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-amber-500 flex items-center justify-center">
+                              <AlertCircle className="w-2 h-2 text-white" />
+                            </div>
                           )}
                         </div>
 

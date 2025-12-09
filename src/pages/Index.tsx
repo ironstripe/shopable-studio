@@ -7,6 +7,7 @@ import HotspotSidebar from "@/components/HotspotSidebar";
 import MobileHeader from "@/components/MobileHeader";
 import MobileBottomControls from "@/components/MobileBottomControls";
 import HotspotDrawer from "@/components/HotspotDrawer";
+import SceneStateBanner from "@/components/SceneStateBanner";
 
 import SelectProductSheet from "@/components/SelectProductSheet";
 import NewProductSheet from "@/components/NewProductSheet";
@@ -36,6 +37,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useFTUX } from "@/hooks/use-ftux";
 import { useHotspots } from "@/hooks/use-hotspots";
+import { useSceneState } from "@/hooks/use-scene-state";
 import { useLocale } from "@/lib/i18n";
 import shopableLogo from "@/assets/shopable-logo.png";
 import { listVideos, VideoDto } from "@/services/video-api";
@@ -146,6 +148,23 @@ const Index = () => {
   });
 
   const isPreviewMode = editorMode === "preview";
+  
+  // Scene state engine - computes current state based on hotspots and video time
+  const sceneState = useSceneState(hotspots, currentTime);
+  
+  // Jump to next hotspot function
+  const jumpToNextHotspot = useCallback(() => {
+    const next = hotspots
+      .filter(h => h.timeStart > currentTime)
+      .sort((a, b) => a.timeStart - b.timeStart)[0];
+    
+    if (next && videoRef.current) {
+      const seekTime = Math.max(0, next.timeStart - 0.5);
+      videoRef.current.currentTime = seekTime;
+      selectHotspot(next.id);
+      setShowToolbar(true);
+    }
+  }, [hotspots, currentTime, selectHotspot]);
 
   // Fetch videos from backend on mount
   const fetchVideos = useCallback(async () => {
@@ -666,6 +685,17 @@ const Index = () => {
               showSavedIndicator={showSavedIndicator}
             />
           )}
+          
+          {/* Scene State Banner - below video */}
+          {videoSrc && hotspots.length > 0 && (
+            <div className="px-2 mt-2">
+              <SceneStateBanner
+                sceneState={sceneState}
+                onJumpToNext={jumpToNextHotspot}
+                isEditMode={!isPreviewMode}
+              />
+            </div>
+          )}
         </main>
 
         {/* Mobile bottom controls */}
@@ -893,6 +923,17 @@ const Index = () => {
               onToolbarDone={handleToolbarDone}
               showSavedIndicator={showSavedIndicator}
             />
+          )}
+          
+          {/* Scene State Banner - below video on desktop */}
+          {videoSrc && hotspots.length > 0 && (
+            <div className="mt-3 max-w-[800px] mx-auto">
+              <SceneStateBanner
+                sceneState={sceneState}
+                onJumpToNext={jumpToNextHotspot}
+                isEditMode={!isPreviewMode}
+              />
+            </div>
           )}
         </div>
 

@@ -4,7 +4,8 @@ import EmptyHotspotIndicator from "./EmptyHotspotIndicator";
 import HotspotCountdown from "./HotspotCountdown";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
-
+import { isHotspotComplete } from "@/hooks/use-scene-state";
+import { AlertCircle } from "lucide-react";
 interface VideoHotspotProps {
   hotspot: Hotspot;
   currentTime: number;
@@ -127,6 +128,15 @@ const VideoHotspot = ({
       onMouseDown={isEditMode ? onDragStart : undefined}
       onTouchStart={isEditMode ? onTouchDragStart : undefined}
     >
+      {/* Incomplete warning badge - show in edit mode for hotspots without products */}
+      {isEditMode && !hasProduct && !isSelected && (
+        <div className="absolute -top-1 -right-1 z-20">
+          <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center shadow-sm animate-pulse">
+            <AlertCircle className="w-2.5 h-2.5 text-white" />
+          </div>
+        </div>
+      )}
+      
       {!hasProduct ? (
         // Unassigned hotspot - EmptyHotspotIndicator handles its own larger size in edit mode
         <EmptyHotspotIndicator
