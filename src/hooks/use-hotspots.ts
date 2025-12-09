@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { Hotspot, HotspotStyle, CardStyle, ClickBehavior } from "@/types/video";
 import {
   listHotspots as listHotspotsApi,
@@ -68,6 +68,12 @@ export function useHotspots(
 
   // Track pending position updates for debounced sync
   const [pendingPositionUpdates, setPendingPositionUpdates] = useState<Set<string>>(new Set());
+
+  // Ref to always have current hotspots (avoids stale closure in callbacks)
+  const hotspotsRef = useRef<Hotspot[]>(hotspots);
+  useEffect(() => {
+    hotspotsRef.current = hotspots;
+  }, [hotspots]);
 
   // Derived selected hotspot (always fresh from array!)
   const selectedHotspot = useMemo(() => {
@@ -207,9 +213,9 @@ export function useHotspots(
       }
 
       // Persist to backend if videoId is available
-      // Use backendId for API calls, skip if not yet synced
-      const hotspotForUpdate = hotspots.find(h => h.id === updated.id);
-      const apiId = hotspotForUpdate?.backendId;
+      // Priority: use backendId from update object, fallback to lookup from current state via ref
+      const apiId = (updated as Hotspot).backendId || 
+                    hotspotsRef.current.find(h => h.id === updated.id)?.backendId;
       
       console.log("[useHotspots] updateHotspot called:", { 
         id: updated.id, 
@@ -234,7 +240,7 @@ export function useHotspots(
         console.log("[useHotspots] Skipping backend sync - no videoId or apiId:", { videoId, apiId });
       }
     },
-    [videoId, hotspots]
+    [videoId]
   );
 
   // DELETE - removes from local state immediately, then syncs to backend
