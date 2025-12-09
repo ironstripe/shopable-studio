@@ -45,6 +45,9 @@ const Index = () => {
   const { t } = useLocale();
   const { step: ftuxStep, isComplete: ftuxComplete, advanceStep, completeFTUX } = useFTUX();
   
+  // Two-mode system: "select" (default) vs "add" mode
+  const [isAddingHotspot, setIsAddingHotspot] = useState(false);
+  
   // Backend video state
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
   
@@ -430,13 +433,37 @@ const Index = () => {
 
   const handleToggleMode = () => {
     if (editorMode === "edit") {
-      // Switching to preview: close panels, clear selection
+      // Switching to preview: close panels, clear selection, exit add mode
       selectHotspot(null);
       setHotspotDrawerOpen(false);
       setVideoCTASheetOpen(false);
+      setIsAddingHotspot(false);
     }
     setEditorMode(editorMode === "edit" ? "preview" : "edit");
   };
+
+  // Exit add mode after hotspot is created
+  const handleExitAddMode = () => {
+    setIsAddingHotspot(false);
+  };
+
+  // ESC key handler to exit add mode and close panels
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isAddingHotspot) {
+          setIsAddingHotspot(false);
+        }
+        if (selectProductSheetOpen) setSelectProductSheetOpen(false);
+        if (layoutBehaviorSheetOpen) setLayoutBehaviorSheetOpen(false);
+        if (newProductSheetOpen) setNewProductSheetOpen(false);
+        if (videoCTASheetOpen) setVideoCTASheetOpen(false);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isAddingHotspot, selectProductSheetOpen, layoutBehaviorSheetOpen, newProductSheetOpen, videoCTASheetOpen]);
 
   const handleReplaceVideo = () => {
     // Clear all video-related state
@@ -605,10 +632,13 @@ const Index = () => {
               onUpdateVideoCTA={setVideoCTA}
               showSafeZones={editorMode === "edit"}
               isMobile={true}
-              showPlacementHint={!!showPlacementHint}
+              showPlacementHint={!!showPlacementHint && isAddingHotspot}
               onHotspotDragEnd={handleHotspotDragEnd}
               isDeferringToolbar={isDeferringToolbar}
               hotspotsLoading={hotspotsLoading}
+              isAddingHotspot={isAddingHotspot}
+              onExitAddMode={handleExitAddMode}
+              onToggleAddMode={() => setIsAddingHotspot(!isAddingHotspot)}
             />
           )}
         </main>
@@ -626,6 +656,8 @@ const Index = () => {
             onOpenHotspotDrawer={() => setHotspotDrawerOpen(true)}
             onOpenCTASettings={() => setVideoCTASheetOpen(true)}
             hotspotCount={hotspots.length}
+            isAddingHotspot={isAddingHotspot}
+            onToggleAddMode={() => setIsAddingHotspot(!isAddingHotspot)}
           />
         )}
 
@@ -825,10 +857,13 @@ const Index = () => {
               onUpdateVideoCTA={setVideoCTA}
               showSafeZones={editorMode === "edit"}
               isMobile={false}
-              showPlacementHint={!!showPlacementHint}
+              showPlacementHint={!!showPlacementHint && isAddingHotspot}
               onHotspotDragEnd={handleHotspotDragEnd}
               isDeferringToolbar={isDeferringToolbar}
               hotspotsLoading={hotspotsLoading}
+              isAddingHotspot={isAddingHotspot}
+              onExitAddMode={handleExitAddMode}
+              onToggleAddMode={() => setIsAddingHotspot(!isAddingHotspot)}
             />
           )}
         </div>
