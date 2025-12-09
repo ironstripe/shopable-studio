@@ -7,6 +7,14 @@ export interface VideoDto {
   status: "REGISTERED" | "UPLOADED" | "READY" | "FAILED" | string;
   thumbnailUrl?: string;
   fileUrl?: string;
+  renderStatus?: "NOT_STARTED" | "READY" | null;
+  renderUpdatedAt?: string | null;
+}
+
+export interface TriggerRenderResponse {
+  videoId: string;
+  renderStatus: "READY";
+  renderUpdatedAt: string;
 }
 
 function extractTitleFromObjectKey(objectKey: string | undefined, fallbackId: string): string {
@@ -65,8 +73,37 @@ export async function listVideos(): Promise<VideoDto[]> {
       status: item.status || "UPLOADED",
       thumbnailUrl: item.thumbnailUrl,
       fileUrl,
+      renderStatus: item.renderStatus || null,
+      renderUpdatedAt: item.renderUpdatedAt || null,
     };
   });
+}
+
+/**
+ * Trigger video rendering for a specific video
+ */
+export async function triggerRender(videoId: string): Promise<TriggerRenderResponse> {
+  const url = `${API_BASE_URL}/videos/${encodeURIComponent(videoId)}/render`;
+  console.log("[Render] Calling:", "POST", url);
+
+  const res = await fetch(url, {
+    method: "POST",
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    console.error("[Render] triggerRender failed", res.status, text);
+    throw new Error(`Failed to trigger render (${res.status})`);
+  }
+
+  const data = await res.json();
+  console.log("[Render] Response:", data);
+  
+  return {
+    videoId: data.videoId,
+    renderStatus: data.renderStatus,
+    renderUpdatedAt: data.renderUpdatedAt,
+  };
 }
 
 /**

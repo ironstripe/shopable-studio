@@ -142,6 +142,19 @@ const translations: Record<Locale, Record<string, string>> = {
     "video.removed": "Video removed. Upload a new video to continue.",
     "video.exportSuccess": "Project exported successfully",
     
+    // Export
+    "export.title": "Export",
+    "export.button": "Export video",
+    "export.exporting": "Exporting…",
+    "export.ready": "Video is ready to share",
+    "export.lastUpdated": "Last updated",
+    "export.copyUrl": "Copy share URL",
+    "export.copied": "Link copied!",
+    "export.needsExport": "Needs export",
+    "export.readyToShare": "Ready to share",
+    "export.success": "Export finished – video is ready to share",
+    "export.failed": "Export failed, please try again",
+    
     // Scene State
     "scene.noHotspotsHere": "No hotspots here — next at",
     "scene.jumpToNext": "Jump to next",
@@ -296,6 +309,19 @@ const translations: Record<Locale, Record<string, string>> = {
     // Video
     "video.removed": "Video entfernt. Lade ein neues Video hoch, um fortzufahren.",
     "video.exportSuccess": "Projekt erfolgreich exportiert",
+    
+    // Export
+    "export.title": "Export",
+    "export.button": "Video exportieren",
+    "export.exporting": "Exportiert…",
+    "export.ready": "Video ist bereit zum Teilen",
+    "export.lastUpdated": "Zuletzt aktualisiert",
+    "export.copyUrl": "Link kopieren",
+    "export.copied": "Link kopiert!",
+    "export.needsExport": "Export nötig",
+    "export.readyToShare": "Bereit zum Teilen",
+    "export.success": "Export abgeschlossen – Video ist bereit zum Teilen",
+    "export.failed": "Export fehlgeschlagen, bitte erneut versuchen",
     
     // Scene State
     "scene.noHotspotsHere": "Keine Hotspots hier — nächster bei",

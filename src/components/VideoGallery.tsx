@@ -40,6 +40,13 @@ function getStatusBadgeClasses(status: string): string {
   }
 }
 
+function getRenderStatusBadge(renderStatus: string | null | undefined): { text: string; classes: string } {
+  if (renderStatus === "READY") {
+    return { text: "Ready to share", classes: "bg-green-100 text-green-700" };
+  }
+  return { text: "Needs export", classes: "bg-neutral-100 text-neutral-600" };
+}
+
 function SkeletonCard() {
   return (
     <div className="w-full flex rounded-xl overflow-hidden bg-card border border-border shadow-sm animate-pulse">
@@ -187,11 +194,12 @@ function SwipeableCard({ video, onSelect, onDelete }: SwipeableCardProps) {
           <p className="text-muted-foreground text-xs mb-1.5">
             {formatDate(video.createdAt)}
           </p>
+          {/* Render status pill */}
           <span className={cn(
             "self-start px-1.5 py-0.5 rounded text-[10px] font-medium",
-            getStatusBadgeClasses(video.status)
+            getRenderStatusBadge(video.renderStatus).classes
           )}>
-            {video.status.toUpperCase()}
+            {getRenderStatusBadge(video.renderStatus).text}
           </span>
         </div>
       </button>
