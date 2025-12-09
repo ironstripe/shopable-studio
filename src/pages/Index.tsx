@@ -7,7 +7,6 @@ import HotspotSidebar from "@/components/HotspotSidebar";
 import MobileHeader from "@/components/MobileHeader";
 import MobileBottomControls from "@/components/MobileBottomControls";
 import HotspotDrawer from "@/components/HotspotDrawer";
-import SceneStateBanner from "@/components/SceneStateBanner";
 
 import SelectProductSheet from "@/components/SelectProductSheet";
 import NewProductSheet from "@/components/NewProductSheet";
@@ -736,18 +735,8 @@ const Index = () => {
               allComplete={sceneState.allComplete}
               onJumpToNext={jumpToNextHotspot}
               onSnackbarDismiss={() => setShowSavedSnackbar(false)}
+              sceneState={sceneState}
             />
-          )}
-          
-          {/* Scene State Banner - below video */}
-          {videoSrc && hotspots.length > 0 && (
-            <div className="px-2 mt-2">
-              <SceneStateBanner
-                sceneState={sceneState}
-                onJumpToNext={jumpToNextHotspot}
-                isEditMode={!isPreviewMode}
-              />
-            </div>
           )}
         </main>
 
@@ -989,18 +978,8 @@ const Index = () => {
               allComplete={sceneState.allComplete}
               onJumpToNext={jumpToNextHotspot}
               onSnackbarDismiss={() => setShowSavedSnackbar(false)}
+              sceneState={sceneState}
             />
-          )}
-          
-          {/* Scene State Banner - below video on desktop */}
-          {videoSrc && hotspots.length > 0 && (
-            <div className="mt-3 max-w-[800px] mx-auto">
-              <SceneStateBanner
-                sceneState={sceneState}
-                onJumpToNext={jumpToNextHotspot}
-                isEditMode={!isPreviewMode}
-              />
-            </div>
           )}
         </div>
 
