@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Hotspot, Product, VideoProject, VideoCTA, EditorMode, ClickBehavior } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import VideoGallery from "@/components/VideoGallery";
@@ -37,7 +37,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useFTUX } from "@/hooks/use-ftux";
 import { useHotspots } from "@/hooks/use-hotspots";
-import { useSceneState } from "@/hooks/use-scene-state";
+import { useSceneState, isHotspotComplete } from "@/hooks/use-scene-state";
 import { useLocale } from "@/lib/i18n";
 import shopableLogo from "@/assets/shopable-logo.png";
 import { listVideos, VideoDto } from "@/services/video-api";
@@ -166,6 +166,43 @@ const Index = () => {
     }
   }, [hotspots, currentTime, selectHotspot]);
 
+  // Jump to previous hotspot function
+  const jumpToPreviousHotspot = useCallback(() => {
+    const sortedHotspots = [...hotspots].sort((a, b) => a.timeStart - b.timeStart);
+    const currentIndex = sortedHotspots.findIndex(h => h.id === selectedHotspotId);
+    
+    if (currentIndex > 0 && videoRef.current) {
+      const prev = sortedHotspots[currentIndex - 1];
+      const seekTime = Math.max(0, prev.timeStart - 0.5);
+      videoRef.current.currentTime = seekTime;
+      selectHotspot(prev.id);
+      setShowToolbar(true);
+    }
+  }, [hotspots, selectedHotspotId, selectHotspot]);
+
+  // Snackbar state for post-edit feedback
+  const [showSavedSnackbar, setShowSavedSnackbar] = useState(false);
+
+  // Computed navigation state
+  const navigationState = useMemo(() => {
+    const sortedHotspots = [...hotspots].sort((a, b) => a.timeStart - b.timeStart);
+    const currentIndex = sortedHotspots.findIndex(h => h.id === selectedHotspotId);
+    
+    // Find next hotspot after current time (for chip)
+    const nextFutureHotspot = hotspots
+      .filter(h => h.timeStart > currentTime)
+      .sort((a, b) => a.timeStart - b.timeStart)[0];
+    
+    return {
+      currentIndex: currentIndex >= 0 ? currentIndex + 1 : 0, // 1-based
+      totalCount: hotspots.length,
+      canGoPrevious: currentIndex > 0,
+      canGoNext: currentIndex >= 0 && currentIndex < sortedHotspots.length - 1,
+      nextHotspotTime: nextFutureHotspot?.timeStart ?? null,
+      isNextHotspotComplete: nextFutureHotspot ? isHotspotComplete(nextFutureHotspot) : true,
+    };
+  }, [hotspots, selectedHotspotId, currentTime]);
+
   // Fetch videos from backend on mount
   const fetchVideos = useCallback(async () => {
     setVideosLoading(true);
@@ -249,9 +286,11 @@ const Index = () => {
     }
   };
 
-  // Handle toolbar "Done" button - hide toolbar but keep hotspot selected
+  // Handle toolbar "Done" button - hide toolbar, deselect hotspot, and show snackbar
   const handleToolbarDone = () => {
     setShowToolbar(false);
+    selectHotspot(null);
+    setShowSavedSnackbar(true);
   };
 
   // Show saved indicator briefly after hotspot updates
@@ -683,6 +722,20 @@ const Index = () => {
               showToolbar={showToolbar}
               onToolbarDone={handleToolbarDone}
               showSavedIndicator={showSavedIndicator}
+              // Navigation overlay props
+              currentHotspotIndex={navigationState.currentIndex}
+              totalHotspotCount={navigationState.totalCount}
+              onPreviousHotspot={jumpToPreviousHotspot}
+              onNextHotspot={jumpToNextHotspot}
+              canGoPrevious={navigationState.canGoPrevious}
+              canGoNext={navigationState.canGoNext}
+              nextHotspotTime={navigationState.nextHotspotTime}
+              isNextHotspotComplete={navigationState.isNextHotspotComplete}
+              showSnackbar={showSavedSnackbar}
+              incompleteCount={sceneState.incompleteHotspots.length}
+              allComplete={sceneState.allComplete}
+              onJumpToNext={jumpToNextHotspot}
+              onSnackbarDismiss={() => setShowSavedSnackbar(false)}
             />
           )}
           
@@ -922,6 +975,20 @@ const Index = () => {
               showToolbar={showToolbar}
               onToolbarDone={handleToolbarDone}
               showSavedIndicator={showSavedIndicator}
+              // Navigation overlay props
+              currentHotspotIndex={navigationState.currentIndex}
+              totalHotspotCount={navigationState.totalCount}
+              onPreviousHotspot={jumpToPreviousHotspot}
+              onNextHotspot={jumpToNextHotspot}
+              canGoPrevious={navigationState.canGoPrevious}
+              canGoNext={navigationState.canGoNext}
+              nextHotspotTime={navigationState.nextHotspotTime}
+              isNextHotspotComplete={navigationState.isNextHotspotComplete}
+              showSnackbar={showSavedSnackbar}
+              incompleteCount={sceneState.incompleteHotspots.length}
+              allComplete={sceneState.allComplete}
+              onJumpToNext={jumpToNextHotspot}
+              onSnackbarDismiss={() => setShowSavedSnackbar(false)}
             />
           )}
           
