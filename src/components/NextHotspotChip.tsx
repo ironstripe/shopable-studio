@@ -18,7 +18,7 @@ const NextHotspotChip = ({
   if (!visible || nextHotspotTime === null) return null;
 
   return (
-    <div className="absolute bottom-[60px] right-3 z-[25]">
+    <div className="absolute bottom-3 right-3 z-[25]">
       <button
         onClick={onJump}
         className={cn(

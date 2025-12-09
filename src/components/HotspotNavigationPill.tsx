@@ -21,7 +21,7 @@ const HotspotNavigationPill = ({
   if (totalCount === 0) return null;
 
   return (
-    <div className="absolute bottom-[60px] left-1/2 -translate-x-1/2 z-[25]">
+    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[25]">
       <div className="flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-1 py-1 shadow-lg">
         <button
           onClick={onPrevious}
