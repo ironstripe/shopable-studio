@@ -104,6 +104,7 @@ export async function deleteHotspot(
 export function mapDtoToHotspot(dto: HotspotDto): Hotspot {
   return {
     id: dto.id,
+    backendId: dto.id, // Set backendId so updates work after reload
     timeStart: dto.timeStartMs / 1000,
     timeEnd: dto.timeEndMs / 1000,
     x: dto.x,
