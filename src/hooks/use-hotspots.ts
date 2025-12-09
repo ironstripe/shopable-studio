@@ -328,8 +328,8 @@ export function useHotspots(
         prev.map((h) => (h.id === id ? { ...h, scale: clampedScale } : h))
       );
 
-      // Persist to backend using backendId
-      const hotspotForScale = hotspots.find(h => h.id === id);
+      // Persist to backend using backendId from ref (avoids stale closure)
+      const hotspotForScale = hotspotsRef.current.find(h => h.id === id);
       if (videoId && hotspotForScale?.backendId) {
         const payload = mapHotspotUpdateToPayload({ scale: clampedScale });
         updateHotspotApi(videoId, hotspotForScale.backendId, payload).catch((error) => {

@@ -289,6 +289,12 @@ const VideoPlayer = ({
   }, [hotspots, pendingDragPosition, draggingHotspot]);
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Don't create hotspot if click originated from an existing hotspot element
+    if ((e.target as HTMLElement).closest('.hotspot-draggable')) {
+      console.log("[VideoPlayer] Click originated from hotspot, ignoring overlay click");
+      return;
+    }
+    
     console.log("[VideoPlayer] tap to add hotspot (click)", { 
       currentTime: videoRef.current?.currentTime,
       clientX: e.clientX,
@@ -332,6 +338,12 @@ const VideoPlayer = ({
 
   // iOS touch event handler for hotspot placement - create real hotspot immediately
   const handleOverlayTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    // Don't create hotspot if touch originated from an existing hotspot element
+    if ((e.target as HTMLElement).closest('.hotspot-draggable')) {
+      console.log("[VideoPlayer] Touch originated from hotspot, ignoring overlay touch");
+      return;
+    }
+    
     if (!videoRef.current || !containerRef.current) return;
     
     const touch = e.touches[0];

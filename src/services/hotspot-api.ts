@@ -14,6 +14,7 @@ export interface HotspotDto {
   height?: number;
   templateFamily?: string;
   style?: string;
+  cardStyle?: string;
   countdownEnabled?: boolean;
   countdownStyle?: "light" | "bold" | null;
   countdownPosition?: "above" | "below" | "corner" | null;
@@ -32,13 +33,23 @@ export type UpdateHotspotPayload = Partial<CreateHotspotPayload>;
 
 export async function listHotspots(videoId: string): Promise<HotspotDto[]> {
   const encodedVideoId = encodeURIComponent(videoId);
-  const res = await fetch(`${API_BASE_URL}/videos/${encodedVideoId}/hotspots`, {
-    method: "GET",
-  });
-  if (!res.ok) {
-    throw new Error(`Failed to load hotspots (${res.status})`);
+  const url = `${API_BASE_URL}/videos/${encodedVideoId}/hotspots`;
+  console.log('[hotspot-api] GET request:', url);
+  
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('[hotspot-api] GET failed:', res.status, errorText);
+      throw new Error(`Failed to load hotspots (${res.status})`);
+    }
+    return res.json();
+  } catch (error) {
+    console.error('[hotspot-api] GET error:', error);
+    throw error;
   }
-  return res.json();
 }
 
 export async function createHotspot(
@@ -46,15 +57,25 @@ export async function createHotspot(
   payload: CreateHotspotPayload
 ): Promise<HotspotDto> {
   const encodedVideoId = encodeURIComponent(videoId);
-  const res = await fetch(`${API_BASE_URL}/videos/${encodedVideoId}/hotspots`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    throw new Error(`Failed to create hotspot (${res.status})`);
+  const url = `${API_BASE_URL}/videos/${encodedVideoId}/hotspots`;
+  console.log('[hotspot-api] POST request:', { url, payload });
+  
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('[hotspot-api] POST failed:', res.status, errorText);
+      throw new Error(`Failed to create hotspot (${res.status}): ${errorText}`);
+    }
+    return res.json();
+  } catch (error) {
+    console.error('[hotspot-api] POST error:', error);
+    throw error;
   }
-  return res.json();
 }
 
 export async function updateHotspot(
@@ -64,18 +85,25 @@ export async function updateHotspot(
 ): Promise<HotspotDto> {
   const encodedVideoId = encodeURIComponent(videoId);
   const encodedHotspotId = encodeURIComponent(hotspotId);
-  const res = await fetch(
-    `${API_BASE_URL}/videos/${encodedVideoId}/hotspots/${encodedHotspotId}`,
-    {
+  const url = `${API_BASE_URL}/videos/${encodedVideoId}/hotspots/${encodedHotspotId}`;
+  console.log('[hotspot-api] PUT request:', { url, payload });
+  
+  try {
+    const res = await fetch(url, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('[hotspot-api] PUT failed:', res.status, errorText);
+      throw new Error(`Failed to update hotspot (${res.status}): ${errorText}`);
     }
-  );
-  if (!res.ok) {
-    throw new Error(`Failed to update hotspot (${res.status})`);
+    return res.json();
+  } catch (error) {
+    console.error('[hotspot-api] PUT error:', error);
+    throw error;
   }
-  return res.json();
 }
 
 export async function deleteHotspot(
@@ -84,14 +112,21 @@ export async function deleteHotspot(
 ): Promise<void> {
   const encodedVideoId = encodeURIComponent(videoId);
   const encodedHotspotId = encodeURIComponent(hotspotId);
-  const res = await fetch(
-    `${API_BASE_URL}/videos/${encodedVideoId}/hotspots/${encodedHotspotId}`,
-    {
+  const url = `${API_BASE_URL}/videos/${encodedVideoId}/hotspots/${encodedHotspotId}`;
+  console.log('[hotspot-api] DELETE request:', url);
+  
+  try {
+    const res = await fetch(url, {
       method: "DELETE",
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('[hotspot-api] DELETE failed:', res.status, errorText);
+      throw new Error(`Failed to delete hotspot (${res.status}): ${errorText}`);
     }
-  );
-  if (!res.ok) {
-    throw new Error(`Failed to delete hotspot (${res.status})`);
+  } catch (error) {
+    console.error('[hotspot-api] DELETE error:', error);
+    throw error;
   }
 }
 
@@ -111,10 +146,10 @@ export function mapDtoToHotspot(dto: HotspotDto): Hotspot {
     y: dto.y,
     productId: dto.productId ?? null,
     style: (dto.style as HotspotStyle) || "ecommerce-light-card",
+    cardStyle: (dto.cardStyle as CardStyle) || (dto.style as CardStyle) || "ecommerce-light-card",
     ctaLabel: dto.ctaLabel || "Shop Now",
     scale: dto.scale ?? 1,
     clickBehavior: (dto.clickBehavior as ClickBehavior) || "show-card",
-    cardStyle: (dto.style as CardStyle) || "ecommerce-light-card",
     countdown: dto.countdownEnabled
       ? {
           active: true,
@@ -142,6 +177,7 @@ export function mapHotspotToPayload(
     x: hotspot.x,
     y: hotspot.y,
     style: hotspot.style,
+    cardStyle: hotspot.cardStyle,
     templateFamily: getFamilyFromStyle(hotspot.style),
     countdownEnabled: hotspot.countdown?.active ?? false,
     countdownStyle: hotspot.countdown?.style ?? null,
@@ -176,6 +212,9 @@ export function mapHotspotUpdateToPayload(
   if (update.style !== undefined) {
     payload.style = update.style;
     payload.templateFamily = getFamilyFromStyle(update.style);
+  }
+  if (update.cardStyle !== undefined) {
+    payload.cardStyle = update.cardStyle;
   }
   if (update.productId !== undefined) {
     payload.productId = update.productId;
