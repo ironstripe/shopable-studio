@@ -7,9 +7,13 @@ import VideoUploadZone from "./VideoUploadZone";
 import VideoCTA from "./VideoCTA";
 import SafeZoneOverlay from "./SafeZoneOverlay";
 import TapIndicator from "./TapIndicator";
+import HotspotNavigationPill from "./HotspotNavigationPill";
+import NextHotspotChip from "./NextHotspotChip";
+import HotspotSavedSnackbar from "./HotspotSavedSnackbar";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
+import { isHotspotComplete } from "@/hooks/use-scene-state";
 import { 
   isPointInSafeZone, 
   clampHotspotPercentage, 
@@ -50,6 +54,20 @@ interface VideoPlayerProps {
   showToolbar?: boolean;
   onToolbarDone?: () => void;
   showSavedIndicator?: boolean;
+  // Navigation overlay props
+  currentHotspotIndex?: number;
+  totalHotspotCount?: number;
+  onPreviousHotspot?: () => void;
+  onNextHotspot?: () => void;
+  canGoPrevious?: boolean;
+  canGoNext?: boolean;
+  nextHotspotTime?: number | null;
+  isNextHotspotComplete?: boolean;
+  showSnackbar?: boolean;
+  incompleteCount?: number;
+  allComplete?: boolean;
+  onJumpToNext?: () => void;
+  onSnackbarDismiss?: () => void;
 }
 
 const VideoPlayer = ({
@@ -86,6 +104,20 @@ const VideoPlayer = ({
   showToolbar = true,
   onToolbarDone,
   showSavedIndicator = false,
+  // Navigation overlay props
+  currentHotspotIndex = 0,
+  totalHotspotCount = 0,
+  onPreviousHotspot,
+  onNextHotspot,
+  canGoPrevious = false,
+  canGoNext = false,
+  nextHotspotTime = null,
+  isNextHotspotComplete = true,
+  showSnackbar = false,
+  incompleteCount = 0,
+  allComplete = false,
+  onJumpToNext,
+  onSnackbarDismiss,
 }: VideoPlayerProps) => {
   const { t } = useLocale();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -978,6 +1010,40 @@ const VideoPlayer = ({
             >
               This area is reserved by platform UI
             </div>
+          )}
+
+          {/* In-video navigation overlays - only in edit mode */}
+          {videoSrc && !isPreviewMode && totalHotspotCount > 0 && selectedHotspotId && (
+            <HotspotNavigationPill
+              currentIndex={currentHotspotIndex}
+              totalCount={totalHotspotCount}
+              onPrevious={onPreviousHotspot || (() => {})}
+              onNext={onNextHotspot || (() => {})}
+              canGoPrevious={canGoPrevious}
+              canGoNext={canGoNext}
+            />
+          )}
+
+          {/* Next hotspot chip - shown when no hotspot selected and there's a future hotspot */}
+          {videoSrc && !isPreviewMode && !selectedHotspotId && onJumpToNext && (
+            <NextHotspotChip
+              nextHotspotTime={nextHotspotTime}
+              isComplete={isNextHotspotComplete}
+              onJump={onJumpToNext}
+              visible={nextHotspotTime !== null}
+            />
+          )}
+
+          {/* Hotspot saved snackbar - post-edit feedback */}
+          {videoSrc && !isPreviewMode && onJumpToNext && onSnackbarDismiss && (
+            <HotspotSavedSnackbar
+              visible={showSnackbar}
+              incompleteCount={incompleteCount}
+              nextHotspotTime={nextHotspotTime}
+              allComplete={allComplete}
+              onJump={onJumpToNext}
+              onDismiss={onSnackbarDismiss}
+            />
           )}
 
           {/* Full-Video Link Overlay (preview mode only) */}
