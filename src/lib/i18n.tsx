@@ -142,6 +142,17 @@ const translations: Record<Locale, Record<string, string>> = {
     "video.removed": "Video removed. Upload a new video to continue.",
     "video.exportSuccess": "Project exported successfully",
     
+    // Scene State
+    "scene.noHotspotsHere": "No hotspots here — next at",
+    "scene.jumpToNext": "Jump to next",
+    "scene.needsProduct": "hotspot needs a product",
+    "scene.needsProductPlural": "hotspots need a product",
+    "scene.allCompleteHere": "All hotspots here complete — next at",
+    "scene.continue": "Continue",
+    "scene.allDone": "All hotspots complete",
+    "scene.doneEditing": "Done Editing",
+    "scene.nextHotspot": "Next Hotspot",
+    
     // Dialog
     "dialog.deleteVideo.title": "Delete video?",
     "dialog.deleteVideo.description": "This will remove the video and all hotspots. Products will be preserved.",
@@ -285,6 +296,17 @@ const translations: Record<Locale, Record<string, string>> = {
     // Video
     "video.removed": "Video entfernt. Lade ein neues Video hoch, um fortzufahren.",
     "video.exportSuccess": "Projekt erfolgreich exportiert",
+    
+    // Scene State
+    "scene.noHotspotsHere": "Keine Hotspots hier — nächster bei",
+    "scene.jumpToNext": "Zum nächsten",
+    "scene.needsProduct": "Hotspot braucht ein Produkt",
+    "scene.needsProductPlural": "Hotspots brauchen ein Produkt",
+    "scene.allCompleteHere": "Alle Hotspots hier fertig — nächster bei",
+    "scene.continue": "Weiter",
+    "scene.allDone": "Alle Hotspots fertig",
+    "scene.doneEditing": "Bearbeitung abgeschlossen",
+    "scene.nextHotspot": "Nächster Hotspot",
     
     // Dialog
     "dialog.deleteVideo.title": "Video löschen?",
