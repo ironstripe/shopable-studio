@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import { Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +28,7 @@ interface LayoutBehaviorSheetProps {
   onOpenChange: (open: boolean) => void;
   hotspot: Hotspot | null;
   onUpdateHotspot: (hotspot: Hotspot) => void;
+  onDeleteHotspot?: (hotspotId: string) => void;
   isPreviewMode?: boolean;
   hasProductAssigned?: boolean;
 }
@@ -36,11 +38,18 @@ const LayoutBehaviorSheet = ({
   onOpenChange,
   hotspot,
   onUpdateHotspot,
+  onDeleteHotspot,
   isPreviewMode = false,
   hasProductAssigned = true,
 }: LayoutBehaviorSheetProps) => {
   const { toast } = useToast();
   const { t } = useLocale();
+
+  const handleDelete = () => {
+    if (!hotspot || !onDeleteHotspot) return;
+    onDeleteHotspot(hotspot.id);
+    onOpenChange(false);
+  };
 
   const initialFamily = hotspot ? getFamilyFromStyle(hotspot.style) : "ecommerce";
   const initialStyle = hotspot?.style || "ecommerce-light-card";
@@ -460,6 +469,16 @@ const LayoutBehaviorSheet = ({
             >
               {t("actions.saveChanges")}
             </Button>
+            {onDeleteHotspot && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleDelete}
+                className="h-12 w-12 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-xl"
+              >
+                <Trash2 className="h-5 w-5" />
+              </Button>
+            )}
           </div>
         </div>
       </SheetContent>

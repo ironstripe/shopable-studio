@@ -252,10 +252,12 @@ export function useHotspots(
 
       // Persist to backend if videoId is available
       const apiId = hotspotToDelete?.backendId ?? hotspotToDelete?.id;
+      console.log("[useHotspots] Attempting to delete hotspot:", { id, apiId, videoId });
+      
       if (videoId && apiId) {
         try {
           await deleteHotspotApi(videoId, apiId);
-          console.log("[useHotspots] Deleted hotspot from backend:", apiId);
+          console.log("[useHotspots] Successfully deleted hotspot from backend:", apiId);
         } catch (error) {
           console.error("[useHotspots] Failed to delete hotspot:", error);
           // Rollback: restore previous state
