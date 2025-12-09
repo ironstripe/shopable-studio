@@ -47,6 +47,9 @@ interface VideoPlayerProps {
   isAddingHotspot?: boolean;
   onExitAddMode?: () => void;
   onToggleAddMode?: () => void;
+  showToolbar?: boolean;
+  onToolbarDone?: () => void;
+  showSavedIndicator?: boolean;
 }
 
 const VideoPlayer = ({
@@ -80,6 +83,9 @@ const VideoPlayer = ({
   isAddingHotspot = false,
   onExitAddMode,
   onToggleAddMode,
+  showToolbar = true,
+  onToolbarDone,
+  showSavedIndicator = false,
 }: VideoPlayerProps) => {
   const { t } = useLocale();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -1028,7 +1034,7 @@ const VideoPlayer = ({
                       forceVisible={isThisSelected}
                       onMeasure={handleHotspotMeasure}
                     />
-                    {!isPreviewMode && isThisSelected && !draggingHotspot && !isDeferringToolbar && (
+                    {!isPreviewMode && isThisSelected && !draggingHotspot && !isDeferringToolbar && showToolbar && (
                       <HotspotInlineEditor
                         hotspot={hotspot}
                         products={products}
@@ -1038,6 +1044,8 @@ const VideoPlayer = ({
                         onOpenLayoutSheet={onOpenLayoutSheet}
                         autoOpenProductPanel={shouldAutoOpenProductPanel && !hotspot.productId}
                         containerRef={containerRef}
+                        onDone={onToolbarDone}
+                        showSaved={showSavedIndicator}
                       />
                     )}
                   </div>

@@ -48,6 +48,12 @@ const Index = () => {
   // Two-mode system: "select" (default) vs "add" mode
   const [isAddingHotspot, setIsAddingHotspot] = useState(false);
   
+  // Toolbar visibility (can be closed via Done while keeping hotspot selected)
+  const [showToolbar, setShowToolbar] = useState(true);
+  
+  // Saved indicator for hotspot changes
+  const [showSavedIndicator, setShowSavedIndicator] = useState(false);
+  
   // Backend video state
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
   
@@ -216,8 +222,23 @@ const Index = () => {
     toast.success(t("hotspots.created"));
   };
 
-  const handleHotspotSelect = (hotspotId: string) => {
+  const handleHotspotSelect = (hotspotId: string | null) => {
     selectHotspot(hotspotId);
+    // Show toolbar when selecting a hotspot
+    if (hotspotId) {
+      setShowToolbar(true);
+    }
+  };
+
+  // Handle toolbar "Done" button - hide toolbar but keep hotspot selected
+  const handleToolbarDone = () => {
+    setShowToolbar(false);
+  };
+
+  // Show saved indicator briefly after hotspot updates
+  const showSavedFeedback = () => {
+    setShowSavedIndicator(true);
+    setTimeout(() => setShowSavedIndicator(false), 1500);
   };
 
   // Called when drag ends - show toolbar and open panel now that finger is lifted
@@ -273,6 +294,7 @@ const Index = () => {
 
   const handleUpdateHotspot = (updatedHotspot: Hotspot) => {
     updateHotspot(updatedHotspot);
+    showSavedFeedback();
     console.log('[Index.handleUpdateHotspot] Updated:', {
       id: updatedHotspot.id,
       style: updatedHotspot.style,
@@ -639,6 +661,9 @@ const Index = () => {
               isAddingHotspot={isAddingHotspot}
               onExitAddMode={handleExitAddMode}
               onToggleAddMode={() => setIsAddingHotspot(!isAddingHotspot)}
+              showToolbar={showToolbar}
+              onToolbarDone={handleToolbarDone}
+              showSavedIndicator={showSavedIndicator}
             />
           )}
         </main>
@@ -864,6 +889,9 @@ const Index = () => {
               isAddingHotspot={isAddingHotspot}
               onExitAddMode={handleExitAddMode}
               onToggleAddMode={() => setIsAddingHotspot(!isAddingHotspot)}
+              showToolbar={showToolbar}
+              onToolbarDone={handleToolbarDone}
+              showSavedIndicator={showSavedIndicator}
             />
           )}
         </div>

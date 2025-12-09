@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useLayoutEffect } from "react";
 import { Hotspot, Product } from "@/types/video";
 import { Button } from "@/components/ui/button";
-import { Tag, Settings, Trash2, GripVertical } from "lucide-react";
+import { Tag, Settings, Trash2, GripVertical, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface HotspotInlineEditorProps {
@@ -13,6 +13,8 @@ interface HotspotInlineEditorProps {
   onOpenLayoutSheet: (hotspot: Hotspot) => void;
   autoOpenProductPanel?: boolean;
   containerRef: React.RefObject<HTMLDivElement>;
+  onDone?: () => void;
+  showSaved?: boolean;
 }
 
 const HotspotInlineEditor = ({
@@ -24,6 +26,8 @@ const HotspotInlineEditor = ({
   onOpenLayoutSheet,
   autoOpenProductPanel,
   containerRef,
+  onDone,
+  showSaved = false,
 }: HotspotInlineEditorProps) => {
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ left: 0, top: 0 });
@@ -157,7 +161,7 @@ const HotspotInlineEditor = ({
     <div
       ref={toolbarRef}
       className={cn(
-        "absolute flex gap-0.5 bg-white border border-[rgba(0,0,0,0.12)] rounded-lg shadow-lg p-1 animate-toolbar-enter touch-none",
+        "absolute flex items-center gap-0.5 bg-white border border-[rgba(0,0,0,0.12)] rounded-lg shadow-lg p-1 animate-toolbar-enter touch-none",
         !isPositioned && "opacity-0"
       )}
       style={{
@@ -168,6 +172,14 @@ const HotspotInlineEditor = ({
       onClick={(e) => e.stopPropagation()}
       onPointerDown={handlePointerDown}
     >
+      {/* Saved indicator */}
+      {showSaved && (
+        <div className="flex items-center gap-1 px-2 text-[#10B981] text-xs font-medium animate-fade-in">
+          <Check className="w-3.5 h-3.5" />
+          <span>Saved</span>
+        </div>
+      )}
+
       {/* Grip handle for dragging */}
       <div 
         className="flex items-center justify-center w-5 h-8 cursor-grab active:cursor-grabbing text-[#9CA3AF] hover:text-[#6B7280] rounded-md hover:bg-[rgba(0,0,0,0.04)]"
@@ -217,6 +229,18 @@ const HotspotInlineEditor = ({
         title="Delete Hotspot"
       >
         <Trash2 className="w-4 h-4" />
+      </Button>
+
+      {/* Done button */}
+      <div className="w-px h-6 bg-[rgba(0,0,0,0.08)] my-auto mx-0.5" />
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={onDone}
+        className="h-8 w-8 p-0 text-[#10B981] hover:bg-[rgba(16,185,129,0.1)]"
+        title="Done"
+      >
+        <Check className="w-4 h-4" />
       </Button>
     </div>
   );
