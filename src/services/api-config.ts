@@ -1,15 +1,15 @@
-// src/lib/api-config.ts
+// src/services/api-config.ts
 
-// Single source of truth for the backend base URL.
-// Prefer VITE_API_BASE_URL from the environment, otherwise fall back to your live API Gateway URL.
+// Prefer environment variable (Lovable sets this automatically)
 export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://skyc5xwjcf.execute-api.eu-west-1.amazonaws.com";
+  import.meta.env.VITE_API_BASE_URL || "https://skyc5xwjcf.execute-api.eu-west-1.amazonaws.com"; // fallback to prod API
 
-// Simple flag if config is sane (no placeholder left)
+// Helper flag
 export const isApiConfigured = !!API_BASE_URL && !API_BASE_URL.includes("YOUR_API_GATEWAY_URL_HERE");
 
-// Log once at startup for debugging
+// Debug log
 console.log("[API Config] Base URL:", API_BASE_URL);
+
 if (!isApiConfigured) {
-  console.warn("[API Config] ⚠️ API base URL looks like a placeholder. Set VITE_API_BASE_URL in your environment.");
+  console.warn("[API Config] ⚠️ API base URL is not properly configured. Set VITE_API_BASE_URL in your environment.");
 }

@@ -9,7 +9,7 @@ const translations: Record<Locale, Record<string, string>> = {
     // App
     "app.language.de": "Deutsch",
     "app.language.en": "English",
-    
+
     // Upload
     "upload.title": "Upload your video",
     "upload.loading": "Loading video...",
@@ -18,7 +18,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "upload.success": "Video loaded successfully",
     "upload.error": "Failed to load video",
     "upload.invalidFile": "Please select a valid video file",
-    
+
     // Header
     "header.untitled": "Untitled Video",
     "header.export": "Export",
@@ -26,7 +26,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "header.delete": "Delete video",
     "header.settings": "Video settings",
     "header.help": "Help & Feedback",
-    
+
     // Editor
     "editor.tabs.edit": "Edit",
     "editor.tabs.preview": "Preview",
@@ -36,7 +36,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "editor.mode.editHint": "Tap on the video to add hotspots",
     "editor.mode.previewHint": "See how viewers will experience your video",
     "editor.hint.tapToAddHotspot": "Tap on the video to place your first hotspot.",
-    
+
     // Hotspots
     "hotspots.title": "Hotspots",
     "hotspots.empty": "No hotspots yet",
@@ -49,7 +49,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "hotspots.deleteFailed": "Failed to delete hotspot. Please try again.",
     "hotspots.createFailed": "Failed to save hotspot. Changes are local only.",
     "hotspots.unknownProduct": "Unknown Product",
-    
+
     // Layout
     "layout.title": "Layout & Behavior",
     "layout.templateFamily": "Template Family",
@@ -76,7 +76,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "layout.countdown.position.corner": "Corner",
     "layout.assignProductFirst": "Assign a product first",
     "layout.assignProductHint": "You need to assign a product before customizing layout & behavior.",
-    
+
     // Product
     "product.choose": "Choose a product",
     "product.edit": "Edit product",
@@ -109,7 +109,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "product.created": "Product created",
     "product.updated": "Product updated",
     "product.removed": "Product removed from hotspot",
-    
+
     // Families
     "family.ecommerce.name": "E-Commerce",
     "family.ecommerce.subtitle": "Clean cards for classic shop setups",
@@ -117,7 +117,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "family.luxury.subtitle": "Ultra-clean, subtle, premium brands",
     "family.seasonal.name": "Seasonal",
     "family.seasonal.subtitle": "Special event templates (Valentine, Easter, BF)",
-    
+
     // Actions
     "actions.save": "Save",
     "actions.saveChanges": "Save changes",
@@ -129,7 +129,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "actions.off": "Off",
     "actions.or": "or",
     "actions.pasteUrl": "Paste image URL",
-    
+
     // FTUX
     "ftux.welcome": "Welcome to Shopable.",
     "ftux.subtitle": "Turn your video into a shop.",
@@ -137,11 +137,11 @@ const translations: Record<Locale, Record<string, string>> = {
     "ftux.productHint": "Choose a product or create a new one.",
     "ftux.previewHint": "Switch to Preview to see your final video.",
     "ftux.exportHint": "You can now export your Shopable video.",
-    
+
     // Video
     "video.removed": "Video removed. Upload a new video to continue.",
     "video.exportSuccess": "Project exported successfully",
-    
+
     // Export
     "export.title": "Export",
     "export.button": "Export video",
@@ -154,7 +154,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "export.readyToShare": "Ready to share",
     "export.success": "Export finished – video is ready to share",
     "export.failed": "Export failed, please try again",
-    
+
     // Scene State
     "scene.noHotspotsHere": "No hotspots here — next at",
     "scene.jumpToNext": "Jump to next",
@@ -165,19 +165,19 @@ const translations: Record<Locale, Record<string, string>> = {
     "scene.allDone": "All hotspots complete",
     "scene.doneEditing": "Done Editing",
     "scene.nextHotspot": "Next Hotspot",
-    
+
     // Dialog
     "dialog.deleteVideo.title": "Delete video?",
     "dialog.deleteVideo.description": "This will remove the video and all hotspots. Products will be preserved.",
     "dialog.deleteVideo.confirm": "Delete",
     "dialog.deleteVideo.cancel": "Cancel",
   },
-  
+
   de: {
     // App
     "app.language.de": "Deutsch",
     "app.language.en": "English",
-    
+
     // Upload
     "upload.title": "Video hochladen",
     "upload.loading": "Video wird geladen...",
@@ -186,7 +186,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "upload.success": "Video erfolgreich geladen",
     "upload.error": "Video konnte nicht geladen werden",
     "upload.invalidFile": "Bitte wähle eine gültige Videodatei",
-    
+
     // Header
     "header.untitled": "Unbenanntes Video",
     "header.export": "Exportieren",
@@ -194,7 +194,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "header.delete": "Video löschen",
     "header.settings": "Videoeinstellungen",
     "header.help": "Hilfe & Feedback",
-    
+
     // Editor
     "editor.tabs.edit": "Bearbeiten",
     "editor.tabs.preview": "Vorschau",
@@ -204,7 +204,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "editor.mode.editHint": "Tippe auf das Video, um Hotspots hinzuzufügen",
     "editor.mode.previewHint": "Sieh dir an, wie Zuschauer dein Video erleben werden",
     "editor.hint.tapToAddHotspot": "Tippe auf das Video, um deinen ersten Hotspot zu setzen.",
-    
+
     // Hotspots
     "hotspots.title": "Hotspots",
     "hotspots.empty": "Noch keine Hotspots",
@@ -217,7 +217,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "hotspots.deleteFailed": "Hotspot konnte nicht gelöscht werden. Bitte erneut versuchen.",
     "hotspots.createFailed": "Hotspot konnte nicht gespeichert werden. Änderungen sind nur lokal.",
     "hotspots.unknownProduct": "Unbekanntes Produkt",
-    
+
     // Layout
     "layout.title": "Layout & Verhalten",
     "layout.templateFamily": "Template-Familie",
@@ -244,7 +244,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "layout.countdown.position.corner": "In der Ecke",
     "layout.assignProductFirst": "Zuerst ein Produkt zuweisen",
     "layout.assignProductHint": "Du musst ein Produkt zuweisen, bevor du Layout & Verhalten anpassen kannst.",
-    
+
     // Product
     "product.choose": "Produkt auswählen",
     "product.edit": "Produkt bearbeiten",
@@ -277,7 +277,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "product.created": "Produkt erstellt",
     "product.updated": "Produkt aktualisiert",
     "product.removed": "Produkt vom Hotspot entfernt",
-    
+
     // Families
     "family.ecommerce.name": "E-Commerce",
     "family.ecommerce.subtitle": "Klare Karten für klassische Shop-Setups",
@@ -285,7 +285,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "family.luxury.subtitle": "Ultra-clean, dezent, Premium-Marken",
     "family.seasonal.name": "Saisonal",
     "family.seasonal.subtitle": "Spezielle Event-Templates (Valentinstag, Ostern, BF)",
-    
+
     // Actions
     "actions.save": "Speichern",
     "actions.saveChanges": "Änderungen speichern",
@@ -297,7 +297,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "actions.off": "Aus",
     "actions.or": "oder",
     "actions.pasteUrl": "Bild-URL einfügen",
-    
+
     // FTUX
     "ftux.welcome": "Willkommen bei Shopable.",
     "ftux.subtitle": "Verwandle dein Video in einen Shop.",
@@ -305,11 +305,11 @@ const translations: Record<Locale, Record<string, string>> = {
     "ftux.productHint": "Wähle ein Produkt oder erstelle ein neues.",
     "ftux.previewHint": "Wechsle zur Vorschau, um dein fertiges Video zu sehen.",
     "ftux.exportHint": "Du kannst dein Shopable-Video jetzt exportieren.",
-    
+
     // Video
     "video.removed": "Video entfernt. Lade ein neues Video hoch, um fortzufahren.",
     "video.exportSuccess": "Projekt erfolgreich exportiert",
-    
+
     // Export
     "export.title": "Export",
     "export.button": "Video exportieren",
@@ -322,7 +322,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "export.readyToShare": "Bereit zum Teilen",
     "export.success": "Export abgeschlossen – Video ist bereit zum Teilen",
     "export.failed": "Export fehlgeschlagen, bitte erneut versuchen",
-    
+
     // Scene State
     "scene.noHotspotsHere": "Keine Hotspots hier — nächster bei",
     "scene.jumpToNext": "Zum nächsten",
@@ -333,7 +333,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "scene.allDone": "Alle Hotspots fertig",
     "scene.doneEditing": "Bearbeitung abgeschlossen",
     "scene.nextHotspot": "Nächster Hotspot",
-    
+
     // Dialog
     "dialog.deleteVideo.title": "Video löschen?",
     "dialog.deleteVideo.description": "Das Video und alle Hotspots werden entfernt. Produkte bleiben erhalten.",
@@ -368,15 +368,14 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, []);
 
-  const t = useCallback((key: string): string => {
-    return translations[locale][key] ?? translations["en"][key] ?? key;
-  }, [locale]);
-
-  return (
-    <LocaleContext.Provider value={{ locale, setLocale, t }}>
-      {children}
-    </LocaleContext.Provider>
+  const t = useCallback(
+    (key: string): string => {
+      return translations[locale][key] ?? translations["en"][key] ?? key;
+    },
+    [locale],
   );
+
+  return <LocaleContext.Provider value={{ locale, setLocale, t }}>{children}</LocaleContext.Provider>;
 };
 
 export const useLocale = (): LocaleContextValue => {
