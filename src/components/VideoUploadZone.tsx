@@ -1,213 +1,181 @@
-import { useState, useRef, useEffect } from "react";
-import { Plus, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import React, { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { isIOS } from "@/utils/ios-detection";
-import { useLocale } from "@/lib/i18n";
-import { registerUpload, uploadToS3 } from "@/services/video-api";
-import { isApiConfigured } from "@/services/api-config";
+import { cn } from "@/lib/utils";
 
-interface VideoUploadZoneProps {
+type VideoUploadZoneProps = {
   onVideoLoad: (src: string, videoId?: string) => void;
-  onUploadComplete?: () => void;
-  onOpenVideoGallery?: () => void;
+  onUploadComplete: () => void;
+  onOpenVideoGallery: () => void;
+};
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "";
+
+if (!API_BASE_URL) {
+  console.warn("[VideoUploadZone] No API base URL configured. Set VITE_API_BASE_URL or VITE_API_URL.");
 }
 
-type UploadState = "idle" | "registering" | "uploading" | "processing";
+type RegisterUploadResponse = {
+  videoId: string;
+  uploadUrl: string;
+  fileUrl?: string | null;
+  originalVideoKey?: string | null;
+  renderStatus?: string;
+  createdAt?: string;
+  renderUpdatedAt?: string | null;
+};
 
-const VideoUploadZone = ({ onVideoLoad, onUploadComplete, onOpenVideoGallery }: VideoUploadZoneProps) => {
-  const { t } = useLocale();
-  const [isDragging, setIsDragging] = useState(false);
-  const [hasAnimated, setHasAnimated] = useState(false);
-  const [uploadState, setUploadState] = useState<UploadState>("idle");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({ onVideoLoad, onUploadComplete, onOpenVideoGallery }) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
 
-  const isLoading = uploadState !== "idle";
+  const handleFiles = useCallback(
+    async (fileList: FileList | null) => {
+      const file = fileList?.[0];
+      if (!file) return;
 
-  useEffect(() => {
-    // Trigger animations after mount
-    const timer = setTimeout(() => setHasAnimated(true), 50);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleFile = async (file: File) => {
-    console.log("[VideoUpload] File received:", file.name, "Type:", file.type, "Size:", file.size);
-
-    if (!file || !file.type.startsWith("video/")) {
-      toast.error(t("upload.invalidFile"));
-      return;
-    }
-
-    // Check if API is configured before attempting upload
-    if (!isApiConfigured) {
-      console.error("[VideoUpload] API not configured - using placeholder URL");
-      toast.error("Backend not configured. Please set the VITE_API_BASE_URL environment variable.");
-      return;
-    }
-
-    try {
-      // Step 1: Register the upload with the backend
-      setUploadState("registering");
-      console.log("[VideoUpload] Registering upload with backend...");
-
-      const { uploadUrl, videoId, fileUrl } = await registerUpload({
-        filename: file.name,
-        contentType: file.type,
-        sizeBytes: file.size,
-      });
-
-      console.log("[VideoUpload] Got presigned URL:", uploadUrl);
-      console.log("[VideoUpload] Video ID:", videoId);
-
-      // Step 2: Upload to S3
-      setUploadState("uploading");
-      console.log("[VideoUpload] Uploading to S3...");
-
-      await uploadToS3(uploadUrl, file);
-
-      console.log("[VideoUpload] S3 upload complete");
-
-      // Step 3: Show processing state briefly, then complete
-      setUploadState("processing");
-
-      // If we have a fileUrl from the response, use it directly
-      if (fileUrl) {
-        console.log("[VideoUpload] Using fileUrl from response:", fileUrl);
-        onVideoLoad(fileUrl, videoId);
-        toast.success(t("upload.success"));
-        setUploadState("idle");
-        onUploadComplete?.();
+      if (!API_BASE_URL) {
+        toast.error("Upload API base URL is not configured.");
         return;
       }
 
-      // Otherwise, for local preview while backend processes, use local blob
-      // This provides immediate feedback while the video is being processed
-      if (isIOS()) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const dataUrl = reader.result as string;
-          onVideoLoad(dataUrl, videoId);
-          toast.success(t("upload.success"));
-          setUploadState("idle");
-          onUploadComplete?.();
-        };
-        reader.onerror = () => {
-          toast.error(t("upload.error"));
-          setUploadState("idle");
-        };
-        reader.readAsDataURL(file);
-      } else {
-        const url = URL.createObjectURL(file);
-        onVideoLoad(url, videoId);
-        toast.success(t("upload.success"));
-        setUploadState("idle");
-        onUploadComplete?.();
+      try {
+        setIsUploading(true);
+
+        // 1) Upload in Backend registrieren
+        const registerRes = await fetch(`${API_BASE_URL}/uploads/register`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            filename: file.name,
+            contentType: file.type || "video/mp4",
+          }),
+        });
+
+        if (!registerRes.ok) {
+          const text = await registerRes.text();
+          console.error("[VideoUploadZone] Register failed:", text);
+          throw new Error("Failed to register upload");
+        }
+
+        const registerData = (await registerRes.json()) as RegisterUploadResponse;
+
+        if (!registerData.uploadUrl || !registerData.videoId) {
+          console.error("[VideoUploadZone] Invalid register response:", registerData);
+          throw new Error("Backend did not return uploadUrl or videoId");
+        }
+
+        // 2) File via pre-signed URL nach S3 hochladen
+        const uploadRes = await fetch(registerData.uploadUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": file.type || "video/mp4",
+          },
+          body: file,
+        });
+
+        if (!uploadRes.ok) {
+          console.error("[VideoUploadZone] Upload to S3 failed:", uploadRes.status, await uploadRes.text());
+          throw new Error("Upload to storage failed");
+        }
+
+        // 3) Video-URL bestimmen
+        let finalFileUrl: string;
+
+        if (registerData.fileUrl && registerData.fileUrl.trim().length > 0) {
+          // Idealfall: Backend gibt bereits eine abspielbare URL zurück
+          finalFileUrl = registerData.fileUrl;
+        } else {
+          // Fallback: lokale Object URL, damit der Editor SOFORT funktioniert
+          console.warn(
+            "[VideoUploadZone] Backend did not return fileUrl – using local object URL as fallback",
+            registerData,
+          );
+          finalFileUrl = URL.createObjectURL(file);
+        }
+
+        // 4) Editor informieren
+        onVideoLoad(finalFileUrl, registerData.videoId);
+        onUploadComplete();
+
+        toast.success("Video uploaded successfully.");
+      } catch (err: any) {
+        console.error("[VideoUploadZone] Upload error:", err);
+        toast.error(err?.message || "Upload failed");
+      } finally {
+        setIsUploading(false);
+        setDragActive(false);
       }
-    } catch (error) {
-      console.error("[VideoUpload] Upload failed:", error);
-      toast.error(error instanceof Error ? error.message : t("upload.error"));
-      setUploadState("idle");
-    }
+    },
+    [onVideoLoad, onUploadComplete],
+  );
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFiles(e.target.files);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragging(true);
+    e.stopPropagation();
+    setDragActive(false);
+    handleFiles(e.dataTransfer.files);
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragging(false);
+    e.stopPropagation();
+    if (!dragActive) setDragActive(true);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragging(false);
-
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      handleFile(file);
-    }
-  };
-
-  const handleClick = () => {
-    if (!isLoading) {
-      fileInputRef.current?.click();
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFile(file);
-    }
+    e.stopPropagation();
+    setDragActive(false);
   };
 
   return (
-    <div
-      className="w-full min-h-screen-safe flex flex-col items-center justify-center px-5 py-12 bg-gradient-to-b from-neutral-50 to-neutral-100/80"
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
-      <div className="w-full max-w-[480px] flex flex-col items-center">
-        {/* Hidden file input */}
-        <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileChange} className="hidden" />
-
-        {/* Large circular upload button */}
-        <button
-          onClick={handleClick}
-          disabled={isLoading}
-          className={cn(
-            "w-[112px] h-[112px] rounded-full flex items-center justify-center",
-            "bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)]",
-            "active:scale-[0.95] transition-all duration-100",
-            "hover:shadow-[0_6px_32px_rgba(0,0,0,0.12)]",
-            "disabled:opacity-70 disabled:cursor-not-allowed",
-            hasAnimated ? "animate-upload-button-enter" : "opacity-0",
-            isDragging && "scale-105 shadow-[0_8px_40px_rgba(0,122,255,0.2)]",
-          )}
-        >
-          {isLoading ? (
-            <Loader2 className="w-9 h-9 text-primary animate-spin" strokeWidth={1.5} />
-          ) : (
-            <Plus
-              className={cn("w-9 h-9 text-primary", hasAnimated && "animate-upload-icon-pulse")}
-              strokeWidth={1.5}
-            />
-          )}
-        </button>
-
-        {/* Title and subtitle */}
-        <div className={cn("mt-8 text-center", hasAnimated ? "animate-fade-in" : "opacity-0")}>
-          <h1 className="text-[22px] font-semibold text-neutral-900 tracking-tight">
-            {uploadState === "registering" && "Preparing upload..."}
-            {uploadState === "uploading" && "Uploading..."}
-            {uploadState === "processing" && "Processing..."}
-            {uploadState === "idle" && t("upload.title")}
-          </h1>
-          <p className="mt-2 text-[15px] text-neutral-500">
-            {uploadState === "registering" && "Connecting to server"}
-            {uploadState === "uploading" && "Sending video to cloud"}
-            {uploadState === "processing" && "Almost ready..."}
-            {uploadState === "idle" && t("upload.subtitle")}
-          </p>
-        </div>
-
-        {/* Secondary link to open saved videos */}
-        {uploadState === "idle" && onOpenVideoGallery && (
-          <button
-            onClick={onOpenVideoGallery}
-            className={cn(
-              "mt-6 text-[15px] text-primary font-medium underline underline-offset-2 hover:text-primary/80 transition-colors",
-              hasAnimated ? "animate-fade-in" : "opacity-0",
-            )}
-            style={{ animationDelay: "150ms" }}
-          >
-            Oder gespeichertes Video wählen
-          </button>
+    <div className="w-full max-w-xl mx-auto flex flex-col items-center gap-4">
+      <div
+        className={cn(
+          "w-full border-2 border-dashed rounded-2xl px-6 py-10 text-center cursor-pointer transition-all",
+          dragActive
+            ? "border-blue-500 bg-blue-50/60"
+            : "border-[rgba(0,0,0,0.08)] bg-[rgba(249,250,251,0.9)] hover:border-blue-400 hover:bg-blue-50/40",
+          isUploading && "opacity-70 cursor-wait",
         )}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+      >
+        <input
+          id="video-upload-input"
+          type="file"
+          accept="video/*"
+          className="hidden"
+          onChange={handleInputChange}
+          disabled={isUploading}
+        />
+
+        <label htmlFor="video-upload-input" className="flex flex-col items-center gap-3 cursor-pointer">
+          <div className="text-sm font-medium text-gray-900">
+            {isUploading ? "Uploading video..." : "Upload a video"}
+          </div>
+          <div className="text-xs text-gray-500">Drag &amp; drop your file hier, oder klicke zum Auswählen</div>
+          <div className="mt-4 inline-flex items-center px-4 py-2 text-sm font-medium rounded-full bg-black text-white hover:bg-gray-900 transition-colors">
+            {isUploading ? "Please wait..." : "Choose file"}
+          </div>
+        </label>
       </div>
+
+      <button
+        type="button"
+        onClick={onOpenVideoGallery}
+        className="text-xs text-gray-600 hover:text-gray-900 underline-offset-4 hover:underline"
+        disabled={isUploading}
+      >
+        Or pick a video from your gallery
+      </button>
     </div>
   );
 };
