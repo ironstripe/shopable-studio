@@ -39,7 +39,7 @@ import { useHotspots } from "@/hooks/use-hotspots";
 import { useSceneState, isHotspotComplete } from "@/hooks/use-scene-state";
 import { useLocale } from "@/lib/i18n";
 import shopableLogo from "@/assets/shopable-logo.png";
-import { listVideos, VideoDto, triggerRender, RenderStatus } from "@/services/video-api";
+import { listVideos, VideoDto, triggerRender } from "@/services/video-api";
 import VideoExportSection from "@/components/VideoExportSection";
 
 const Index = () => {
@@ -85,7 +85,7 @@ const Index = () => {
   
   // Export/render state
   const [isExporting, setIsExporting] = useState(false);
-  const [currentVideoRenderStatus, setCurrentVideoRenderStatus] = useState<RenderStatus | null>(null);
+  const [currentVideoRenderStatus, setCurrentVideoRenderStatus] = useState<"NOT_STARTED" | "PENDING" | "READY" | "NONE" | null>(null);
   const [currentVideoRenderUpdatedAt, setCurrentVideoRenderUpdatedAt] = useState<string | null>(null);
   
   const [videoSrc, setVideoSrc] = useState<string | null>(null);

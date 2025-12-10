@@ -1,15 +1,19 @@
 import { API_BASE_URL } from "./api-config";
 
-export type RenderStatus = "NONE" | "PENDING" | "READY";
+// S3 bucket base URL for constructing playable video URLs
+const S3_BASE_URL = "https://shopable-prod-media.s3.eu-west-1.amazonaws.com/";
+
+export type RenderStatus = "NOT_STARTED" | "PENDING" | "READY" | "NONE";
 
 export interface VideoDto {
   id: string;
-  videoId: string;
-  title?: string | null;
-  fileUrl: string | null;
-  renderStatus: RenderStatus;
-  renderUpdatedAt: string | null;
+  title: string;
   createdAt: string | null;
+  status: "REGISTERED" | "UPLOADED" | "READY" | "FAILED" | string;
+  thumbnailUrl?: string;
+  fileUrl: string | null;
+  renderStatus: RenderStatus | null;
+  renderUpdatedAt: string | null;
 }
 
 export interface TriggerRenderResponse {
@@ -21,8 +25,9 @@ export interface TriggerRenderResponse {
 /**
  * Infer a human-readable title from video key or ID
  */
-function inferTitleFromId(videoId: string): string {
-  const lastPart = videoId.split("/").pop() || videoId;
+function inferTitleFromKey(videoId: string, originalVideoKey?: string | null): string {
+  const source = originalVideoKey || videoId;
+  const lastPart = source.split("/").pop() || source;
   const nameWithoutExt = lastPart.replace(/\.[^.]+$/, "");
   return nameWithoutExt
     .replace(/[-_]+/g, " ")
@@ -31,25 +36,53 @@ function inferTitleFromId(videoId: string): string {
 }
 
 /**
+ * Check if a videoId represents a real video (not hotspots, test data, etc.)
+ */
+function isValidVideoEntry(videoId: string): boolean {
+  if (!videoId) return false;
+  
+  // Filter out non-video entries
+  if (videoId.startsWith("hotspots/")) return false;
+  if (videoId.endsWith(".json")) return false;
+  if (videoId === "TEST123") return false;
+  if (videoId === "DEIN-VIDEO-ID") return false;
+  
+  return true;
+}
+
+/**
  * Map backend item to VideoDto
  */
-function mapBackendItemToVideoDto(item: any): VideoDto {
-  const id = item.id || item.videoId || "";
-  const videoId = item.videoId || item.id || "";
+function mapBackendItemToVideoDto(item: any): VideoDto | null {
+  const rawVideoId: string = item.videoId || item.id || "";
   
-  // Use fileUrl directly from backend, or null if missing
-  let fileUrl: string | null = item.fileUrl || null;
-  
+  // Skip invalid entries
+  if (!isValidVideoEntry(rawVideoId)) {
+    return null;
+  }
+
+  // Use the part before "/" as id if there is a path (e.g., "uuid/filename.mp4" -> "uuid")
+  const id = rawVideoId.includes("/")
+    ? rawVideoId.split("/")[0]
+    : rawVideoId;
+
+  // Determine fileUrl - prefer rendered over original
+  let fileUrl: string | null = item.renderedUrl || item.originalUrl || null;
+
+  // If we don't have URLs but only keys, construct URL from S3
   if (!fileUrl) {
-    console.warn(`[Videos] Video ${id} has no fileUrl, video may not be playable`);
+    const key = item.renderedVideoKey || item.originalVideoKey || null;
+    if (key) {
+      fileUrl = S3_BASE_URL + key;
+    }
   }
 
   return {
     id,
-    videoId,
-    title: item.title || inferTitleFromId(videoId),
     fileUrl,
-    renderStatus: (item.renderStatus as RenderStatus) || "NONE",
+    title: inferTitleFromKey(rawVideoId, item.originalVideoKey),
+    status: item.status || "UPLOADED",
+    renderStatus: (item.renderStatus as RenderStatus) || null,
     renderUpdatedAt: item.renderUpdatedAt || null,
     createdAt: item.createdAt || null,
   };
@@ -73,7 +106,7 @@ export async function listVideos(): Promise<VideoDto[]> {
   
   const data = await res.json();
   
-  // Handle both array format and { items: [], videos: [] } format
+  // Handle both array format and { items: [] } format
   const items = Array.isArray(data) ? data : (data.items || data.videos || []);
   
   if (!Array.isArray(items)) {
@@ -83,7 +116,9 @@ export async function listVideos(): Promise<VideoDto[]> {
   
   console.log('[Videos] Raw items from backend:', items.length);
   
-  const mapped = items.map(mapBackendItemToVideoDto);
+  const mapped = items
+    .map(mapBackendItemToVideoDto)
+    .filter((v): v is VideoDto => v !== null && v.fileUrl !== null);
   
   // Sort by createdAt descending (newest first)
   mapped.sort((a, b) => {
@@ -92,7 +127,7 @@ export async function listVideos(): Promise<VideoDto[]> {
     return dateB - dateA;
   });
   
-  console.log('[Videos] Mapped videos:', mapped.length);
+  console.log('[Videos] Filtered and sorted videos:', mapped.length);
   
   return mapped;
 }
@@ -119,8 +154,8 @@ export async function triggerRender(videoId: string): Promise<TriggerRenderRespo
   
   return {
     videoId: data.videoId,
-    renderStatus: data.renderStatus || "READY",
-    renderUpdatedAt: data.renderUpdatedAt || null,
+    renderStatus: data.renderStatus,
+    renderUpdatedAt: data.renderUpdatedAt,
   };
 }
 
@@ -165,15 +200,15 @@ export async function registerUpload(payload: {
     throw new Error("Backend did not return upload URL");
   }
 
-  if (!data.videoId && !data.id) {
+  if (!data.videoId) {
     console.error("[Uploads] Backend did not return videoId:", data);
     throw new Error("Backend did not return video ID");
   }
 
   return {
     uploadUrl: data.uploadUrl as string,
-    videoId: (data.videoId || data.id) as string,
-    fileUrl: data.fileUrl ?? null,
+    videoId: data.videoId as string,
+    fileUrl: data.fileUrl ?? undefined,
   };
 }
 
