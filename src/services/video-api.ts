@@ -1,46 +1,91 @@
 import { API_BASE_URL } from "./api-config";
 
+// S3 bucket base URL for constructing playable video URLs
+const S3_BASE_URL = "https://shopable-prod-media.s3.eu-west-1.amazonaws.com/";
+
+export type RenderStatus = "NOT_STARTED" | "PENDING" | "READY" | "NONE";
+
 export interface VideoDto {
   id: string;
   title: string;
-  createdAt: number;
+  createdAt: string | null;
   status: "REGISTERED" | "UPLOADED" | "READY" | "FAILED" | string;
   thumbnailUrl?: string;
-  fileUrl?: string;
-  renderStatus?: "NOT_STARTED" | "READY" | null;
-  renderUpdatedAt?: string | null;
+  fileUrl: string | null;
+  renderStatus: RenderStatus | null;
+  renderUpdatedAt: string | null;
 }
 
 export interface TriggerRenderResponse {
   videoId: string;
-  renderStatus: "READY";
-  renderUpdatedAt: string;
-}
-
-function extractTitleFromObjectKey(objectKey: string | undefined, fallbackId: string): string {
-  if (!objectKey) return fallbackId;
-  const filename = objectKey.split('/').pop() || objectKey;
-  return filename.replace(/\.[^/.]+$/, "") || fallbackId;
+  renderStatus: RenderStatus;
+  renderUpdatedAt: string | null;
 }
 
 /**
- * Build direct S3 URL from bucket and objectKey for immediate playback
+ * Infer a human-readable title from video key or ID
  */
-function buildS3Url(bucket: string, objectKey: string): string {
-  const encodedKey = objectKey.split('/').map(encodeURIComponent).join('/');
-  return `https://${bucket}.s3.eu-west-1.amazonaws.com/${encodedKey}`;
+function inferTitleFromKey(videoId: string, originalVideoKey?: string | null): string {
+  const source = originalVideoKey || videoId;
+  const lastPart = source.split("/").pop() || source;
+  const nameWithoutExt = lastPart.replace(/\.[^.]+$/, "");
+  return nameWithoutExt
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim() || "Untitled Video";
 }
 
-export interface RegisterUploadRequest {
-  filename: string;
-  contentType: string;
-  sizeBytes: number;
+/**
+ * Check if a videoId represents a real video (not hotspots, test data, etc.)
+ */
+function isValidVideoEntry(videoId: string): boolean {
+  if (!videoId) return false;
+  
+  // Filter out non-video entries
+  if (videoId.startsWith("hotspots/")) return false;
+  if (videoId.endsWith(".json")) return false;
+  if (videoId === "TEST123") return false;
+  if (videoId === "DEIN-VIDEO-ID") return false;
+  
+  return true;
 }
 
-export interface RegisterUploadResponse {
-  uploadUrl: string; // S3 presigned URL for PUT
-  videoId: string;
-  fileUrl?: string; // optional playback URL after processing
+/**
+ * Map backend item to VideoDto
+ */
+function mapBackendItemToVideoDto(item: any): VideoDto | null {
+  const rawVideoId: string = item.videoId || item.id || "";
+  
+  // Skip invalid entries
+  if (!isValidVideoEntry(rawVideoId)) {
+    return null;
+  }
+
+  // Use the part before "/" as id if there is a path (e.g., "uuid/filename.mp4" -> "uuid")
+  const id = rawVideoId.includes("/")
+    ? rawVideoId.split("/")[0]
+    : rawVideoId;
+
+  // Determine fileUrl - prefer rendered over original
+  let fileUrl: string | null = item.renderedUrl || item.originalUrl || null;
+
+  // If we don't have URLs but only keys, construct URL from S3
+  if (!fileUrl) {
+    const key = item.renderedVideoKey || item.originalVideoKey || null;
+    if (key) {
+      fileUrl = S3_BASE_URL + key;
+    }
+  }
+
+  return {
+    id,
+    fileUrl,
+    title: inferTitleFromKey(rawVideoId, item.originalVideoKey),
+    status: item.status || "UPLOADED",
+    renderStatus: (item.renderStatus as RenderStatus) || null,
+    renderUpdatedAt: item.renderUpdatedAt || null,
+    createdAt: item.createdAt || null,
+  };
 }
 
 /**
@@ -48,35 +93,43 @@ export interface RegisterUploadResponse {
  */
 export async function listVideos(): Promise<VideoDto[]> {
   console.log('[Videos] Fetching video list from:', API_BASE_URL);
+  
   const res = await fetch(`${API_BASE_URL}/videos`, {
     method: "GET",
   });
+  
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     console.error("[Videos] listVideos failed", res.status, text);
     throw new Error(`Failed to load videos (${res.status})`);
   }
+  
   const data = await res.json();
-  const items = data.items || [];
-  return items.map((item: any): VideoDto => {
-    // Build fallback URL for videos missing fileUrl
-    let fileUrl = item.fileUrl;
-    if (!fileUrl && item.bucket && item.objectKey) {
-      fileUrl = buildS3Url(item.bucket, item.objectKey);
-      console.log('[Videos] Built fallback S3 URL for video:', item.videoId, fileUrl);
-    }
-    
-    return {
-      id: item.videoId || item.id,
-      title: extractTitleFromObjectKey(item.objectKey, item.videoId || item.id),
-      createdAt: item.createdAt || Date.now(),
-      status: item.status || "UPLOADED",
-      thumbnailUrl: item.thumbnailUrl,
-      fileUrl,
-      renderStatus: item.renderStatus || null,
-      renderUpdatedAt: item.renderUpdatedAt || null,
-    };
+  
+  // Handle both array format and { items: [] } format
+  const items = Array.isArray(data) ? data : (data.items || data.videos || []);
+  
+  if (!Array.isArray(items)) {
+    console.error("[Videos] /videos response is not an array:", data);
+    return [];
+  }
+  
+  console.log('[Videos] Raw items from backend:', items.length);
+  
+  const mapped = items
+    .map(mapBackendItemToVideoDto)
+    .filter((v): v is VideoDto => v !== null && v.fileUrl !== null);
+  
+  // Sort by createdAt descending (newest first)
+  mapped.sort((a, b) => {
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return dateB - dateA;
   });
+  
+  console.log('[Videos] Filtered and sorted videos:', mapped.length);
+  
+  return mapped;
 }
 
 /**

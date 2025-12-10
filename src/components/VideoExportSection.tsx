@@ -2,9 +2,10 @@ import { CheckCircle, Copy, Loader2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocale } from "@/lib/i18n";
 import { toast } from "sonner";
+import { RenderStatus } from "@/services/video-api";
 
 interface VideoExportSectionProps {
-  renderStatus?: "NOT_STARTED" | "READY" | null;
+  renderStatus?: RenderStatus | null;
   renderUpdatedAt?: string | null;
   fileUrl?: string;
   isExporting: boolean;
