@@ -1,4 +1,3 @@
-Loveable videoupload.tsx
 import { useState, useRef, useEffect } from "react";
 import { Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -32,8 +31,8 @@ const VideoUploadZone = ({ onVideoLoad, onUploadComplete, onOpenVideoGallery }: 
   }, []);
 
   const handleFile = async (file: File) => {
-    console.log('[VideoUpload] File received:', file.name, 'Type:', file.type, 'Size:', file.size);
-    
+    console.log("[VideoUpload] File received:", file.name, "Type:", file.type, "Size:", file.size);
+
     if (!file || !file.type.startsWith("video/")) {
       toast.error(t("upload.invalidFile"));
       return;
@@ -41,7 +40,7 @@ const VideoUploadZone = ({ onVideoLoad, onUploadComplete, onOpenVideoGallery }: 
 
     // Check if API is configured before attempting upload
     if (!isApiConfigured) {
-      console.error('[VideoUpload] API not configured - using placeholder URL');
+      console.error("[VideoUpload] API not configured - using placeholder URL");
       toast.error("Backend not configured. Please set the VITE_API_BASE_URL environment variable.");
       return;
     }
@@ -49,38 +48,38 @@ const VideoUploadZone = ({ onVideoLoad, onUploadComplete, onOpenVideoGallery }: 
     try {
       // Step 1: Register the upload with the backend
       setUploadState("registering");
-      console.log('[VideoUpload] Registering upload with backend...');
-      
+      console.log("[VideoUpload] Registering upload with backend...");
+
       const { uploadUrl, videoId, fileUrl } = await registerUpload({
         filename: file.name,
         contentType: file.type,
         sizeBytes: file.size,
       });
-      
-      console.log('[VideoUpload] Got presigned URL:', uploadUrl);
-      console.log('[VideoUpload] Video ID:', videoId);
-      
+
+      console.log("[VideoUpload] Got presigned URL:", uploadUrl);
+      console.log("[VideoUpload] Video ID:", videoId);
+
       // Step 2: Upload to S3
       setUploadState("uploading");
-      console.log('[VideoUpload] Uploading to S3...');
-      
+      console.log("[VideoUpload] Uploading to S3...");
+
       await uploadToS3(uploadUrl, file);
-      
-      console.log('[VideoUpload] S3 upload complete');
-      
+
+      console.log("[VideoUpload] S3 upload complete");
+
       // Step 3: Show processing state briefly, then complete
       setUploadState("processing");
-      
+
       // If we have a fileUrl from the response, use it directly
       if (fileUrl) {
-        console.log('[VideoUpload] Using fileUrl from response:', fileUrl);
+        console.log("[VideoUpload] Using fileUrl from response:", fileUrl);
         onVideoLoad(fileUrl, videoId);
         toast.success(t("upload.success"));
         setUploadState("idle");
         onUploadComplete?.();
         return;
       }
-      
+
       // Otherwise, for local preview while backend processes, use local blob
       // This provides immediate feedback while the video is being processed
       if (isIOS()) {
@@ -104,9 +103,8 @@ const VideoUploadZone = ({ onVideoLoad, onUploadComplete, onOpenVideoGallery }: 
         setUploadState("idle");
         onUploadComplete?.();
       }
-      
     } catch (error) {
-      console.error('[VideoUpload] Upload failed:', error);
+      console.error("[VideoUpload] Upload failed:", error);
       toast.error(error instanceof Error ? error.message : t("upload.error"));
       setUploadState("idle");
     }
@@ -146,7 +144,7 @@ const VideoUploadZone = ({ onVideoLoad, onUploadComplete, onOpenVideoGallery }: 
   };
 
   return (
-    <div 
+    <div
       className="w-full min-h-screen-safe flex flex-col items-center justify-center px-5 py-12 bg-gradient-to-b from-neutral-50 to-neutral-100/80"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -154,13 +152,7 @@ const VideoUploadZone = ({ onVideoLoad, onUploadComplete, onOpenVideoGallery }: 
     >
       <div className="w-full max-w-[480px] flex flex-col items-center">
         {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="video/*"
-          onChange={handleFileChange}
-          className="hidden"
-        />
+        <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileChange} className="hidden" />
 
         {/* Large circular upload button */}
         <button
@@ -173,27 +165,21 @@ const VideoUploadZone = ({ onVideoLoad, onUploadComplete, onOpenVideoGallery }: 
             "hover:shadow-[0_6px_32px_rgba(0,0,0,0.12)]",
             "disabled:opacity-70 disabled:cursor-not-allowed",
             hasAnimated ? "animate-upload-button-enter" : "opacity-0",
-            isDragging && "scale-105 shadow-[0_8px_40px_rgba(0,122,255,0.2)]"
+            isDragging && "scale-105 shadow-[0_8px_40px_rgba(0,122,255,0.2)]",
           )}
         >
           {isLoading ? (
             <Loader2 className="w-9 h-9 text-primary animate-spin" strokeWidth={1.5} />
           ) : (
-            <Plus 
-              className={cn(
-                "w-9 h-9 text-primary",
-                hasAnimated && "animate-upload-icon-pulse"
-              )} 
+            <Plus
+              className={cn("w-9 h-9 text-primary", hasAnimated && "animate-upload-icon-pulse")}
               strokeWidth={1.5}
             />
           )}
         </button>
 
         {/* Title and subtitle */}
-        <div className={cn(
-          "mt-8 text-center",
-          hasAnimated ? "animate-fade-in" : "opacity-0"
-        )}>
+        <div className={cn("mt-8 text-center", hasAnimated ? "animate-fade-in" : "opacity-0")}>
           <h1 className="text-[22px] font-semibold text-neutral-900 tracking-tight">
             {uploadState === "registering" && "Preparing upload..."}
             {uploadState === "uploading" && "Uploading..."}
@@ -214,7 +200,7 @@ const VideoUploadZone = ({ onVideoLoad, onUploadComplete, onOpenVideoGallery }: 
             onClick={onOpenVideoGallery}
             className={cn(
               "mt-6 text-[15px] text-primary font-medium underline underline-offset-2 hover:text-primary/80 transition-colors",
-              hasAnimated ? "animate-fade-in" : "opacity-0"
+              hasAnimated ? "animate-fade-in" : "opacity-0",
             )}
             style={{ animationDelay: "150ms" }}
           >
