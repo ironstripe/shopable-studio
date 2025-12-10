@@ -85,7 +85,7 @@ const Index = () => {
   
   // Export/render state
   const [isExporting, setIsExporting] = useState(false);
-  const [currentVideoRenderStatus, setCurrentVideoRenderStatus] = useState<"NOT_STARTED" | "READY" | null>(null);
+  const [currentVideoRenderStatus, setCurrentVideoRenderStatus] = useState<"NOT_STARTED" | "PENDING" | "READY" | "NONE" | null>(null);
   const [currentVideoRenderUpdatedAt, setCurrentVideoRenderUpdatedAt] = useState<string | null>(null);
   
   const [videoSrc, setVideoSrc] = useState<string | null>(null);

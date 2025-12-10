@@ -14,8 +14,10 @@ interface VideoGalleryProps {
   onDeleteVideo?: (video: VideoDto) => void;
 }
 
-function formatDate(timestamp: number): string {
+function formatDate(timestamp: string | number | null): string {
+  if (!timestamp) return "Unknown date";
   const date = new Date(timestamp);
+  if (isNaN(date.getTime())) return "Unknown date";
   return date.toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'short',
@@ -218,7 +220,12 @@ const VideoGallery = ({
 }: VideoGalleryProps) => {
 
   // Sort videos by newest first
-  const sortedVideos = [...videos].sort((a, b) => b.createdAt - a.createdAt);
+  // Videos are already sorted by API, but ensure newest first
+  const sortedVideos = [...videos].sort((a, b) => {
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return dateB - dateA;
+  });
 
   // Loading state - show 3 skeleton cards
   if (isLoading) {
