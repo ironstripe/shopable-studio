@@ -153,6 +153,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "export.needsExport": "Needs export",
     "export.readyToShare": "Ready to share",
     "export.success": "Export finished – video is ready to share",
+    "export.rendering": "Your video is being rendered…",
     "export.failed": "Export failed, please try again",
 
     // Scene State
@@ -321,6 +322,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "export.needsExport": "Export nötig",
     "export.readyToShare": "Bereit zum Teilen",
     "export.success": "Export abgeschlossen – Video ist bereit zum Teilen",
+    "export.rendering": "Dein Video wird gerendert…",
     "export.failed": "Export fehlgeschlagen, bitte erneut versuchen",
 
     // Scene State

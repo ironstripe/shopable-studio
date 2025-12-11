@@ -251,23 +251,24 @@ const Index = () => {
   // Handle export/render
   const handleExportVideo = async () => {
     if (!currentVideoId) return;
+    if (isExporting || currentVideoRenderStatus === "PENDING") return; // Prevent double-clicks
     
     setIsExporting(true);
     try {
-      const result = await triggerRender(currentVideoId);
+      await triggerRender(currentVideoId);
       
-      // Update local state
-      setCurrentVideoRenderStatus("READY");
-      setCurrentVideoRenderUpdatedAt(result.renderUpdatedAt);
+      // Update local state to PENDING (render is in progress)
+      setCurrentVideoRenderStatus("PENDING");
+      setCurrentVideoRenderUpdatedAt(new Date().toISOString());
       
       // Update video in the list
       setVideos(prev => prev.map(v => 
         v.id === currentVideoId 
-          ? { ...v, renderStatus: "READY", renderUpdatedAt: result.renderUpdatedAt }
+          ? { ...v, renderStatus: "PENDING", renderUpdatedAt: new Date().toISOString() }
           : v
       ));
       
-      toast.success(t("export.success"));
+      toast.success(t("export.rendering"));
     } catch (error) {
       console.error('[Export] Failed:', error);
       toast.error(t("export.failed"));
@@ -626,33 +627,9 @@ const Index = () => {
     toast.success(t("video.removed"));
   };
 
+  // handleExport now triggers backend render instead of JSON download
   const handleExport = () => {
-    const project: VideoProject = {
-      videoSrc: videoSrc || "",
-      hotspots: hotspots.map((h) => ({
-        timeStart: h.timeStart,
-        timeEnd: h.timeEnd,
-        x: h.x,
-        y: h.y,
-        productId: h.productId,
-        id: h.id,
-        style: h.style,
-        ctaLabel: h.ctaLabel,
-        scale: h.scale,
-        clickBehavior: h.clickBehavior,
-        cardStyle: h.cardStyle,
-      })),
-      products,
-      videoCTA,
-    };
-    const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "shopable-project.json";
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success(t("video.exportSuccess"));
+    handleExportVideo();
   };
 
   const handlePlayPause = () => {
@@ -695,6 +672,8 @@ const Index = () => {
           hasVideo={!!videoSrc}
           onDeleteVideo={() => setShowReplaceVideoDialog(true)}
           onOpenVideoGallery={handleOpenVideoGallery}
+          isExporting={isExporting}
+          renderStatus={currentVideoRenderStatus}
         />
 
         {/* Main content area - accounts for header with safe area and bottom controls */}
@@ -948,7 +927,7 @@ const Index = () => {
             )}
             <button
               onClick={handleExport}
-              disabled={!videoSrc}
+              disabled={!videoSrc || isExporting || currentVideoRenderStatus === "PENDING"}
               className={cn(
                 "inline-flex items-center h-8 px-4 text-[13px] font-medium rounded-full",
                 "bg-white border border-[rgba(0,0,0,0.08)] text-[#111827]",
@@ -957,8 +936,17 @@ const Index = () => {
                 "disabled:opacity-40 disabled:cursor-not-allowed"
               )}
             >
-              <Download className="w-3.5 h-3.5 mr-1.5" />
-              Export
+              {isExporting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <Download className="w-3.5 h-3.5 mr-1.5" />
+                  Export
+                </>
+              )}
             </button>
           </div>
         </div>
