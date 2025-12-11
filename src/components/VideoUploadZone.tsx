@@ -1,14 +1,18 @@
 // src/components/VideoUploadZone.tsx
 
 import React, { useCallback, useRef, useState } from "react";
+import { UploadCloud, Film, Images } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { API_BASE_URL, isApiConfigured } from "@/services/api-config";
+
+// nutzt deine existierenden Services
+import { registerUpload, uploadToS3 } from "@/services/video-api";
+import { isApiConfigured } from "@/services/api-config";
 
 type VideoUploadZoneProps = {
   onVideoLoad: (src: string, videoId?: string) => void;
   onUploadComplete: () => void;
-  onOpenVideoGallery: () => void;
+  onOpenVideoGallery?: () => void;
 };
 
 const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({ onVideoLoad, onUploadComplete, onOpenVideoGallery }) => {
@@ -16,101 +20,62 @@ const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({ onVideoLoad, onUpload
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleSelectFileClick = () => {
-    if (!isApiConfigured) {
-      toast.error("Upload API base URL is not configured.");
-      console.error("[Upload] API is not configured. Check VITE_API_BASE_URL or api-config.ts");
-      return;
-    }
+  const handleBrowseClick = () => {
     fileInputRef.current?.click();
   };
 
   const uploadFile = useCallback(
     async (file: File) => {
       if (!isApiConfigured) {
-        toast.error("Upload API base URL is not configured.");
-        console.error("[Upload] API is not configured. Check VITE_API_BASE_URL or api-config.ts");
+        toast.error("API is not configured. Please set VITE_API_BASE_URL in your environment.");
         return;
       }
 
-      const trimmedBase = API_BASE_URL.replace(/\/$/, "");
-      const uploadUrl = `${trimmedBase}/uploads`;
+      if (!file.type.startsWith("video/")) {
+        toast.error("Please upload a video file.");
+        return;
+      }
 
-      console.log("[Upload] Starting upload to:", uploadUrl);
-      console.log("[Upload] File:", {
+      console.log("[Upload] Starting S3 pre-signed upload", {
         name: file.name,
         size: file.size,
         type: file.type,
       });
 
-      const formData = new FormData();
-      formData.append("file", file);
-
       setIsUploading(true);
 
       try {
-        const response = await fetch(uploadUrl, {
-          method: "POST",
-          body: formData,
+        // 1) Registrierung beim Backend: NUR Metadaten
+        const registerResponse = await registerUpload({
+          filename: file.name,
+          contentType: file.type,
+          sizeBytes: file.size,
         });
 
-        // HTTP-Fehler: Body auslesen & loggen
-        if (!response.ok) {
-          let errorMessage = `Upload failed with status ${response.status}`;
+        const { uploadUrl, videoId, fileUrl } = registerResponse || {};
 
-          try {
-            const errorData = await response.json();
-            console.error("[Upload] Error response JSON:", errorData);
-            if (errorData && typeof errorData === "object") {
-              errorMessage = errorData.message || errorData.error || errorMessage;
-            }
-          } catch {
-            try {
-              const text = await response.text();
-              console.error("[Upload] Error response text:", text);
-            } catch {
-              console.error("[Upload] Failed to read error response");
-            }
-          }
-
-          throw new Error(errorMessage);
+        if (!uploadUrl || !videoId) {
+          console.error("[Upload] Invalid registerUpload response", registerResponse);
+          throw new Error("Backend did not return uploadUrl + videoId");
         }
 
-        // Erfolgsfall: JSON parsen
-        let data: any;
-        try {
-          data = await response.json();
-        } catch (err) {
-          console.error("[Upload] Failed to parse JSON response:", err);
-          throw new Error("Backend returned invalid JSON");
+        console.log("[Upload] Got presigned URL + videoId", {
+          videoId,
+          uploadUrl,
+        });
+
+        // 2) Datei direkt nach S3 hochladen
+        await uploadToS3(uploadUrl, file);
+        console.log("[Upload] S3 upload successful");
+
+        // 3) finale abspielbare URL bestimmen
+        const finalUrl = fileUrl || uploadUrl.split("?")[0];
+
+        if (!finalUrl) {
+          throw new Error("Could not determine final video URL after S3 upload.");
         }
 
-        console.log("[Upload] Response JSON:", data);
-
-        if (!data) {
-          throw new Error("Backend returned empty response");
-        }
-
-        // Flexible Auswertung: akzeptiere unterschiedliche Feldnamen
-        const videoId: string | undefined = data.videoId || data.id;
-        const fileUrl: string | undefined = data.fileUrl || data.originalVideoKey || data.renderedVideoKey;
-
-        if (!fileUrl) {
-          console.error("[Upload] Missing video URL in response:", data);
-          throw new Error("Backend did not return a valid video URL (fileUrl, originalVideoKey, or renderedVideoKey)");
-        }
-
-        // Falls nur ein S3-Key zurückkommt und keine vollständige URL:
-        let finalUrl = fileUrl;
-        if (!fileUrl.startsWith("http")) {
-          // hier musst du bei Bedarf deinen S3-Public-URL-Präfix anpassen
-          // Beispiel:
-          // const bucketBase = "https://shopable-prod-media.s3.eu-west-1.amazonaws.com/";
-          // finalUrl = bucketBase + fileUrl.replace(/^\/+/, "");
-          console.warn("[Upload] fileUrl looks like a key, not a full URL:", fileUrl);
-        }
-
-        console.log("[Upload] Using final video URL:", finalUrl);
+        console.log("[Upload] Using final video URL", finalUrl);
 
         onVideoLoad(finalUrl, videoId);
         onUploadComplete();
@@ -119,7 +84,6 @@ const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({ onVideoLoad, onUpload
         console.error("[Upload] Error:", err);
 
         if (err instanceof TypeError) {
-          // Typischerweise Netzwerk / CORS / DNS
           toast.error("Network error. Check API configuration, CORS, or backend availability.");
         } else if (err instanceof Error) {
           toast.error(`Upload failed: ${err.message}`);
@@ -136,69 +100,97 @@ const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({ onVideoLoad, onUpload
     [onVideoLoad, onUploadComplete],
   );
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    await uploadFile(file);
-  };
+  const handleDrop = useCallback(
+    async (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setIsDragging(false);
 
-  const handleDrop = async (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setIsDragging(false);
-    if (isUploading) return;
+      const file = event.dataTransfer.files?.[0];
+      if (!file) return;
 
-    const file = event.dataTransfer.files?.[0];
-    if (!file) return;
-
-    await uploadFile(file);
-  };
+      await uploadFile(file);
+    },
+    [uploadFile],
+  );
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
+    event.stopPropagation();
     if (!isDragging) setIsDragging(true);
   };
 
   const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
+    event.stopPropagation();
     setIsDragging(false);
   };
 
+  const handleFileChange = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      await uploadFile(file);
+    },
+    [uploadFile],
+  );
+
   return (
-    <div className="w-full max-w-xl mx-auto flex flex-col items-center gap-4">
+    <div className="w-full max-w-xl mx-auto">
       <div
         className={[
-          "w-full border-2 border-dashed rounded-2xl px-6 py-10 flex flex-col items-center justify-center text-center transition-colors",
-          isDragging ? "border-blue-500 bg-blue-50/60" : "border-gray-200 bg-gray-50/60",
+          "border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors",
+          isDragging ? "border-blue-500 bg-blue-50/60" : "border-gray-200 bg-gray-50",
         ].join(" ")}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
+        onClick={handleBrowseClick}
       >
-        <p className="text-sm text-gray-700 mb-2 font-medium">Upload a video to start adding hotspots</p>
-        <p className="text-xs text-gray-500 mb-4">Drag &amp; drop your MP4 here or choose a file</p>
-
-        <div className="flex flex-col sm:flex-row gap-2 items-center justify-center">
-          <Button type="button" onClick={handleSelectFileClick} disabled={isUploading}>
-            {isUploading ? "Uploading..." : "Select video"}
-          </Button>
-          <Button type="button" variant="outline" onClick={onOpenVideoGallery} disabled={isUploading}>
-            Open gallery
-          </Button>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-white shadow flex items-center justify-center">
+            <UploadCloud className="w-6 h-6 text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-900">Drop a video here or click to upload</p>
+            <p className="text-xs text-gray-500 mt-1">MP4, MOV, WebM · Uploaded directly to S3 with a pre-signed URL</p>
+          </div>
+          <div className="flex flex-wrap gap-2 justify-center mt-2">
+            <Button
+              type="button"
+              size="sm"
+              disabled={isUploading}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleBrowseClick();
+              }}
+            >
+              {isUploading ? "Uploading..." : "Choose file"}
+            </Button>
+            {onOpenVideoGallery && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={isUploading}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenVideoGallery();
+                }}
+              >
+                <Images className="w-4 h-4 mr-1" />
+                Open gallery
+              </Button>
+            )}
+          </div>
         </div>
 
-        {!isApiConfigured && (
-          <p className="mt-3 text-xs text-red-500">
-            API base URL is not configured. Set VITE_API_BASE_URL for uploads.
-          </p>
-        )}
+        <input ref={fileInputRef} type="file" accept="video/*" className="hidden" onChange={handleFileChange} />
+      </div>
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="video/mp4,video/*"
-          className="hidden"
-          onChange={handleFileChange}
-        />
+      <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
+        <Film className="w-4 h-4" />
+        <span>Shopable will generate interactive hotspots after upload.</span>
       </div>
     </div>
   );
