@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronLeft, RefreshCw, Download, HelpCircle, Trash2, Settings, MoreVertical, Check, Globe, FolderOpen } from "lucide-react";
+import { ChevronLeft, RefreshCw, Download, HelpCircle, Trash2, Settings, MoreVertical, Check, Globe, FolderOpen, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLocale } from "@/lib/i18n";
 import shopableLogo from "@/assets/shopable-logo.png";
+import { RenderStatus } from "@/services/video-api";
 
 interface MobileHeaderProps {
   videoTitle: string;
@@ -19,6 +20,8 @@ interface MobileHeaderProps {
   onBack?: () => void;
   onDeleteVideo?: () => void;
   onOpenVideoGallery?: () => void;
+  isExporting?: boolean;
+  renderStatus?: RenderStatus | null;
 }
 
 const MobileHeader = ({
@@ -30,6 +33,8 @@ const MobileHeader = ({
   onBack,
   onDeleteVideo,
   onOpenVideoGallery,
+  isExporting = false,
+  renderStatus,
 }: MobileHeaderProps) => {
   const { t, locale, setLocale } = useLocale();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -134,9 +139,17 @@ const MobileHeader = ({
           <DropdownMenuContent align="end" className="w-48 bg-card border-border">
             {hasVideo && (
               <>
-                <DropdownMenuItem onClick={onExport} className="gap-2">
-                  <Download className="w-4 h-4" />
-                  {t("header.export")}
+                <DropdownMenuItem 
+                  onClick={onExport} 
+                  className="gap-2"
+                  disabled={isExporting || renderStatus === "PENDING"}
+                >
+                  {isExporting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  {isExporting ? t("export.exporting") : t("header.export")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onReplaceVideo} className="gap-2">
                   <RefreshCw className="w-4 h-4" />
