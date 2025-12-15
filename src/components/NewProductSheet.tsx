@@ -4,9 +4,10 @@ import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Camera, ExternalLink } from "lucide-react";
+import { Camera, ExternalLink, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/lib/i18n";
+import { SUPPORTED_CURRENCIES, DEFAULT_CURRENCY, CURRENCY_SYMBOLS, normalizePrice, type CurrencyCode } from "@/utils/price-utils";
 
 interface NewProductSheetProps {
   open: boolean;
@@ -36,6 +37,7 @@ const NewProductSheet = ({
     link: "",
     ctaLabel: "Shop Now",
     price: "",
+    currency: DEFAULT_CURRENCY as CurrencyCode,
     thumbnail: "",
     promoCode: "",
   });
@@ -54,6 +56,7 @@ const NewProductSheet = ({
         link: editingProduct.link || "",
         ctaLabel: editingProduct.ctaLabel || "Shop Now",
         price: editingProduct.price || "",
+        currency: (editingProduct as any).currency || DEFAULT_CURRENCY,
         thumbnail: editingProduct.thumbnail || "",
         promoCode: editingProduct.promoCode || "",
       });
@@ -68,6 +71,7 @@ const NewProductSheet = ({
       link: "",
       ctaLabel: "Shop Now",
       price: "",
+      currency: DEFAULT_CURRENCY,
       thumbnail: "",
       promoCode: "",
     });
@@ -115,6 +119,8 @@ const NewProductSheet = ({
   const handleSave = () => {
     if (!isFormValid) return;
 
+    const normalizedPrice = normalizePrice(formData.price);
+
     if (isEditMode && editingProduct && onUpdateProduct) {
       onUpdateProduct({
         ...editingProduct,
@@ -122,22 +128,23 @@ const NewProductSheet = ({
         description: formData.description || undefined,
         link: formData.link,
         ctaLabel: formData.ctaLabel || "Shop Now",
-        price: formData.price || undefined,
+        price: normalizedPrice || undefined,
         thumbnail: formData.thumbnail || undefined,
         promoCode: formData.promoCode || undefined,
-      });
+      } as Product);
     } else {
-      const productData: Omit<Product, "id"> = {
+      const productData: Omit<Product, "id"> & { currency?: string } = {
         title: formData.title,
         description: formData.description || undefined,
         link: formData.link,
         ctaLabel: formData.ctaLabel || "Shop Now",
-        price: formData.price || undefined,
+        price: normalizedPrice || undefined,
         thumbnail: formData.thumbnail || undefined,
         promoCode: formData.promoCode || undefined,
       };
       const newId = onCreateProduct(productData);
-      onProductCreated?.(newId, productData);
+      // Pass currency separately for hotspot assignment
+      onProductCreated?.(newId, { ...productData, currency: formData.currency } as any);
     }
     handleClose();
   };
@@ -294,20 +301,38 @@ const NewProductSheet = ({
               />
             </div>
 
-            {/* D) PRICE (optional) */}
+            {/* D) PRICE + CURRENCY (optional) */}
             <div>
               <label className="text-[13px] font-medium text-[#666666] mb-1.5 block">
                 {t("product.field.price")}
               </label>
-              <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] text-[#888888] font-medium">€</span>
+              <div className="flex gap-2">
+                {/* Currency selector */}
+                <div className="relative">
+                  <select
+                    value={formData.currency}
+                    onChange={(e) => setFormData({ ...formData, currency: e.target.value as CurrencyCode })}
+                    className="h-12 pl-3 pr-8 text-[15px] bg-white border border-[#E0E0E0] text-[#111111] rounded-xl appearance-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none cursor-pointer"
+                  >
+                    {SUPPORTED_CURRENCIES.map((code) => (
+                      <option key={code} value={code}>
+                        {CURRENCY_SYMBOLS[code]} {code}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#888888] pointer-events-none" />
+                </div>
+                {/* Price input */}
                 <Input
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   placeholder={t("product.field.pricePlaceholder")}
-                  className="h-12 text-[15px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl pl-8 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="flex-1 h-12 text-[15px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
+              <p className="text-[11px] text-[#888888] mt-1">
+                Enter price without currency symbol (e.g., 349 or 349.00)
+              </p>
             </div>
 
             {/* D2) PROMO CODE (optional) */}
