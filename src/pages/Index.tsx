@@ -130,8 +130,8 @@ const Index = () => {
   // Products state - rebuilt from hotspots after load (hotspots are the source of truth)
   const [products, setProducts] = useState<Record<string, Product>>({});
 
-  // Rebuild products state from hotspots after load
-  // Hotspots are the single source of truth for product data
+  // Rebuild products from hotspots (single source of truth)
+  // This ensures product edit sheet has correct data after page load
   useEffect(() => {
     const productsFromHotspots: Record<string, Product> = {};
 
@@ -140,16 +140,18 @@ const Index = () => {
 
       productsFromHotspots[h.productId] = {
         id: h.productId,
-        title: h.productTitle ?? "Product",
-        price: h.productPrice ?? "",
-        link: h.productUrl ?? "#",
-        thumbnail: h.productImageUrl ?? undefined,
+        title: h.productTitle || h.ctaLabel || "Product",
+        link: h.productUrl || "#",
+        thumbnail: h.productImageUrl || undefined,
+        price: h.productPrice || "",
+        ctaLabel: h.ctaLabel || "Shop Now",
       };
     });
 
-    // Only update if we have products from hotspots
+    // Replace products state entirely with hotspot-derived data
+    // Prevent clearing during initial loading when hotspots haven't loaded yet
     if (Object.keys(productsFromHotspots).length > 0) {
-      setProducts(prev => ({ ...prev, ...productsFromHotspots }));
+      setProducts(productsFromHotspots);
     }
   }, [hotspots]);
 
