@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { Product } from "@/types/video";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Plus, Check, Package, ImageIcon, ArrowLeft } from "lucide-react";
+import { Search, Plus, Check, Package, ImageIcon, ArrowLeft, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocale } from "@/lib/i18n";
+import { SUPPORTED_CURRENCIES, DEFAULT_CURRENCY, CURRENCY_SYMBOLS, normalizePrice, type CurrencyCode } from "@/utils/price-utils";
 
 interface SelectProductSheetProps {
   open: boolean;
@@ -45,6 +46,7 @@ const SelectProductSheet = ({
     link: "",
     ctaLabel: "",
     price: "",
+    currency: DEFAULT_CURRENCY as CurrencyCode,
     thumbnail: "",
     promoCode: "",
   });
@@ -65,6 +67,7 @@ const SelectProductSheet = ({
           link: product.link || "",
           ctaLabel: product.ctaLabel || "Shop Now",
           price: product.price || "",
+          currency: ((product as any).currency as CurrencyCode) || DEFAULT_CURRENCY,
           thumbnail: product.thumbnail || "",
           promoCode: product.promoCode || "",
         });
@@ -103,18 +106,21 @@ const SelectProductSheet = ({
   const handleSaveEdit = () => {
     if (!assignedProductId || !onUpdateProduct) return;
     
-    const updatedProduct: Product = {
+    const normalizedPrice = normalizePrice(editFormData.price);
+    
+    const updatedProduct: Product & { currency?: string } = {
       id: assignedProductId,
       title: editFormData.title,
       description: editFormData.description || undefined,
       link: editFormData.link,
       ctaLabel: editFormData.ctaLabel || "Shop Now",
-      price: editFormData.price || undefined,
+      price: normalizedPrice || undefined,
       thumbnail: editFormData.thumbnail || undefined,
       promoCode: editFormData.promoCode || undefined,
+      currency: editFormData.currency,
     };
     
-    onUpdateProduct(updatedProduct);
+    onUpdateProduct(updatedProduct as Product);
     onOpenChange(false);
   };
 
@@ -282,17 +288,34 @@ const SelectProductSheet = ({
                   />
                 </div>
 
-                {/* Price */}
+                {/* Price + Currency */}
                 <div>
                   <label className="text-[12px] font-medium text-[#666666] mb-1.5 block">
                     {t("product.field.price")}
                   </label>
-                  <Input
-                    value={editFormData.price}
-                    onChange={(e) => setEditFormData({...editFormData, price: e.target.value})}
-                    placeholder={t("product.field.pricePlaceholder")}
-                    className="h-11 text-[15px] bg-white border-[#E0E0E0] text-[#111111]"
-                  />
+                  <div className="flex gap-2">
+                    {/* Currency selector */}
+                    <div className="relative">
+                      <select
+                        value={editFormData.currency}
+                        onChange={(e) => setEditFormData({...editFormData, currency: e.target.value as CurrencyCode})}
+                        className="h-11 pl-2.5 pr-7 text-[14px] bg-white border border-[#E0E0E0] text-[#111111] rounded-lg appearance-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none cursor-pointer"
+                      >
+                        {SUPPORTED_CURRENCIES.map((code) => (
+                          <option key={code} value={code}>
+                            {CURRENCY_SYMBOLS[code]}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#888888] pointer-events-none" />
+                    </div>
+                    <Input
+                      value={editFormData.price}
+                      onChange={(e) => setEditFormData({...editFormData, price: e.target.value})}
+                      placeholder={t("product.field.pricePlaceholder")}
+                      className="flex-1 h-11 text-[15px] bg-white border-[#E0E0E0] text-[#111111]"
+                    />
+                  </div>
                 </div>
 
                 {/* Promo Code */}

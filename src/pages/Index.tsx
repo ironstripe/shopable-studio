@@ -133,7 +133,7 @@ const Index = () => {
   // Rebuild products from hotspots (single source of truth)
   // This ensures product edit sheet has correct data after page load
   useEffect(() => {
-    const productsFromHotspots: Record<string, Product> = {};
+    const productsFromHotspots: Record<string, Product & { currency?: string }> = {};
 
     hotspots.forEach((h) => {
       if (!h.productId) return;
@@ -145,6 +145,7 @@ const Index = () => {
         thumbnail: h.productImageUrl || undefined,
         price: h.productPrice || "",
         ctaLabel: h.ctaLabel || "Shop Now",
+        currency: h.productCurrency || "USD",
       };
     });
 
@@ -536,7 +537,7 @@ const Index = () => {
 
   const handleProductCreatedFromSheet = (
     productId: string, 
-    productData: Omit<Product, "id">,
+    productData: Omit<Product, "id"> & { currency?: string },
     clickBehavior?: ClickBehavior
   ) => {
     // Auto-assign the newly created product to the active hotspot
@@ -554,7 +555,7 @@ const Index = () => {
           productUrl: productData.link ?? null,
           productImageUrl: productData.thumbnail ?? null,
           productPrice: productData.price ?? null,
-          productCurrency: "CHF",
+          productCurrency: productData.currency ?? "USD",
           ctaLabel: productData.ctaLabel ?? "Shop Now",
           clickBehavior: finalClickBehavior,
         });
@@ -567,7 +568,7 @@ const Index = () => {
     setNewProductSheetOpen(false);
   };
 
-  const handleUpdateProduct = (updatedProduct: Product) => {
+  const handleUpdateProduct = (updatedProduct: Product & { currency?: string }) => {
     setProducts({ ...products, [updatedProduct.id]: updatedProduct });
     
     // Sync changes to all hotspots using this product
@@ -579,6 +580,7 @@ const Index = () => {
           productUrl: updatedProduct.link,
           productImageUrl: updatedProduct.thumbnail ?? null,
           productPrice: updatedProduct.price ?? null,
+          productCurrency: updatedProduct.currency ?? h.productCurrency ?? "USD",
         });
       }
     });
