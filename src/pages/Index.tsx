@@ -127,30 +127,31 @@ const Index = () => {
     ? hotspots.find(h => h.id === layoutEditingHotspotId) ?? null 
     : null;
 
-  // Demo products
-  const [products, setProducts] = useState<Record<string, Product>>({
-    bose_headphones: {
-      id: "bose_headphones",
-      title: "Bose QuietComfort Ultra",
-      price: "349.–",
-      link: "https://www.galaxus.ch/en/s1/product/bose-quietcomfort-ultra-over-ear-bluetooth-headphones-38839067",
-      description: "Premium noise-cancelling headphones with immersive audio",
-    },
-    sony_camera: {
-      id: "sony_camera",
-      title: "Sony Alpha 7 IV",
-      price: "2499.–",
-      link: "https://example.com/sony",
-      description: "Professional full-frame mirrorless camera",
-    },
-    apple_watch: {
-      id: "apple_watch",
-      title: "Apple Watch Series 9",
-      price: "449.–",
-      link: "https://example.com/apple-watch",
-      description: "Advanced health and fitness tracking",
-    },
-  });
+  // Products state - rebuilt from hotspots after load (hotspots are the source of truth)
+  const [products, setProducts] = useState<Record<string, Product>>({});
+
+  // Rebuild products state from hotspots after load
+  // Hotspots are the single source of truth for product data
+  useEffect(() => {
+    const productsFromHotspots: Record<string, Product> = {};
+
+    hotspots.forEach((h) => {
+      if (!h.productId) return;
+
+      productsFromHotspots[h.productId] = {
+        id: h.productId,
+        title: h.productTitle ?? "Product",
+        price: h.productPrice ?? "",
+        link: h.productUrl ?? "#",
+        thumbnail: h.productImageUrl ?? undefined,
+      };
+    });
+
+    // Only update if we have products from hotspots
+    if (Object.keys(productsFromHotspots).length > 0) {
+      setProducts(prev => ({ ...prev, ...productsFromHotspots }));
+    }
+  }, [hotspots]);
 
   const isPreviewMode = editorMode === "preview";
   
