@@ -13,6 +13,7 @@ import HotspotSavedSnackbar from "./HotspotSavedSnackbar";
 import SceneStateBanner from "./SceneStateBanner";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { formatPriceDisplay, type CurrencyCode } from "@/utils/price-utils";
 import { useLocale } from "@/lib/i18n";
 import { isHotspotComplete, SceneState } from "@/hooks/use-scene-state";
 import { 
@@ -1082,7 +1083,12 @@ const VideoPlayer = ({
             <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 10 }}>
               {activeHotspots.map((hotspot) => {
                 const product = hotspot.productId ? products[hotspot.productId] : null;
-                const price = product?.price;
+                const currency = (hotspot.productCurrency as CurrencyCode) || "USD";
+                const price = hotspot.productPrice 
+                  ? formatPriceDisplay(hotspot.productPrice, currency)
+                  : product?.price 
+                    ? formatPriceDisplay(product.price, currency)
+                    : undefined;
                 const isThisSelected = selectedHotspotId === hotspot.id;
                 const isAnyHotspotEditing = selectedHotspotId !== null;
                 
@@ -1143,6 +1149,7 @@ const VideoPlayer = ({
             cardStyle={selectedProductHotspot.cardStyle || "ecommerce-light-card"}
             hotspotPosition={{ x: selectedProductHotspot.x, y: selectedProductHotspot.y }}
             containerRef={containerRef}
+            currency={(selectedProductHotspot.productCurrency as CurrencyCode) || "USD"}
             onClose={() => {
               setSelectedProduct(null);
               setSelectedProductHotspot(null);

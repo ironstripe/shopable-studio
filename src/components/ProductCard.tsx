@@ -4,6 +4,7 @@ import { Product, CardStyle } from "@/types/video";
 import { X, ArrowRight, Tag, Copy, Check } from "lucide-react";
 import { useSmartPosition } from "@/hooks/use-smart-position";
 import { toast } from "sonner";
+import { formatPriceDisplay, type CurrencyCode, DEFAULT_CURRENCY } from "@/utils/price-utils";
 
 interface ProductCardProps {
   product: Product;
@@ -12,6 +13,7 @@ interface ProductCardProps {
   cardStyle?: CardStyle;
   hotspotPosition?: { x: number; y: number };
   containerRef?: RefObject<HTMLDivElement>;
+  currency?: CurrencyCode;
 }
 
 // Seasonal theme configuration
@@ -77,6 +79,7 @@ const ProductCard = ({
   cardStyle = "ecommerce-light-card",
   hotspotPosition,
   containerRef,
+  currency = DEFAULT_CURRENCY,
 }: ProductCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -162,7 +165,7 @@ const ProductCard = ({
             {product.title}
           </h3>
           <span className="text-[16px] font-bold text-primary">
-            {product.price}
+            {formatPriceDisplay(product.price, currency)}
           </span>
           {product.description && (
             <p className="text-[12px] text-muted-foreground mt-1 line-clamp-2">
@@ -216,7 +219,7 @@ const ProductCard = ({
         </h3>
         {product.price && (
           <div className="text-[14px] font-light text-white/80">
-            {product.price}
+            {formatPriceDisplay(product.price, currency)}
           </div>
         )}
         {product.description && (
@@ -278,7 +281,7 @@ const ProductCard = ({
               {product.title}
             </h3>
             <span className={`text-[16px] font-bold ${theme.priceColor}`}>
-              {product.price}
+              {formatPriceDisplay(product.price, currency)}
             </span>
           </div>
         </div>
