@@ -514,6 +514,14 @@ const Index = () => {
 
     // Get product data for productTitle and productUrl
     const product = products[productId];
+    
+    // Defensive logging
+    console.log("[Studio] Assigning product to hotspot:", {
+      hotspotId: target.id,
+      productId,
+      productUrl: product?.link,
+      productCurrency: (product as Product & { currency?: string })?.currency,
+    });
 
     // 3) Update hotspot with selected product and product info for Public display
     updateHotspot({
@@ -523,7 +531,7 @@ const Index = () => {
       productUrl: product?.link ?? null,
       productImageUrl: product?.thumbnail ?? null,
       productPrice: product?.price ?? null,
-      productCurrency: "CHF",
+      productCurrency: (product as Product & { currency?: string })?.currency ?? "USD",
       clickBehavior,
     });
 
@@ -547,6 +555,9 @@ const Index = () => {
       if (target) {
         const finalClickBehavior = clickBehavior ?? target.clickBehavior ?? "show-card";
         
+        // Defensive logging
+        console.log("[Studio] Saving hotspot productUrl:", productData.link);
+        
         // Use productData directly instead of looking up in products state
         updateHotspot({
           id: target.id,
@@ -569,6 +580,9 @@ const Index = () => {
   };
 
   const handleUpdateProduct = (updatedProduct: Product & { currency?: string }) => {
+    // Defensive logging
+    console.log("[Studio] Saving hotspot productUrl:", updatedProduct.link);
+    
     setProducts({ ...products, [updatedProduct.id]: updatedProduct });
     
     // Sync changes to all hotspots using this product
