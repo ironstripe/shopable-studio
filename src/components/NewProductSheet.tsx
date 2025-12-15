@@ -12,7 +12,7 @@ interface NewProductSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreateProduct: (product: Omit<Product, "id">) => string;
-  onProductCreated?: (productId: string, clickBehavior?: ClickBehavior) => void;
+  onProductCreated?: (productId: string, productData: Omit<Product, "id">, clickBehavior?: ClickBehavior) => void;
   editingProduct?: Product | null;
   onUpdateProduct?: (product: Product) => void;
   onDeleteProduct?: (productId: string) => void;
@@ -127,7 +127,7 @@ const NewProductSheet = ({
         promoCode: formData.promoCode || undefined,
       });
     } else {
-      const newId = onCreateProduct({
+      const productData: Omit<Product, "id"> = {
         title: formData.title,
         description: formData.description || undefined,
         link: formData.link,
@@ -135,8 +135,9 @@ const NewProductSheet = ({
         price: formData.price || undefined,
         thumbnail: formData.thumbnail || undefined,
         promoCode: formData.promoCode || undefined,
-      });
-      onProductCreated?.(newId);
+      };
+      const newId = onCreateProduct(productData);
+      onProductCreated?.(newId, productData);
     }
     handleClose();
   };
