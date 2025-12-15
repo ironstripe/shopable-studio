@@ -316,7 +316,8 @@ export function useHotspots(
       // Only sync if there's a pending update
       if (!pendingPositionUpdates.has(id)) return;
 
-      const payload = mapHotspotUpdateToPayload({ x: hotspot.x, y: hotspot.y });
+      // Use FULL payload to avoid wiping out product fields
+      const payload = mapFullHotspotToUpdatePayload(hotspot);
       updateHotspotApi(videoId, hotspot.backendId, payload)
         .then(() => {
           console.log("[useHotspots] Persisted position update:", hotspot.backendId);
@@ -341,10 +342,12 @@ export function useHotspots(
         prev.map((h) => (h.id === id ? { ...h, scale: clampedScale } : h))
       );
 
-      // Persist to backend using backendId from ref (avoids stale closure)
+      // Persist to backend using FULL payload to avoid wiping out product fields
       const hotspotForScale = hotspotsRef.current.find(h => h.id === id);
       if (videoId && hotspotForScale?.backendId) {
-        const payload = mapHotspotUpdateToPayload({ scale: clampedScale });
+        // Create merged hotspot with new scale
+        const updatedHotspot = { ...hotspotForScale, scale: clampedScale };
+        const payload = mapFullHotspotToUpdatePayload(updatedHotspot);
         updateHotspotApi(videoId, hotspotForScale.backendId, payload).catch((error) => {
           console.error("[useHotspots] Failed to update scale:", error);
         });
