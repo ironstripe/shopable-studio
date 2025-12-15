@@ -534,10 +534,35 @@ const Index = () => {
     selectHotspot(target.id);
   };
 
-  const handleProductCreatedFromSheet = (productId: string, clickBehavior?: import("@/types/video").ClickBehavior) => {
+  const handleProductCreatedFromSheet = (
+    productId: string, 
+    productData: Omit<Product, "id">,
+    clickBehavior?: ClickBehavior
+  ) => {
     // Auto-assign the newly created product to the active hotspot
+    // Use productData directly to avoid race condition with products state
     if (productAssignmentHotspotId) {
-      handleAssignProduct(productId, clickBehavior);
+      const target = hotspots.find((h) => h.id === productAssignmentHotspotId);
+      if (target) {
+        const finalClickBehavior = clickBehavior ?? target.clickBehavior ?? "show-card";
+        
+        // Use productData directly instead of looking up in products state
+        updateHotspot({
+          id: target.id,
+          productId,
+          productTitle: productData.title ?? null,
+          productUrl: productData.link ?? null,
+          productImageUrl: productData.thumbnail ?? null,
+          productPrice: productData.price ?? null,
+          productCurrency: "CHF",
+          ctaLabel: productData.ctaLabel ?? "Shop Now",
+          clickBehavior: finalClickBehavior,
+        });
+        
+        setSelectProductSheetOpen(false);
+        setProductAssignmentHotspotId(null);
+        selectHotspot(target.id);
+      }
     }
     setNewProductSheetOpen(false);
   };
