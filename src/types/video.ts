@@ -112,6 +112,8 @@ export interface Hotspot {
   x: number;
   y: number;
   productId: string | null; // Made nullable to support unassigned state
+  productTitle?: string; // Product name for Public display
+  productUrl?: string; // Clickable product link for Public
   style: HotspotStyle;
   ctaLabel: string;
   scale: number;

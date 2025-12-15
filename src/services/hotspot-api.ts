@@ -19,6 +19,8 @@ export interface HotspotDto {
   countdownStyle?: "light" | "bold" | null;
   countdownPosition?: "above" | "below" | "corner" | null;
   productId?: string | null;
+  productTitle?: string | null;
+  productUrl?: string | null;
   ctaLabel?: string;
   clickBehavior?: string;
   scale?: number;
@@ -145,6 +147,8 @@ export function mapDtoToHotspot(dto: HotspotDto): Hotspot {
     x: dto.x,
     y: dto.y,
     productId: dto.productId ?? null,
+    productTitle: dto.productTitle ?? undefined,
+    productUrl: dto.productUrl ?? undefined,
     style: (dto.style as HotspotStyle) || "ecommerce-light-card",
     cardStyle: (dto.cardStyle as CardStyle) || (dto.style as CardStyle) || "ecommerce-light-card",
     ctaLabel: dto.ctaLabel || "Shop Now",
@@ -183,6 +187,8 @@ export function mapHotspotToPayload(
     countdownStyle: hotspot.countdown?.style ?? null,
     countdownPosition: hotspot.countdown?.position ?? null,
     productId: hotspot.productId,
+    productTitle: hotspot.productTitle ?? null,
+    productUrl: hotspot.productUrl ?? null,
     ctaLabel: hotspot.ctaLabel,
     clickBehavior: hotspot.clickBehavior,
     scale: hotspot.scale,
@@ -218,6 +224,12 @@ export function mapHotspotUpdateToPayload(
   }
   if (update.productId !== undefined) {
     payload.productId = update.productId;
+  }
+  if (update.productTitle !== undefined) {
+    payload.productTitle = update.productTitle;
+  }
+  if (update.productUrl !== undefined) {
+    payload.productUrl = update.productUrl;
   }
   if (update.ctaLabel !== undefined) {
     payload.ctaLabel = update.ctaLabel;
@@ -256,6 +268,8 @@ export function mapFullHotspotToUpdatePayload(
     countdownStyle: hotspot.countdown?.style ?? null,
     countdownPosition: hotspot.countdown?.position ?? null,
     productId: hotspot.productId,
+    productTitle: hotspot.productTitle ?? null,
+    productUrl: hotspot.productUrl ?? null,
     ctaLabel: hotspot.ctaLabel,
     clickBehavior: hotspot.clickBehavior,
     scale: hotspot.scale,

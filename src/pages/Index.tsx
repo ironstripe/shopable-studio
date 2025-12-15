@@ -508,10 +508,15 @@ const Index = () => {
     const clickBehavior =
       overrideClickBehavior ?? target.clickBehavior ?? "show-card";
 
-    // 3) Update hotspot with selected product
+    // Get product data for productTitle and productUrl
+    const product = products[productId];
+
+    // 3) Update hotspot with selected product and product info for Public display
     updateHotspot({
       id: target.id,
       productId,
+      productTitle: product?.title ?? null,
+      productUrl: product?.link ?? null,
       clickBehavior,
     });
 
