@@ -141,6 +141,7 @@ const Index = () => {
       productsFromHotspots[h.productId] = {
         id: h.productId,
         title: h.productTitle || h.ctaLabel || "Product",
+        description: h.productDescription || undefined,
         link: h.productUrl || "#",
         thumbnail: h.productImageUrl || undefined,
         price: h.productPrice || "",
@@ -528,6 +529,7 @@ const Index = () => {
       id: target.id,
       productId,
       productTitle: product?.title ?? null,
+      productDescription: product?.description ?? null,
       productUrl: product?.link ?? null,
       productImageUrl: product?.thumbnail ?? null,
       productPrice: product?.price ?? null,
@@ -563,6 +565,7 @@ const Index = () => {
           id: target.id,
           productId,
           productTitle: productData.title ?? null,
+          productDescription: productData.description ?? null,
           productUrl: productData.link ?? null,
           productImageUrl: productData.thumbnail ?? null,
           productPrice: productData.price ?? null,
@@ -591,6 +594,7 @@ const Index = () => {
         updateHotspot({
           id: h.id,
           productTitle: updatedProduct.title,
+          productDescription: updatedProduct.description ?? null,
           productUrl: updatedProduct.link,
           productImageUrl: updatedProduct.thumbnail ?? null,
           productPrice: updatedProduct.price ?? null,
