@@ -21,6 +21,9 @@ export interface HotspotDto {
   productId?: string | null;
   productTitle?: string | null;
   productUrl?: string | null;
+  productImageUrl?: string | null;
+  productPrice?: string | null;
+  productCurrency?: string | null;
   ctaLabel?: string;
   clickBehavior?: string;
   scale?: number;
@@ -149,6 +152,9 @@ export function mapDtoToHotspot(dto: HotspotDto): Hotspot {
     productId: dto.productId ?? null,
     productTitle: dto.productTitle ?? undefined,
     productUrl: dto.productUrl ?? undefined,
+    productImageUrl: dto.productImageUrl ?? undefined,
+    productPrice: dto.productPrice ?? undefined,
+    productCurrency: dto.productCurrency ?? undefined,
     style: (dto.style as HotspotStyle) || "ecommerce-light-card",
     cardStyle: (dto.cardStyle as CardStyle) || (dto.style as CardStyle) || "ecommerce-light-card",
     ctaLabel: dto.ctaLabel || "Shop Now",
@@ -189,6 +195,9 @@ export function mapHotspotToPayload(
     productId: hotspot.productId,
     productTitle: hotspot.productTitle ?? null,
     productUrl: hotspot.productUrl ?? null,
+    productImageUrl: hotspot.productImageUrl ?? null,
+    productPrice: hotspot.productPrice ?? null,
+    productCurrency: hotspot.productCurrency ?? null,
     ctaLabel: hotspot.ctaLabel,
     clickBehavior: hotspot.clickBehavior,
     scale: hotspot.scale,
@@ -231,6 +240,15 @@ export function mapHotspotUpdateToPayload(
   if (update.productUrl !== undefined) {
     payload.productUrl = update.productUrl;
   }
+  if (update.productImageUrl !== undefined) {
+    payload.productImageUrl = update.productImageUrl;
+  }
+  if (update.productPrice !== undefined) {
+    payload.productPrice = update.productPrice;
+  }
+  if (update.productCurrency !== undefined) {
+    payload.productCurrency = update.productCurrency;
+  }
   if (update.ctaLabel !== undefined) {
     payload.ctaLabel = update.ctaLabel;
   }
@@ -270,6 +288,9 @@ export function mapFullHotspotToUpdatePayload(
     productId: hotspot.productId,
     productTitle: hotspot.productTitle ?? null,
     productUrl: hotspot.productUrl ?? null,
+    productImageUrl: hotspot.productImageUrl ?? null,
+    productPrice: hotspot.productPrice ?? null,
+    productCurrency: hotspot.productCurrency ?? null,
     ctaLabel: hotspot.ctaLabel,
     clickBehavior: hotspot.clickBehavior,
     scale: hotspot.scale,
