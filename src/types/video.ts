@@ -114,6 +114,9 @@ export interface Hotspot {
   productId: string | null; // Made nullable to support unassigned state
   productTitle?: string; // Product name for Public display
   productUrl?: string; // Clickable product link for Public
+  productImageUrl?: string; // Product thumbnail for Public display
+  productPrice?: string; // Product price (string for flexibility)
+  productCurrency?: string; // Currency code (default "CHF")
   style: HotspotStyle;
   ctaLabel: string;
   scale: number;

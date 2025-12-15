@@ -517,6 +517,9 @@ const Index = () => {
       productId,
       productTitle: product?.title ?? null,
       productUrl: product?.link ?? null,
+      productImageUrl: product?.thumbnail ?? null,
+      productPrice: product?.price ?? null,
+      productCurrency: "CHF",
       clickBehavior,
     });
 
@@ -538,6 +541,20 @@ const Index = () => {
 
   const handleUpdateProduct = (updatedProduct: Product) => {
     setProducts({ ...products, [updatedProduct.id]: updatedProduct });
+    
+    // Sync changes to all hotspots using this product
+    hotspots.forEach((h) => {
+      if (h.productId === updatedProduct.id) {
+        updateHotspot({
+          id: h.id,
+          productTitle: updatedProduct.title,
+          productUrl: updatedProduct.link,
+          productImageUrl: updatedProduct.thumbnail ?? null,
+          productPrice: updatedProduct.price ?? null,
+        });
+      }
+    });
+    
     toast.success(t("product.updated"));
   };
 
@@ -547,6 +564,11 @@ const Index = () => {
     updateHotspot({
       id: productAssignmentHotspotId,
       productId: null,
+      productTitle: undefined,
+      productUrl: undefined,
+      productImageUrl: undefined,
+      productPrice: undefined,
+      productCurrency: undefined,
     } as Hotspot);
     
     toast.success(t("product.removed"));
