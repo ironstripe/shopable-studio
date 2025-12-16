@@ -1,6 +1,9 @@
 // Editor mode
 export type EditorMode = "edit" | "preview";
 
+// Video state machine states
+export type VideoState = "draft" | "editing" | "ready_to_post" | "posted";
+
 // Countdown configuration types
 export type CountdownMode = "fixed-end" | "evergreen";
 export type CountdownStyle = "light" | "bold";

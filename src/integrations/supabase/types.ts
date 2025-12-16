@@ -154,6 +154,7 @@ export type Database = {
           render_status: string | null
           rendered_video_key: string | null
           slug_finalized: boolean | null
+          state: string
           title: string
           updated_at: string
         }
@@ -168,6 +169,7 @@ export type Database = {
           render_status?: string | null
           rendered_video_key?: string | null
           slug_finalized?: boolean | null
+          state?: string
           title: string
           updated_at?: string
         }
@@ -182,6 +184,7 @@ export type Database = {
           render_status?: string | null
           rendered_video_key?: string | null
           slug_finalized?: boolean | null
+          state?: string
           title?: string
           updated_at?: string
         }

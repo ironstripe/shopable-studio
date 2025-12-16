@@ -174,6 +174,7 @@ ${hashtags}`;
     }
 
     // Use UPSERT to create the row if it doesn't exist (AWS videos may not be in Supabase yet)
+    // CRITICAL: Set state to 'ready_to_post' as part of the state machine
     const { error } = await supabase
       .from("videos")
       .upsert({
@@ -183,6 +184,7 @@ ${hashtags}`;
         custom_slug: slug,
         slug_finalized: true,
         caption: caption,
+        state: "ready_to_post", // State machine: editing → ready_to_post
       }, {
         onConflict: 'id'
       });

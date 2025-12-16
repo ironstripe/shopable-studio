@@ -33,7 +33,7 @@ export default function ReadyToPostPage() {
       
       const { data, error } = await supabase
         .from("videos")
-        .select("id, title, custom_slug, caption")
+        .select("id, title, custom_slug, caption, state")
         .eq("id", videoId)
         .maybeSingle();
 
@@ -44,6 +44,14 @@ export default function ReadyToPostPage() {
       }
 
       if (!data) {
+        navigate("/");
+        return;
+      }
+
+      // STATE MACHINE GUARD: Only allow access in ready_to_post or posted states
+      const videoState = (data as { state?: string }).state;
+      if (videoState !== "ready_to_post" && videoState !== "posted") {
+        console.warn("[ReadyToPostPage] Invalid state for this page:", videoState);
         navigate("/");
         return;
       }

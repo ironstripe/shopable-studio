@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { Hotspot, HotspotStyle, CardStyle, ClickBehavior } from "@/types/video";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   listHotspots as listHotspotsApi,
   createHotspot as createHotspotApi,
@@ -145,6 +146,10 @@ export function useHotspots(
       // Add to local state immediately (optimistic)
       setHotspots((prev) => [...prev, newHotspot]);
       setSelectedHotspotId(tempId);
+      
+      // STATE MACHINE: Transition draft → editing on first hotspot
+      // Check current count BEFORE adding (prev.length === 0 means this is the first)
+      const isFirstHotspot = hotspotsRef.current.length === 0;
 
       // Persist to backend if videoId is available
       if (videoId) {
@@ -185,6 +190,21 @@ export function useHotspots(
             console.error("[useHotspots] Failed to create hotspot:", error);
             toast.error("Failed to save hotspot. Changes are local only.");
           });
+
+        // STATE MACHINE: Transition draft → editing on first hotspot (after backend sync starts)
+        if (isFirstHotspot) {
+          supabase
+            .from("videos")
+            .update({ state: "editing" })
+            .eq("id", videoId)
+            .then(({ error }) => {
+              if (error) {
+                console.warn("[useHotspots] Failed to transition state to editing:", error);
+              } else {
+                console.log("[useHotspots] State transitioned: draft → editing");
+              }
+            });
+        }
       }
 
       return newHotspot;

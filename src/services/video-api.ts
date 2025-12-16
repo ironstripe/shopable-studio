@@ -14,6 +14,7 @@ export interface VideoDto {
   fileUrl: string | null;
   renderStatus: RenderStatus | null;
   renderUpdatedAt: string | null;
+  state?: "draft" | "editing" | "ready_to_post" | "posted" | null; // Video state machine
 }
 
 export interface TriggerRenderResponse {
@@ -85,6 +86,7 @@ function mapBackendItemToVideoDto(item: any): VideoDto | null {
     renderStatus: (item.renderStatus as RenderStatus) || null,
     renderUpdatedAt: item.renderUpdatedAt || null,
     createdAt: item.createdAt || null,
+    state: item.state || null, // Video state machine
   };
 }
 
