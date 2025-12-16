@@ -990,14 +990,13 @@ const VideoPlayer = ({
             <SafeZoneOverlay />
           )}
 
-          {/* Zero-hotspots placement hint overlay - lighter, smaller, smarter */}
-          {videoSrc && isVideoReady && !isPreviewMode && showPlacementHint && (
+          {/* Zero-hotspots placement hint overlay - FTUX Step 2: lighter, smaller, auto-dismiss */}
+          {/* Only show for first hotspot (isFirstHotspot), then disappear forever */}
+          {videoSrc && isVideoReady && !isPreviewMode && showPlacementHint && isFirstHotspot && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[15]">
-              <div className="bg-black/50 backdrop-blur-md text-white px-4 py-3 rounded-full text-center animate-fade-in shadow-lg max-w-[280px]">
-                <p className="font-medium text-[13px] leading-snug">
-                  {isFirstHotspot 
-                    ? t("editor.hint.tapToAddHotspot") 
-                    : t("editor.hint.tapToAddAnother")}
+              <div className="bg-black/40 backdrop-blur-sm text-white px-3 py-2 rounded-full text-center animate-fade-in max-w-[240px]">
+                <p className="font-medium text-[12px] leading-snug">
+                  {t("editor.hint.tapToAddHotspot")}
                 </p>
               </div>
             </div>

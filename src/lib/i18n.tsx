@@ -12,7 +12,8 @@ const translations: Record<Locale, Record<string, string>> = {
 
     // Entry Screen
     "entry.headline": "Turn your video into sales.",
-    "entry.subline": "Turn views into real conversions – in minutes.",
+    "entry.subline": "Add shopping links directly into your video and turn views into conversions.",
+    "entry.microTrust": "No setup. No code. Live in minutes.",
 
     // Upload
     "upload.title": "Upload your video",
@@ -148,6 +149,8 @@ const translations: Record<Locale, Record<string, string>> = {
     "ftux.productHint": "Choose a product or create a new one.",
     "ftux.previewHint": "Switch to Preview to see your final video.",
     "ftux.exportHint": "You can now export your Shopable video.",
+    "ftux.firstSuccess": "Nice. Your first product is linked.",
+    "ftux.exitHint": "Next, you'll get your posting link and a ready-to-use caption.",
 
     // Video
     "video.removed": "Video removed. Upload a new video to continue.",
@@ -270,7 +273,8 @@ const translations: Record<Locale, Record<string, string>> = {
 
     // Entry Screen
     "entry.headline": "Mach dein Video shoppable.",
-    "entry.subline": "Verwandle Views in echte Conversions – in wenigen Minuten.",
+    "entry.subline": "Füge Shop-Links direkt ins Video ein und verwandle Views in Conversions.",
+    "entry.microTrust": "Kein Setup. Kein Code. In wenigen Minuten live.",
 
     // Upload
     "upload.title": "Video hochladen",
@@ -406,6 +410,8 @@ const translations: Record<Locale, Record<string, string>> = {
     "ftux.productHint": "Wähle ein Produkt oder erstelle ein neues.",
     "ftux.previewHint": "Wechsle zur Vorschau, um dein fertiges Video zu sehen.",
     "ftux.exportHint": "Du kannst dein Shopable-Video jetzt exportieren.",
+    "ftux.firstSuccess": "Nice. Dein erstes Produkt ist verlinkt.",
+    "ftux.exitHint": "Als Nächstes erhältst du deinen Posting-Link und eine fertige Caption.",
 
     // Video
     "video.removed": "Video entfernt. Lade ein neues Video hoch, um fortzufahren.",
