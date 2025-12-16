@@ -1095,6 +1095,7 @@ const VideoPlayer = ({
                       isDragging={draggingHotspot?.id === hotspot.id}
                       isResizing={resizingHotspot?.id === hotspot.id}
                       isEditMode={!isPreviewMode}
+                      isAddingHotspot={isAddingHotspot}
                       onClick={(e) => handleHotspotClick(hotspot, e)}
                       onDragStart={(e) => handleDragStart(hotspot, e)}
                       onTouchDragStart={(e) => handleTouchDragStart(hotspot, e)}
