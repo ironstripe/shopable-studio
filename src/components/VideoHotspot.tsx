@@ -13,6 +13,7 @@ interface VideoHotspotProps {
   isDragging: boolean;
   isResizing: boolean;
   isEditMode: boolean;
+  isAddingHotspot?: boolean;
   onClick: (e: React.MouseEvent) => void;
   onDragStart: (e: React.MouseEvent) => void;
   onTouchDragStart?: (e: React.TouchEvent) => void;
@@ -35,6 +36,7 @@ const VideoHotspot = ({
   isDragging, 
   isResizing, 
   isEditMode, 
+  isAddingHotspot = false,
   onClick, 
   onDragStart,
   onTouchDragStart,
@@ -119,8 +121,9 @@ const VideoHotspot = ({
         "absolute select-none pointer-events-auto hotspot-draggable",
         isDragging ? "" : "transition-all duration-150",
         isSelected ? "hotspot-pulse" : "hotspot-pulse",
-        // Cursor: always pointer for dimmed (to indicate clickability), grab for edit mode, pointer for preview
+        // Cursor: pointer in adding mode (to select), grab for edit mode, pointer for preview/dimmed
         isDragging ? "cursor-grabbing opacity-80" 
+          : isAddingHotspot ? "cursor-pointer"
           : isDimmed ? "cursor-pointer" 
           : isEditMode ? "cursor-grab" 
           : "cursor-pointer",
