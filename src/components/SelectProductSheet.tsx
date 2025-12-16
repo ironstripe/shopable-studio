@@ -177,7 +177,7 @@ const SelectProductSheet = ({
           )}
 
           {/* Header Row - conditional based on mode */}
-          <div className="flex items-center justify-between px-4 pb-3">
+          <div className="flex items-center justify-between px-4 pb-3 relative">
             {viewMode === "edit" ? (
               <>
                 <button
@@ -203,7 +203,7 @@ const SelectProductSheet = ({
                     "flex items-center gap-1.5 h-8 px-4",
                     "bg-primary text-white rounded-full",
                     "text-[13px] font-medium",
-                    "hover:bg-primary/90 active:scale-[0.97]",
+                    "hover:bg-primary/90 active:scale-[0.98]",
                     "transition-all duration-150"
                   )}
                 >
@@ -212,6 +212,16 @@ const SelectProductSheet = ({
                 </button>
               </>
             )}
+            {/* X close button - top right */}
+            <button
+              onClick={() => onOpenChange(false)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 transition-colors"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
 
           {/* Search Bar - only in select mode */}

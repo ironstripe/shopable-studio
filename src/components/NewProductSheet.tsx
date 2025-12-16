@@ -174,14 +174,9 @@ const NewProductSheet = ({
           <div className="w-10 h-1 rounded-full bg-[#D0D0D0]" />
         </div>
 
-        {/* Header - Light theme */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[#EBEBEB]">
-          <button
-            onClick={handleClose}
-            className="text-[15px] text-[#666666] hover:text-[#333333] transition-colors min-w-[60px] text-left font-medium"
-          >
-            {t("actions.cancel")}
-          </button>
+        {/* Header - Light theme with X close button */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[#EBEBEB] relative">
+          <div className="w-16" /> {/* Spacer for centering */}
           <h2 className="text-[17px] font-semibold text-[#111111]">
             {isEditMode ? t("product.edit") : t("product.new")}
           </h2>
@@ -193,6 +188,16 @@ const NewProductSheet = ({
           >
             {t("actions.save")}
           </Button>
+          {/* X close button - top right */}
+          <button
+            onClick={handleClose}
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 transition-colors"
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         {/* Scrollable Content - Light theme */}

@@ -5,16 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useToast } from "@/hooks/use-toast";
 import { useLocale } from "@/lib/i18n";
-import { Check, AlertCircle, Loader2 } from "lucide-react";
+import { Check, AlertCircle, Loader2, X } from "lucide-react";
 import type { ProductCategory } from "@/types/video";
 import { trackEvent } from "@/services/event-tracking";
 
@@ -228,16 +222,34 @@ ${hashtags}`;
   const previewUrl = `shop.one/${creator.creator_kuerzel}/${slug || "..."}`;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-auto max-h-[85vh] rounded-t-xl">
-        <SheetHeader className="text-left pb-4">
-          <SheetTitle>{t("readyToPost.modal.title")}</SheetTitle>
-          <SheetDescription className="text-muted-foreground">
-            {t("readyToPost.modal.subline")}
-          </SheetDescription>
-        </SheetHeader>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[85vh] min-h-[50vh] bg-white flex flex-col rounded-t-[20px]">
+        {/* Drag Handle */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 rounded-full bg-[#D0D0D0]" />
+        </div>
+        
+        {/* Header with X close button */}
+        <div className="flex items-center justify-center px-4 py-3 border-b border-[#EBEBEB] relative">
+          <div>
+            <h2 className="text-[17px] font-semibold text-foreground text-center">
+              {t("readyToPost.modal.title")}
+            </h2>
+            <p className="text-[13px] text-muted-foreground text-center mt-0.5">
+              {t("readyToPost.modal.subline")}
+            </p>
+          </div>
+          {/* X close button - top right */}
+          <button
+            onClick={() => onOpenChange(false)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 transition-colors"
+            aria-label="Close"
+          >
+            <X className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </div>
 
-        <div className="space-y-6 pb-6">
+        <div className="px-4 py-5 space-y-6">
           {/* URL Preview */}
           <div className="bg-muted/50 rounded-lg px-4 py-3 border border-border/50">
             <p className="text-base font-medium text-foreground break-all">
@@ -283,7 +295,7 @@ ${hashtags}`;
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-2 pb-safe-plus">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
@@ -301,7 +313,7 @@ ${hashtags}`;
             </Button>
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   );
 }
