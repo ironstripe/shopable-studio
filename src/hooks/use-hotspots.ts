@@ -70,6 +70,9 @@ export function useHotspots(
 
   // Track pending position updates for debounced sync
   const [pendingPositionUpdates, setPendingPositionUpdates] = useState<Set<string>>(new Set());
+  
+  // Track pending updates for hotspots awaiting backendId (fixes race condition)
+  const pendingUpdatesMapRef = useRef<Map<string, Partial<Hotspot>>>(new Map());
 
   // Ref to always have current hotspots (avoids stale closure in callbacks)
   const hotspotsRef = useRef<Hotspot[]>(hotspots);
@@ -150,20 +153,33 @@ export function useHotspots(
           .then((createdDto) => {
             // Map backend response but KEEP the client-generated id stable
             const backendHotspot = mapDtoToHotspot(createdDto);
+            const realBackendId = backendHotspot.id;
+            
+            // Check for pending updates that were queued while waiting for backendId
+            const pendingUpdate = pendingUpdatesMapRef.current.get(tempId);
+            
+            // Merge backend hotspot with any pending updates
+            const finalHotspot = pendingUpdate 
+              ? { ...backendHotspot, ...pendingUpdate, id: tempId, backendId: realBackendId }
+              : { ...backendHotspot, id: tempId, backendId: realBackendId };
             
             setHotspots((prev) =>
-              prev.map((h) => {
-                if (h.id !== tempId) return h;
-                return {
-                  ...backendHotspot,
-                  id: tempId, // Keep stable client ID
-                  backendId: backendHotspot.id, // Store backend ID separately
-                };
-              })
+              prev.map((h) => (h.id === tempId ? finalHotspot : h))
             );
             
-            // Don't change selectedHotspotId - it already has tempId which is stable
             console.log("[useHotspots] Created hotspot on backend:", createdDto.id, "-> client id:", tempId);
+            
+            // Replay pending update to backend if there was one
+            if (pendingUpdate) {
+              console.log("[useHotspots] Replaying pending update for:", tempId, pendingUpdate);
+              const replayPayload = mapFullHotspotToUpdatePayload(finalHotspot);
+              updateHotspotApi(videoId, realBackendId, replayPayload)
+                .then(() => console.log("[useHotspots] Replayed pending update successfully"))
+                .catch((err) => console.error("[useHotspots] Failed to replay pending update:", err));
+              
+              // Clear from pending map
+              pendingUpdatesMapRef.current.delete(tempId);
+            }
           })
           .catch((error) => {
             console.error("[useHotspots] Failed to create hotspot:", error);
@@ -237,8 +253,13 @@ export function useHotspots(
             console.error("[useHotspots] Failed to update hotspot:", error);
             toast.error("Failed to save hotspot changes");
           });
+      } else if (videoId && !apiId) {
+        // Queue update for later - will be replayed when backendId arrives
+        console.log("[useHotspots] Queueing update - awaiting backendId:", updated.id);
+        const existing = pendingUpdatesMapRef.current.get(updated.id) || {};
+        pendingUpdatesMapRef.current.set(updated.id, { ...existing, ...updated });
       } else {
-        console.log("[useHotspots] Skipping backend sync - missing data:", { 
+        console.log("[useHotspots] Skipping backend sync - missing videoId:", { 
           videoId, 
           apiId, 
         });
@@ -259,6 +280,9 @@ export function useHotspots(
       // Optimistic removal
       setHotspots((prev) => prev.filter((h) => h.id !== id));
       setSelectedHotspotId((prev) => (prev === id ? null : prev));
+      
+      // Clear any pending updates for this hotspot
+      pendingUpdatesMapRef.current.delete(id);
 
       // Persist to backend if videoId is available
       const apiId = hotspotToDelete?.backendId ?? hotspotToDelete?.id;
