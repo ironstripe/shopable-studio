@@ -147,6 +147,7 @@ const Index = () => {
         price: h.productPrice || "",
         ctaLabel: h.ctaLabel || "Shop Now",
         currency: h.productCurrency || "USD",
+        promoCode: h.productPromoCode || undefined,
       };
     });
 
@@ -570,6 +571,7 @@ const Index = () => {
           productImageUrl: productData.thumbnail ?? null,
           productPrice: productData.price ?? null,
           productCurrency: productData.currency ?? "USD",
+          productPromoCode: productData.promoCode ?? null,
           ctaLabel: productData.ctaLabel ?? "Shop Now",
           clickBehavior: finalClickBehavior,
         });
@@ -599,6 +601,7 @@ const Index = () => {
           productImageUrl: updatedProduct.thumbnail ?? null,
           productPrice: updatedProduct.price ?? null,
           productCurrency: updatedProduct.currency ?? h.productCurrency ?? "USD",
+          productPromoCode: updatedProduct.promoCode ?? null,
         });
       }
     });
@@ -617,6 +620,7 @@ const Index = () => {
       productImageUrl: undefined,
       productPrice: undefined,
       productCurrency: undefined,
+      productPromoCode: undefined,
     } as Hotspot);
     
     toast.success(t("product.removed"));
