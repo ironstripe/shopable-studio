@@ -3,9 +3,9 @@ import HotspotIcon from "./HotspotIcon";
 import EmptyHotspotIndicator from "./EmptyHotspotIndicator";
 import HotspotCountdown from "./HotspotCountdown";
 import { cn } from "@/lib/utils";
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
-import { isHotspotComplete } from "@/hooks/use-scene-state";
+import { useState, useEffect, useRef } from "react";
 import { AlertCircle } from "lucide-react";
+
 interface VideoHotspotProps {
   hotspot: Hotspot;
   currentTime: number;
@@ -23,9 +23,8 @@ interface VideoHotspotProps {
   hasProduct: boolean;
   isHighlighted?: boolean;
   isNew?: boolean;
-  isAnyEditing?: boolean; // True when ANY hotspot has toolbar/sheet open
-  forceVisible?: boolean; // When true, always render even if outside time range
-  onMeasure?: (id: string, width: number, height: number) => void; // Report measured dimensions
+  isAnyEditing?: boolean;
+  forceVisible?: boolean;
 }
 
 const VideoHotspot = ({ 
@@ -47,38 +46,16 @@ const VideoHotspot = ({
   isNew = false,
   isAnyEditing = false,
   forceVisible = false,
-  onMeasure,
 }: VideoHotspotProps) => {
   const countdown = Math.ceil(hotspot.timeEnd - currentTime);
   const isActive = currentTime >= hotspot.timeStart && currentTime <= hotspot.timeEnd;
   
-  // Ref for the outer wrapper (used for positioning)
   const wrapperRef = useRef<HTMLDivElement>(null);
-  
-  // Ref for the VISUAL CONTENT ONLY (excludes toolbar, warning badges)
-  // This is what we measure for safe zone clamping
-  const contentRef = useRef<HTMLDivElement>(null);
   
   // Track if pop-in animation should play
   const [showPopIn, setShowPopIn] = useState(isNew);
   const [showSelectionHalo, setShowSelectionHalo] = useState(false);
   const prevSelectedRef = useRef(isSelected);
-  
-  // Measure CONTENT dimensions after render and report to parent
-  // CRITICAL: Measure contentRef (visual content only), NOT wrapperRef
-  useLayoutEffect(() => {
-    if (contentRef.current && onMeasure) {
-      const rect = contentRef.current.getBoundingClientRect();
-      console.log('[VideoHotspot] Measured dimensions:', hotspot.id, { 
-        width: rect.width, 
-        height: rect.height,
-        style: hotspot.style,
-        scale: hotspot.scale,
-        hasProduct 
-      });
-      onMeasure(hotspot.id, rect.width, rect.height);
-    }
-  }, [hotspot.id, hotspot.style, hotspot.scale, hasProduct, hotspot.productId, hotspot.ctaLabel, onMeasure]);
 
   // Clear pop-in after animation completes
   useEffect(() => {
@@ -150,17 +127,15 @@ const VideoHotspot = ({
       )}
       
       {!hasProduct ? (
-        // Unassigned hotspot - wrap in content ref for measurement
-        <div ref={contentRef}>
-          <EmptyHotspotIndicator
-            index={hotspotIndex || 0}
-            isSelected={isSelected}
-            isDragging={isDragging}
-            isResizing={isResizing}
-            scale={hotspot.scale}
-            isEditMode={isEditMode}
-          />
-        </div>
+        // Unassigned hotspot
+        <EmptyHotspotIndicator
+          index={hotspotIndex || 0}
+          isSelected={isSelected}
+          isDragging={isDragging}
+          isResizing={isResizing}
+          scale={hotspot.scale}
+          isEditMode={isEditMode}
+        />
       ) : (
         // Assigned hotspot - render HotspotIcon with countdown and resize handle
         <div className="flex flex-col items-center gap-1.5">
@@ -181,18 +156,14 @@ const VideoHotspot = ({
               transformOrigin: 'center center'
             }}
           >
-            {/* contentRef measures ONLY the HotspotIcon for safe zone clamping */}
-            {/* Resize handle is OUTSIDE this ref so it doesn't affect measurement */}
-            <div ref={contentRef}>
-              <HotspotIcon
-                style={hotspot.style}
-                source="video"
-                countdown={countdown}
-                ctaLabel={hotspot.ctaLabel}
-                isSelected={isSelected}
-                price={price}
-              />
-            </div>
+            <HotspotIcon
+              style={hotspot.style}
+              source="video"
+              countdown={countdown}
+              ctaLabel={hotspot.ctaLabel}
+              isSelected={isSelected}
+              price={price}
+            />
             
             {/* Countdown CORNER (absolute positioned - extends outside, NOT measured) */}
             {hotspot.countdown?.active && hotspot.countdown.position === "corner" && (
