@@ -10,8 +10,10 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
+import { useLocale } from "@/lib/i18n";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
 
 interface SlugEditSheetProps {
@@ -47,6 +49,7 @@ export default function SlugEditSheet({
   const navigate = useNavigate();
   const { creator } = useCreator();
   const { toast } = useToast();
+  const { t } = useLocale();
   
   const [slug, setSlug] = useState("");
   const [checking, setChecking] = useState(false);
@@ -108,9 +111,10 @@ export default function SlugEditSheet({
 
     setSaving(true);
 
-    // Generate caption
+    // Generate caption with product name if available
     const videoUrl = `shop.one/${creator.creator_kuerzel}/${slug}`;
-    const caption = `Check out my latest pick! 🛒\n\n👉 ${videoUrl}`;
+    const productTitle = productName || videoTitle || "my latest pick";
+    const caption = `🔥 ${productTitle.toUpperCase()}\n\nCheck it out 👇\n\n👉 Link in bio:\n${videoUrl}\n\n#shopable #shopping`;
 
     const { error } = await supabase
       .from("videos")
@@ -126,7 +130,7 @@ export default function SlugEditSheet({
       toast({
         title: "Error",
         description: error.message.includes("duplicate")
-          ? "This URL is already taken. Please choose another."
+          ? t("readyToPost.modal.taken")
           : "Failed to save. Please try again.",
         variant: "destructive",
       });
@@ -146,13 +150,15 @@ export default function SlugEditSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-auto max-h-[85vh] rounded-t-xl">
         <SheetHeader className="text-left pb-4">
-          <SheetTitle>Choose your video URL</SheetTitle>
+          <SheetTitle>{t("readyToPost.modal.title")}</SheetTitle>
+          <SheetDescription className="text-muted-foreground">
+            {t("readyToPost.modal.subline")}
+          </SheetDescription>
         </SheetHeader>
 
         <div className="space-y-6 pb-6">
           {/* URL Preview */}
           <div className="bg-muted/50 rounded-lg px-4 py-3 border border-border/50">
-            <p className="text-sm text-muted-foreground mb-1">Your video will be at:</p>
             <p className="text-base font-medium text-foreground break-all">
               {previewUrl}
             </p>
@@ -160,7 +166,7 @@ export default function SlugEditSheet({
 
           {/* Slug Input */}
           <div className="space-y-2">
-            <Label htmlFor="slug">Custom URL</Label>
+            <Label htmlFor="slug">{t("readyToPost.modal.customUrl")}</Label>
             <div className="relative">
               <Input
                 id="slug"
@@ -182,14 +188,17 @@ export default function SlugEditSheet({
             </div>
             {isAvailable === false && (
               <p className="text-xs text-destructive">
-                This URL is already taken. Please choose another.
+                {t("readyToPost.modal.taken")}
               </p>
             )}
             {isAvailable === true && (
               <p className="text-xs text-green-600">
-                This URL is available!
+                {t("readyToPost.modal.available")}
               </p>
             )}
+            <p className="text-xs text-muted-foreground">
+              {t("readyToPost.modal.helper")}
+            </p>
           </div>
 
           {/* Actions */}
@@ -199,14 +208,15 @@ export default function SlugEditSheet({
               onClick={() => onOpenChange(false)}
               className="flex-1 h-11"
             >
-              Cancel
+              {t("actions.cancel")}
             </Button>
             <Button
               onClick={handleFinalize}
               disabled={!slug || !isAvailable || saving}
               className="flex-1 h-11"
             >
-              {saving ? "Saving..." : "Finalize & Share"}
+              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              {saving ? "..." : t("readyToPost.modal.continue")}
             </Button>
           </div>
         </div>

@@ -164,7 +164,7 @@ const MobileHeader = ({
                 className="h-9 px-4 flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
               >
                 <Share2 className="w-4 h-4" />
-                <span>Finalize</span>
+                <span>{t("readyToPost.button")}</span>
               </button>
             )}
             

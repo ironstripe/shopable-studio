@@ -4,6 +4,7 @@ import { useCreator } from "@/contexts/CreatorContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useLocale } from "@/lib/i18n";
 import { Check, Copy, ArrowLeft, Plus, Link2 } from "lucide-react";
 import shopableLogo from "@/assets/shopable-logo.png";
 
@@ -19,6 +20,7 @@ export default function ReadyToPostPage() {
   const { videoId } = useParams<{ videoId: string }>();
   const { creator } = useCreator();
   const { toast } = useToast();
+  const { t } = useLocale();
   
   const [video, setVideo] = useState<VideoData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,13 +65,13 @@ export default function ReadyToPostPage() {
 
   const videoUrl = `shop.one/${creator.creator_kuerzel}/${video.custom_slug}`;
   const bioUrl = `shop.one/${creator.creator_kuerzel}`;
-  const caption = video.caption || `Check out my latest pick! 🛒\n\n👉 ${videoUrl}`;
+  const caption = video.caption || `🔥 Check it out!\n\n👉 Link in bio:\n${videoUrl}\n\n#shopable #shopping`;
 
   const handleCopyCaption = async () => {
     try {
       await navigator.clipboard.writeText(caption);
       setCaptionCopied(true);
-      toast({ title: "Caption copied!" });
+      toast({ title: t("readyToPost.page.caption.copied") });
       setTimeout(() => setCaptionCopied(false), 2000);
     } catch (err) {
       toast({ title: "Failed to copy", variant: "destructive" });
@@ -80,7 +82,7 @@ export default function ReadyToPostPage() {
     try {
       await navigator.clipboard.writeText(`https://${bioUrl}`);
       setBioCopied(true);
-      toast({ title: "Bio link copied!" });
+      toast({ title: t("readyToPost.page.bio.copied") });
       setTimeout(() => setBioCopied(false), 2000);
     } catch (err) {
       toast({ title: "Failed to copy", variant: "destructive" });
@@ -106,27 +108,27 @@ export default function ReadyToPostPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center p-4 pt-8">
+      <main className="flex-1 flex flex-col items-center p-4 pt-8 overflow-y-auto">
         <div className="w-full max-w-sm space-y-8">
-          {/* Success Icon */}
-          <div className="flex flex-col items-center space-y-3">
+          {/* Section 1: Success Status */}
+          <div className="flex flex-col items-center space-y-3 text-center">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Check className="w-8 h-8 text-primary" />
+              <span className="text-3xl">🎉</span>
             </div>
-            <h1 className="text-2xl font-semibold text-foreground text-center">
-              Ready to post!
+            <h1 className="text-2xl font-semibold text-foreground">
+              {t("readyToPost.page.title")}
             </h1>
-            <p className="text-sm text-muted-foreground text-center">
-              Your video "{video.title}" is ready to share
+            <p className="text-sm text-muted-foreground">
+              {t("readyToPost.page.subline")}
             </p>
           </div>
 
-          {/* Caption Section */}
+          {/* Section 2: Caption Generator (Hero) */}
           <div className="space-y-3">
             <label className="text-sm font-medium text-foreground">
-              Caption
+              {t("readyToPost.page.caption.label")}
             </label>
-            <div className="bg-muted/50 rounded-lg p-4 text-sm text-foreground whitespace-pre-wrap border border-border/50">
+            <div className="bg-muted/50 rounded-lg p-4 text-sm text-foreground whitespace-pre-wrap border border-border/50 max-h-48 overflow-y-auto">
               {caption}
             </div>
             <Button
@@ -137,21 +139,21 @@ export default function ReadyToPostPage() {
               {captionCopied ? (
                 <>
                   <Check className="w-4 h-4 mr-2" />
-                  Copied!
+                  {t("readyToPost.page.caption.copied")}
                 </>
               ) : (
                 <>
                   <Copy className="w-4 h-4 mr-2" />
-                  Copy Caption
+                  {t("readyToPost.page.caption.copy")}
                 </>
               )}
             </Button>
           </div>
 
-          {/* Bio Link Section */}
+          {/* Section 3: Bio Link Reminder */}
           <div className="space-y-3">
             <label className="text-sm font-medium text-foreground">
-              Your Bio Link
+              {t("readyToPost.page.bio.label")}
             </label>
             <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-4 py-3 border border-border/50">
               <Link2 className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -167,33 +169,35 @@ export default function ReadyToPostPage() {
               {bioCopied ? (
                 <>
                   <Check className="w-4 h-4 mr-2" />
-                  Copied!
+                  {t("readyToPost.page.bio.copied")}
                 </>
               ) : (
                 <>
                   <Copy className="w-4 h-4 mr-2" />
-                  Copy Bio Link
+                  {t("readyToPost.page.bio.copy")}
                 </>
               )}
             </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              {t("readyToPost.page.bio.helper")}
+            </p>
           </div>
 
-          {/* Actions */}
+          {/* Section 4: Exit CTAs */}
           <div className="space-y-3 pt-4">
             <Button
               onClick={() => navigate("/")}
-              variant="outline"
-              className="w-full h-11"
+              className="w-full h-12 text-base font-medium"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Create next video
+              {t("readyToPost.page.createNext")}
             </Button>
             <Button
               onClick={() => navigate("/")}
               variant="ghost"
               className="w-full h-11 text-muted-foreground"
             >
-              Back to videos
+              {t("readyToPost.page.backToVideos")}
             </Button>
           </div>
         </div>
