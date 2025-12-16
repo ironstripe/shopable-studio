@@ -497,14 +497,27 @@ const VideoPlayer = ({
     const rawY = (e.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
     
     // Use MEASURED dimensions from DOM - getBoundingClientRect already includes scale
+    // Fallback to larger realistic sizes for typical card layouts
     const measured = hotspotDimensionsRef.current.get(hotspot.id);
-    const width = measured?.width ?? 150;
-    const height = measured?.height ?? 80;
+    const width = measured?.width ?? 200;
+    const height = measured?.height ?? 90;
     
     // Clamp to safe zone using actual pixel dimensions
-    const { x, y } = clampHotspotPercentage(
+    const { x, y, wasConstrained } = clampHotspotPercentage(
       rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
     );
+    
+    // Debug logging
+    console.log('[SafeZone] Drag clamping:', {
+      hotspotId: hotspot.id,
+      measured: measured ? { width: measured.width, height: measured.height } : 'FALLBACK (200x90)',
+      containerWidth: rect.width,
+      safeRight: rect.width * 0.85,
+      rawX: rawX.toFixed(3),
+      clampedX: x.toFixed(3),
+      rightEdgePx: (x * rect.width + width / 2).toFixed(1),
+      wasConstrained
+    });
     
     onUpdateHotspotPosition(draggingHotspot.id, x, y);
     setDidDrag(true);
@@ -527,14 +540,27 @@ const VideoPlayer = ({
     const rawY = (touch.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
     
     // Use MEASURED dimensions from DOM - getBoundingClientRect already includes scale
+    // Fallback to larger realistic sizes for typical card layouts
     const measured = hotspotDimensionsRef.current.get(hotspot.id);
-    const width = measured?.width ?? 150;
-    const height = measured?.height ?? 80;
+    const width = measured?.width ?? 200;
+    const height = measured?.height ?? 90;
     
     // Clamp to safe zone using actual pixel dimensions
-    const { x, y } = clampHotspotPercentage(
+    const { x, y, wasConstrained } = clampHotspotPercentage(
       rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
     );
+    
+    // Debug logging
+    console.log('[SafeZone] Touch drag clamping:', {
+      hotspotId: hotspot.id,
+      measured: measured ? { width: measured.width, height: measured.height } : 'FALLBACK (200x90)',
+      containerWidth: rect.width,
+      safeRight: rect.width * 0.85,
+      rawX: rawX.toFixed(3),
+      clampedX: x.toFixed(3),
+      rightEdgePx: (x * rect.width + width / 2).toFixed(1),
+      wasConstrained
+    });
     
     onUpdateHotspotPosition(draggingHotspot.id, x, y);
     setDidDrag(true);

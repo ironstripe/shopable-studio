@@ -69,9 +69,16 @@ const VideoHotspot = ({
   useLayoutEffect(() => {
     if (contentRef.current && onMeasure) {
       const rect = contentRef.current.getBoundingClientRect();
+      console.log('[VideoHotspot] Measured dimensions:', hotspot.id, { 
+        width: rect.width, 
+        height: rect.height,
+        style: hotspot.style,
+        scale: hotspot.scale,
+        hasProduct 
+      });
       onMeasure(hotspot.id, rect.width, rect.height);
     }
-  }, [hotspot.id, hotspot.style, hotspot.scale, hasProduct, onMeasure]);
+  }, [hotspot.id, hotspot.style, hotspot.scale, hasProduct, hotspot.productId, hotspot.ctaLabel, onMeasure]);
 
   // Clear pop-in after animation completes
   useEffect(() => {
@@ -166,24 +173,26 @@ const VideoHotspot = ({
             />
           )}
           
-          {/* Hotspot card wrapper with resize handle - SCALE APPLIED HERE */}
-          {/* contentRef measures THIS element for safe zone clamping (excludes countdown above/below) */}
+          {/* Hotspot card wrapper - SCALE APPLIED HERE */}
           <div 
-            ref={contentRef}
             className="relative"
             style={{ 
               transform: `scale(${hotspot.scale})`,
               transformOrigin: 'center center'
             }}
           >
-            <HotspotIcon
-              style={hotspot.style}
-              source="video"
-              countdown={countdown}
-              ctaLabel={hotspot.ctaLabel}
-              isSelected={isSelected}
-              price={price}
-            />
+            {/* contentRef measures ONLY the HotspotIcon for safe zone clamping */}
+            {/* Resize handle is OUTSIDE this ref so it doesn't affect measurement */}
+            <div ref={contentRef}>
+              <HotspotIcon
+                style={hotspot.style}
+                source="video"
+                countdown={countdown}
+                ctaLabel={hotspot.ctaLabel}
+                isSelected={isSelected}
+                price={price}
+              />
+            </div>
             
             {/* Countdown CORNER (absolute positioned - extends outside, NOT measured) */}
             {hotspot.countdown?.active && hotspot.countdown.position === "corner" && (
@@ -196,7 +205,7 @@ const VideoHotspot = ({
               </div>
             )}
             
-            {/* Resize handle - positioned outside card bounds, NOT measured */}
+            {/* Resize handle - OUTSIDE contentRef, NOT measured */}
             {isEditMode && isSelected && (
               <div
                 className={cn(
