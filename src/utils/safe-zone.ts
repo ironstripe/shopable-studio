@@ -77,7 +77,7 @@ export const isPointInSafeZone = (x: number, y: number, preset: SafeZonePreset):
 };
 
 // ========================================
-// SINGLE UNIFIED CLAMP FUNCTION
+// TOP-LEFT BASED CLAMPING (Approach A)
 // All calculations in CONTAINER-LOCAL PIXELS
 // ========================================
 
@@ -99,85 +99,83 @@ export function getSafeRectPx(
 }
 
 /**
- * UNIFIED clamp function with symmetric left/right/top/bottom logic.
- * 
- * All inputs are in CONTAINER-LOCAL PIXELS.
+ * Clamp TOP-LEFT position in container-local pixels.
  * 
  * Guarantees:
  *   safe.left <= hotspotLeft
- *   hotspotRight <= safe.right
+ *   hotspotLeft + contentWidth <= safe.right
  *   safe.top <= hotspotTop
- *   hotspotBottom <= safe.bottom
+ *   hotspotTop + contentHeight <= safe.bottom
  */
-export function clampCenterPx(
-  centerX: number,        // container-local pixels
-  centerY: number,        // container-local pixels
-  contentWidth: number,   // pixels (from getBoundingClientRect)
-  contentHeight: number,  // pixels (from getBoundingClientRect)
-  containerWidth: number, // pixels
-  containerHeight: number // pixels
-): { centerX: number; centerY: number; wasConstrained: boolean } {
+export function clampTopLeftPx(
+  topLeftX: number,        // container-local pixels
+  topLeftY: number,        // container-local pixels
+  contentWidth: number,    // pixels (from getBoundingClientRect)
+  contentHeight: number,   // pixels (from getBoundingClientRect)
+  containerWidth: number,  // pixels
+  containerHeight: number  // pixels
+): { x: number; y: number; wasConstrained: boolean } {
   const safe = getSafeRectPx(containerWidth, containerHeight);
   
-  let cx = centerX;
-  let cy = centerY;
+  let x = topLeftX;
+  let y = topLeftY;
   let constrained = false;
 
-  const halfW = contentWidth / 2;
-  const halfH = contentHeight / 2;
-
-  // Compute min/max center positions (symmetric for all sides)
-  const minX = safe.left + halfW;
-  const maxX = safe.right - halfW;
-  const minY = safe.top + halfH;
-  const maxY = safe.bottom - halfH;
-
-  // Clamp X
-  if (cx < minX) {
-    cx = minX;
-    constrained = true;
-  }
-  if (cx > maxX) {
-    cx = maxX;
-    constrained = true;
-  }
-
-  // Clamp Y
-  if (cy < minY) {
-    cy = minY;
-    constrained = true;
-  }
-  if (cy > maxY) {
-    cy = maxY;
-    constrained = true;
-  }
+  // Min bounds: top-left must be >= safe zone start
+  const minX = safe.left;
+  const minY = safe.top;
+  
+  // Max bounds: top-left + size must be <= safe zone end
+  const maxX = safe.right - contentWidth;
+  const maxY = safe.bottom - contentHeight;
 
   // Handle case where content is larger than safe zone (center it)
   const safeWidth = safe.right - safe.left;
   const safeHeight = safe.bottom - safe.top;
   
   if (contentWidth > safeWidth) {
-    cx = safe.left + safeWidth / 2;
+    // Center horizontally if too wide
+    x = safe.left + (safeWidth - contentWidth) / 2;
     constrained = true;
+  } else {
+    // Clamp X within bounds
+    if (x < minX) {
+      x = minX;
+      constrained = true;
+    }
+    if (x > maxX) {
+      x = maxX;
+      constrained = true;
+    }
   }
+  
   if (contentHeight > safeHeight) {
-    cy = safe.top + safeHeight / 2;
+    // Center vertically if too tall
+    y = safe.top + (safeHeight - contentHeight) / 2;
     constrained = true;
+  } else {
+    // Clamp Y within bounds
+    if (y < minY) {
+      y = minY;
+      constrained = true;
+    }
+    if (y > maxY) {
+      y = maxY;
+      constrained = true;
+    }
   }
 
   // Development assertion: verify result satisfies constraints
   if (process.env.NODE_ENV !== "production") {
-    const left = cx - halfW;
-    const right = cx + halfW;
-    const top = cy - halfH;
-    const bottom = cy + halfH;
+    const right = x + contentWidth;
+    const bottom = y + contentHeight;
     
     // Allow 0.5px tolerance for floating point
     const tol = 0.5;
-    if (left < safe.left - tol || right > safe.right + tol ||
-        top < safe.top - tol || bottom > safe.bottom + tol) {
-      console.error("[SafeZone] Clamp failed assertion!", { 
-        result: { left, right, top, bottom },
+    if (x < safe.left - tol || right > safe.right + tol ||
+        y < safe.top - tol || bottom > safe.bottom + tol) {
+      console.error("[SafeZone] Top-left clamp failed assertion!", { 
+        result: { left: x, right, top: y, bottom },
         safe,
         content: { contentWidth, contentHeight },
         container: { containerWidth, containerHeight }
@@ -185,41 +183,34 @@ export function clampCenterPx(
     }
   }
 
-  return { centerX: cx, centerY: cy, wasConstrained: constrained };
+  return { x, y, wasConstrained: constrained };
 }
 
 /**
- * Convenience wrapper: takes NORMALIZED (0-1) center, returns NORMALIZED center.
- * Internally converts to pixels, clamps, then converts back.
- * 
- * @param centerXNorm - normalized X (0-1)
- * @param centerYNorm - normalized Y (0-1)
- * @param contentWidth - measured content width in pixels
- * @param contentHeight - measured content height in pixels
- * @param containerWidth - container width in pixels
- * @param containerHeight - container height in pixels
+ * Clamp hotspot TOP-LEFT position (normalized 0-1).
+ * Takes and returns TOP-LEFT coordinates.
  */
-export function clampHotspotPercentage(
-  centerXNorm: number,
-  centerYNorm: number,
-  contentWidth: number,
-  contentHeight: number,
-  containerWidth: number,
-  containerHeight: number,
+export function clampHotspotTopLeft(
+  topLeftXNorm: number,    // normalized X (0-1) - TOP-LEFT
+  topLeftYNorm: number,    // normalized Y (0-1) - TOP-LEFT
+  contentWidth: number,    // measured content width in pixels
+  contentHeight: number,   // measured content height in pixels
+  containerWidth: number,  // container width in pixels
+  containerHeight: number, // container height in pixels
   preset: SafeZonePreset = 'vertical_social'
 ): { x: number; y: number; wasConstrained: boolean } {
   if (preset === 'none') {
-    return { x: centerXNorm, y: centerYNorm, wasConstrained: false };
+    return { x: topLeftXNorm, y: topLeftYNorm, wasConstrained: false };
   }
 
-  // Convert normalized center to container-local pixels
-  const centerPxX = centerXNorm * containerWidth;
-  const centerPxY = centerYNorm * containerHeight;
+  // Convert normalized top-left to container-local pixels
+  const topLeftPxX = topLeftXNorm * containerWidth;
+  const topLeftPxY = topLeftYNorm * containerHeight;
 
   // Clamp in pixel space
-  const result = clampCenterPx(
-    centerPxX,
-    centerPxY,
+  const result = clampTopLeftPx(
+    topLeftPxX,
+    topLeftPxY,
     contentWidth,
     contentHeight,
     containerWidth,
@@ -228,9 +219,63 @@ export function clampHotspotPercentage(
 
   // Convert back to normalized (0-1)
   return {
-    x: result.centerX / containerWidth,
-    y: result.centerY / containerHeight,
+    x: result.x / containerWidth,
+    y: result.y / containerHeight,
     wasConstrained: result.wasConstrained,
+  };
+}
+
+/**
+ * Convert CENTER position to TOP-LEFT position.
+ * Used for migration from center-based data model.
+ */
+export function centerToTopLeft(
+  centerXNorm: number,
+  centerYNorm: number,
+  contentWidth: number,
+  contentHeight: number,
+  containerWidth: number,
+  containerHeight: number
+): { x: number; y: number } {
+  // Convert center to pixels
+  const centerPxX = centerXNorm * containerWidth;
+  const centerPxY = centerYNorm * containerHeight;
+  
+  // Compute top-left
+  const topLeftPxX = centerPxX - contentWidth / 2;
+  const topLeftPxY = centerPxY - contentHeight / 2;
+  
+  // Convert back to normalized
+  return {
+    x: topLeftPxX / containerWidth,
+    y: topLeftPxY / containerHeight,
+  };
+}
+
+/**
+ * Convert TOP-LEFT position to CENTER position.
+ * Used for API compatibility if needed.
+ */
+export function topLeftToCenter(
+  topLeftXNorm: number,
+  topLeftYNorm: number,
+  contentWidth: number,
+  contentHeight: number,
+  containerWidth: number,
+  containerHeight: number
+): { x: number; y: number } {
+  // Convert top-left to pixels
+  const topLeftPxX = topLeftXNorm * containerWidth;
+  const topLeftPxY = topLeftYNorm * containerHeight;
+  
+  // Compute center
+  const centerPxX = topLeftPxX + contentWidth / 2;
+  const centerPxY = topLeftPxY + contentHeight / 2;
+  
+  // Convert back to normalized
+  return {
+    x: centerPxX / containerWidth,
+    y: centerPxY / containerHeight,
   };
 }
 
@@ -248,43 +293,105 @@ export function getFallbackDimensions(hasProduct: boolean): { width: number; hei
 }
 
 /**
- * Calculate maximum allowed scale for a hotspot at given position within safe zone.
+ * Calculate maximum allowed scale for a hotspot at given TOP-LEFT position within safe zone.
  * Uses measured dimensions at scale=1 to compute how much the hotspot can grow.
  */
 export function getMaxScaleInSafeZone(
-  centerXNorm: number,      // 0-1 normalized
-  centerYNorm: number,      // 0-1 normalized
-  baseWidth: number,        // content width at scale=1 (pixels)
-  baseHeight: number,       // content height at scale=1 (pixels)
-  containerWidth: number,   // pixels
-  containerHeight: number,  // pixels
+  topLeftXNorm: number,      // 0-1 normalized TOP-LEFT
+  topLeftYNorm: number,      // 0-1 normalized TOP-LEFT
+  baseWidth: number,         // content width at scale=1 (pixels)
+  baseHeight: number,        // content height at scale=1 (pixels)
+  containerWidth: number,    // pixels
+  containerHeight: number,   // pixels
   preset: SafeZonePreset = 'vertical_social'
 ): number {
   if (preset === 'none') return HOTSPOT_CONSTRAINTS.maxScale;
   
   const safe = getSafeRectPx(containerWidth, containerHeight);
   
-  // Convert center to pixels
-  const centerPxX = centerXNorm * containerWidth;
-  const centerPxY = centerYNorm * containerHeight;
+  // Convert top-left to pixels
+  const topLeftPxX = topLeftXNorm * containerWidth;
+  const topLeftPxY = topLeftYNorm * containerHeight;
   
-  // Calculate max half-dimensions that fit from current center position
-  const maxHalfLeft = centerPxX - safe.left;
-  const maxHalfRight = safe.right - centerPxX;
-  const maxHalfTop = centerPxY - safe.top;
-  const maxHalfBottom = safe.bottom - centerPxY;
+  // Available space from top-left position
+  const availableWidth = safe.right - topLeftPxX;
+  const availableHeight = safe.bottom - topLeftPxY;
   
-  // Max half-dimensions we can use (most restrictive side)
-  const maxHalfWidth = Math.min(maxHalfLeft, maxHalfRight);
-  const maxHalfHeight = Math.min(maxHalfTop, maxHalfBottom);
+  // Also check space from left/top edges (hotspot might need to grow "backwards")
+  const availableFromLeft = topLeftPxX - safe.left;
+  const availableFromTop = topLeftPxY - safe.top;
   
-  // Calculate max scale based on each dimension
-  const maxScaleByWidth = baseWidth > 0 ? (maxHalfWidth * 2) / baseWidth : HOTSPOT_CONSTRAINTS.maxScale;
-  const maxScaleByHeight = baseHeight > 0 ? (maxHalfHeight * 2) / baseHeight : HOTSPOT_CONSTRAINTS.maxScale;
+  // Max scale is limited by the most restrictive direction
+  // For simplicity, use the space available from current position to safe boundary
+  const maxScaleByWidth = baseWidth > 0 ? availableWidth / baseWidth : HOTSPOT_CONSTRAINTS.maxScale;
+  const maxScaleByHeight = baseHeight > 0 ? availableHeight / baseHeight : HOTSPOT_CONSTRAINTS.maxScale;
   
   // Return the most restrictive, clamped to valid range
   return Math.max(
     HOTSPOT_CONSTRAINTS.minScale, 
     Math.min(HOTSPOT_CONSTRAINTS.maxScale, Math.min(maxScaleByWidth, maxScaleByHeight))
   );
+}
+
+// ========================================
+// LEGACY CENTER-BASED FUNCTIONS (deprecated)
+// Keep for backward compatibility but prefer top-left approach
+// ========================================
+
+/**
+ * @deprecated Use clampTopLeftPx instead
+ */
+export function clampCenterPx(
+  centerX: number,
+  centerY: number,
+  contentWidth: number,
+  contentHeight: number,
+  containerWidth: number,
+  containerHeight: number
+): { centerX: number; centerY: number; wasConstrained: boolean } {
+  // Convert center to top-left
+  const topLeftX = centerX - contentWidth / 2;
+  const topLeftY = centerY - contentHeight / 2;
+  
+  // Clamp top-left
+  const result = clampTopLeftPx(topLeftX, topLeftY, contentWidth, contentHeight, containerWidth, containerHeight);
+  
+  // Convert back to center
+  return {
+    centerX: result.x + contentWidth / 2,
+    centerY: result.y + contentHeight / 2,
+    wasConstrained: result.wasConstrained,
+  };
+}
+
+/**
+ * @deprecated Use clampHotspotTopLeft instead
+ */
+export function clampHotspotPercentage(
+  centerXNorm: number,
+  centerYNorm: number,
+  contentWidth: number,
+  contentHeight: number,
+  containerWidth: number,
+  containerHeight: number,
+  preset: SafeZonePreset = 'vertical_social'
+): { x: number; y: number; wasConstrained: boolean } {
+  if (preset === 'none') {
+    return { x: centerXNorm, y: centerYNorm, wasConstrained: false };
+  }
+
+  // Convert center to top-left
+  const topLeft = centerToTopLeft(centerXNorm, centerYNorm, contentWidth, contentHeight, containerWidth, containerHeight);
+  
+  // Clamp top-left
+  const clamped = clampHotspotTopLeft(topLeft.x, topLeft.y, contentWidth, contentHeight, containerWidth, containerHeight, preset);
+  
+  // Convert back to center
+  const center = topLeftToCenter(clamped.x, clamped.y, contentWidth, contentHeight, containerWidth, containerHeight);
+  
+  return {
+    x: center.x,
+    y: center.y,
+    wasConstrained: clamped.wasConstrained,
+  };
 }

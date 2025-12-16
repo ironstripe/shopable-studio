@@ -27,6 +27,9 @@ interface VideoHotspotProps {
   isAnyEditing?: boolean;
   forceVisible?: boolean;
   onContentMeasure?: (width: number, height: number) => void;
+  // TOP-LEFT positioning: derived position for rendering
+  renderX?: number;  // normalized 0-1, TOP-LEFT
+  renderY?: number;  // normalized 0-1, TOP-LEFT
 }
 
 const VideoHotspot = ({ 
@@ -50,6 +53,8 @@ const VideoHotspot = ({
   isAnyEditing = false,
   forceVisible = false,
   onContentMeasure,
+  renderX,  // TOP-LEFT X position (normalized 0-1)
+  renderY,  // TOP-LEFT Y position (normalized 0-1)
 }: VideoHotspotProps) => {
   const countdown = Math.ceil(hotspot.timeEnd - currentTime);
   const isActive = currentTime >= hotspot.timeStart && currentTime <= hotspot.timeEnd;
@@ -136,13 +141,16 @@ const VideoHotspot = ({
         isDimmed && "hotspot-editing-dimmed"
       )}
       style={{
-        left: `${hotspot.x * 100}%`,
-        top: `${hotspot.y * 100}%`,
+        // TOP-LEFT positioning: use renderX/renderY if provided, fallback to hotspot.x/y
+        // NO translate(-50%, -50%) - position is already top-left
+        left: `${(renderX ?? hotspot.x) * 100}%`,
+        top: `${(renderY ?? hotspot.y) * 100}%`,
+        // Only apply scale transform for selection effect, NOT translation
         transform: showPopIn 
           ? undefined 
           : isSelected && isAnyEditing 
-            ? "translate(-50%, -50%) scale(1.06)" 
-            : "translate(-50%, -50%)",
+            ? "scale(1.06)" 
+            : undefined,
         zIndex: isDragging || isResizing ? 100 : isSelected ? 50 : 10,
         touchAction: isEditMode ? 'none' : 'auto',
       }}
