@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -28,12 +28,30 @@ export default function AuthPage() {
   const [creatorHandle, setCreatorHandle] = useState("");
   const [creatorKuerzel, setCreatorKuerzel] = useState("");
 
-  // Redirect if already logged in
+  const isPasswordRecovery = useMemo(() => {
+    const url = new URL(window.location.href);
+    const searchType = url.searchParams.get("type");
+    const searchCode = url.searchParams.get("code");
+    const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
+    const hashType = hashParams.get("type");
+    const hashAccessToken = hashParams.get("access_token");
+
+    return searchType === "recovery" || hashType === "recovery" || Boolean(searchCode) || Boolean(hashAccessToken);
+  }, []);
+
+  // If we landed here via a password reset link, route to the reset screen.
   useEffect(() => {
-    if (user) {
+    if (isPasswordRecovery) {
+      navigate(`/reset-password${window.location.search}${window.location.hash}`, { replace: true });
+    }
+  }, [isPasswordRecovery, navigate]);
+
+  // Redirect if already logged in (but never during password recovery flow)
+  useEffect(() => {
+    if (user && !isPasswordRecovery) {
       navigate("/");
     }
-  }, [user, navigate]);
+  }, [user, isPasswordRecovery, navigate]);
 
   // Clear form error when inputs change
   useEffect(() => {
@@ -48,7 +66,7 @@ export default function AuthPage() {
     
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth`,
+      redirectTo: `${window.location.origin}/reset-password`,
     });
     setLoading(false);
     

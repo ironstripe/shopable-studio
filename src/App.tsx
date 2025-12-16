@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { CreatorProvider, useCreator } from "@/contexts/CreatorContext";
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import CompleteProfilePage from "./pages/CompleteProfilePage";
 import ReadyToPostPage from "./pages/ReadyToPostPage";
 import HelpPage from "./pages/HelpPage";
@@ -49,6 +50,22 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function AuthRoute({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const { creator, loading: creatorLoading } = useCreator();
+
+  const isPasswordRecovery = (() => {
+    const url = new URL(window.location.href);
+    const searchType = url.searchParams.get("type");
+    const searchCode = url.searchParams.get("code");
+    const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
+    const hashType = hashParams.get("type");
+    const hashAccessToken = hashParams.get("access_token");
+
+    return searchType === "recovery" || hashType === "recovery" || Boolean(searchCode) || Boolean(hashAccessToken);
+  })();
+
+  // Never redirect away during password recovery flow
+  if (isPasswordRecovery) {
+    return <>{children}</>;
+  }
 
   if (authLoading) {
     return (
@@ -120,6 +137,7 @@ function AppRoutes() {
           </AuthRoute>
         }
       />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route
         path="/complete-profile"
         element={
