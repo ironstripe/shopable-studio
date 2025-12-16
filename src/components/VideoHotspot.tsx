@@ -3,7 +3,7 @@ import HotspotIcon from "./HotspotIcon";
 import EmptyHotspotIndicator from "./EmptyHotspotIndicator";
 import HotspotCountdown from "./HotspotCountdown";
 import { cn } from "@/lib/utils";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { AlertCircle } from "lucide-react";
 
 interface VideoHotspotProps {
@@ -25,6 +25,7 @@ interface VideoHotspotProps {
   isNew?: boolean;
   isAnyEditing?: boolean;
   forceVisible?: boolean;
+  onContentMeasure?: (width: number, height: number) => void;
 }
 
 const VideoHotspot = ({ 
@@ -46,11 +47,13 @@ const VideoHotspot = ({
   isNew = false,
   isAnyEditing = false,
   forceVisible = false,
+  onContentMeasure,
 }: VideoHotspotProps) => {
   const countdown = Math.ceil(hotspot.timeEnd - currentTime);
   const isActive = currentTime >= hotspot.timeStart && currentTime <= hotspot.timeEnd;
   
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   
   // Track if pop-in animation should play
   const [showPopIn, setShowPopIn] = useState(isNew);
@@ -74,6 +77,33 @@ const VideoHotspot = ({
     }
     prevSelectedRef.current = isSelected;
   }, [isSelected]);
+
+  // Measure CONTENT ONLY (not wrapper with toolbar) and report via callback
+  // Also set up ResizeObserver for dynamic size changes
+  useLayoutEffect(() => {
+    const contentEl = contentRef.current;
+    if (!contentEl || !onContentMeasure) return;
+
+    const measure = () => {
+      const rect = contentEl.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        onContentMeasure(rect.width, rect.height);
+      }
+    };
+
+    // Initial measurement
+    measure();
+
+    // ResizeObserver for dynamic content size changes
+    const observer = new ResizeObserver(() => {
+      measure();
+    });
+    observer.observe(contentEl);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [onContentMeasure, hasProduct, hotspot.style, hotspot.scale]);
 
   // Allow forced visibility when selected/editing (even if outside time range)
   if (!forceVisible && (!isActive || countdown <= 0)) return null;
@@ -126,106 +156,108 @@ const VideoHotspot = ({
         </div>
       )}
       
-      {!hasProduct ? (
-        // Unassigned hotspot
-        <EmptyHotspotIndicator
-          index={hotspotIndex || 0}
-          isSelected={isSelected}
-          isDragging={isDragging}
-          isResizing={isResizing}
-          scale={hotspot.scale}
-          isEditMode={isEditMode}
-        />
-      ) : (
-        // Assigned hotspot - render HotspotIcon with countdown and resize handle
-        <div className="flex flex-col items-center gap-1.5">
-          {/* Countdown ABOVE */}
-          {hotspot.countdown?.active && hotspot.countdown.position === "above" && (
-            <HotspotCountdown 
-              config={hotspot.countdown} 
-              isPreviewMode={!isEditMode} 
-              scale={hotspot.scale}
-            />
-          )}
-          
-          {/* Hotspot card wrapper - SCALE APPLIED HERE */}
-          <div 
-            className="relative"
-            style={{ 
-              transform: `scale(${hotspot.scale})`,
-              transformOrigin: 'center center'
-            }}
-          >
-            <HotspotIcon
-              style={hotspot.style}
-              source="video"
-              countdown={countdown}
-              ctaLabel={hotspot.ctaLabel}
-              isSelected={isSelected}
-              price={price}
-            />
-            
-            {/* Countdown CORNER (absolute positioned - extends outside, NOT measured) */}
-            {hotspot.countdown?.active && hotspot.countdown.position === "corner" && (
-              <div className="absolute -top-2 -right-2 z-[15]">
-                <HotspotCountdown 
-                  config={hotspot.countdown} 
-                  isPreviewMode={!isEditMode} 
-                  scale={hotspot.scale * 0.85}
-                />
-              </div>
+      {/* CONTENT REF: Wrap only the visual content that must stay in safe zone */}
+      <div ref={contentRef}>
+        {!hasProduct ? (
+          // Unassigned hotspot
+          <EmptyHotspotIndicator
+            index={hotspotIndex || 0}
+            isSelected={isSelected}
+            isDragging={isDragging}
+            isResizing={isResizing}
+            scale={hotspot.scale}
+            isEditMode={isEditMode}
+          />
+        ) : (
+          // Assigned hotspot - render HotspotIcon with countdown and resize handle
+          <div className="flex flex-col items-center gap-1.5">
+            {/* Countdown ABOVE */}
+            {hotspot.countdown?.active && hotspot.countdown.position === "above" && (
+              <HotspotCountdown 
+                config={hotspot.countdown} 
+                isPreviewMode={!isEditMode} 
+                scale={hotspot.scale}
+              />
             )}
             
-            {/* Resize handle - OUTSIDE contentRef, NOT measured */}
-            {isEditMode && isSelected && (
-              <div
-                className={cn(
-                  "absolute w-5 h-5 bg-white/90 border border-neutral-300 rounded-full cursor-se-resize flex items-center justify-center transition-all hover:border-neutral-400 hover:shadow-sm hotspot-resize-handle pointer-events-auto",
-                  isResizing && "animate-resize-pulse"
-                )}
-                style={{ 
-                  bottom: '-10px', 
-                  right: '-10px',
-                  touchAction: 'none',
-                  zIndex: 120,
-                }}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  onResizeStart(e);
-                }}
-                onTouchStart={(e) => {
-                  e.stopPropagation();
-                  onTouchResizeStart?.(e);
-                }}
-              >
-                <svg 
-                  width="8" 
-                  height="8" 
-                  viewBox="0 0 10 10" 
-                  className="text-neutral-500"
-                >
-                  <path 
-                    d="M9 1L1 9M9 5L5 9" 
-                    stroke="currentColor" 
-                    strokeWidth="1.5" 
-                    strokeLinecap="round"
+            {/* Hotspot card wrapper - SCALE APPLIED HERE */}
+            <div 
+              className="relative"
+              style={{ 
+                transform: `scale(${hotspot.scale})`,
+                transformOrigin: 'center center'
+              }}
+            >
+              <HotspotIcon
+                style={hotspot.style}
+                source="video"
+                countdown={countdown}
+                ctaLabel={hotspot.ctaLabel}
+                isSelected={isSelected}
+                price={price}
+              />
+              
+              {/* Countdown CORNER (absolute positioned - extends outside, NOT measured) */}
+              {hotspot.countdown?.active && hotspot.countdown.position === "corner" && (
+                <div className="absolute -top-2 -right-2 z-[15]">
+                  <HotspotCountdown 
+                    config={hotspot.countdown} 
+                    isPreviewMode={!isEditMode} 
+                    scale={hotspot.scale * 0.85}
                   />
-                </svg>
-              </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Countdown BELOW */}
+            {hotspot.countdown?.active && hotspot.countdown.position === "below" && (
+              <HotspotCountdown 
+                config={hotspot.countdown} 
+                isPreviewMode={!isEditMode} 
+                scale={hotspot.scale}
+              />
             )}
           </div>
-          
-          {/* Countdown BELOW */}
-          {hotspot.countdown?.active && hotspot.countdown.position === "below" && (
-            <HotspotCountdown 
-              config={hotspot.countdown} 
-              isPreviewMode={!isEditMode} 
-              scale={hotspot.scale}
-            />
+        )}
+      </div>
+      
+      {/* Resize handle - OUTSIDE contentRef, NOT measured */}
+      {isEditMode && isSelected && hasProduct && (
+        <div
+          className={cn(
+            "absolute w-5 h-5 bg-white/90 border border-neutral-300 rounded-full cursor-se-resize flex items-center justify-center transition-all hover:border-neutral-400 hover:shadow-sm hotspot-resize-handle pointer-events-auto",
+            isResizing && "animate-resize-pulse"
           )}
+          style={{ 
+            bottom: '-10px', 
+            right: '-10px',
+            touchAction: 'none',
+            zIndex: 120,
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            onResizeStart(e);
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            onTouchResizeStart?.(e);
+          }}
+        >
+          <svg 
+            width="8" 
+            height="8" 
+            viewBox="0 0 10 10" 
+            className="text-neutral-500"
+          >
+            <path 
+              d="M9 1L1 9M9 5L5 9" 
+              stroke="currentColor" 
+              strokeWidth="1.5" 
+              strokeLinecap="round"
+            />
+          </svg>
         </div>
       )}
-      
     </div>
   );
 };
