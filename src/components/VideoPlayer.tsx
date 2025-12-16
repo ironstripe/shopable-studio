@@ -47,6 +47,7 @@ interface VideoPlayerProps {
   showSafeZones?: boolean;
   isMobile?: boolean;
   showPlacementHint?: boolean;
+  isFirstHotspot?: boolean;
   onHotspotDragEnd?: (hotspotId: string) => void;
   isDeferringToolbar?: boolean;
   hotspotsLoading?: boolean;
@@ -99,6 +100,7 @@ const VideoPlayer = ({
   showSafeZones = false,
   isMobile = false,
   showPlacementHint = false,
+  isFirstHotspot = true,
   onHotspotDragEnd,
   isDeferringToolbar = false,
   hotspotsLoading = false,
@@ -337,17 +339,11 @@ const VideoPlayer = ({
     }
   }, [hotspots, pendingDragPosition, draggingHotspot]);
 
-  // Handle click on overlay - only creates hotspot in "add" mode
+  // Handle click on overlay - creates hotspot in edit mode (tap-first approach)
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // Don't create hotspot if click originated from an existing hotspot element
     if ((e.target as HTMLElement).closest('.hotspot-draggable')) {
       console.log("[VideoPlayer] Click originated from hotspot, ignoring overlay click");
-      return;
-    }
-    
-    // Only create hotspots in add mode
-    if (!isAddingHotspot) {
-      console.log("[VideoPlayer] Not in add mode, ignoring overlay click");
       return;
     }
     
@@ -391,31 +387,15 @@ const VideoPlayer = ({
     onAddHotspot(safeX, safeY, actualTime);
     videoRef.current.pause();
     
-    // Exit add mode after creating hotspot
+    // Exit add mode if it was active
     onExitAddMode?.();
   };
 
-  // Handle click on empty video area in SELECT mode - deselects hotspot
-  const handleSelectModeClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Don't deselect if click originated from a hotspot element
-    if ((e.target as HTMLElement).closest('.hotspot-draggable')) {
-      return;
-    }
-    // Deselect any selected hotspot
-    onSelectHotspot(null);
-  };
-
-  // iOS touch event handler for hotspot placement - only in ADD mode
+  // iOS touch event handler for hotspot placement - tap-first approach
   const handleOverlayTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     // Don't create hotspot if touch originated from an existing hotspot element
     if ((e.target as HTMLElement).closest('.hotspot-draggable')) {
       console.log("[VideoPlayer] Touch originated from hotspot, ignoring overlay touch");
-      return;
-    }
-    
-    // Only create hotspots in add mode
-    if (!isAddingHotspot) {
-      console.log("[VideoPlayer] Not in add mode, ignoring overlay touch");
       return;
     }
     
@@ -469,7 +449,7 @@ const VideoPlayer = ({
     onAddHotspot(safeX, safeY, actualTime);
     videoRef.current.pause();
     
-    // Exit add mode after creating hotspot
+    // Exit add mode if it was active
     onExitAddMode?.();
   };
 
@@ -954,14 +934,16 @@ const VideoPlayer = ({
                 </div>
                 
                 <p className="font-semibold text-[16px] leading-snug">
-                  {t("editor.hint.tapToAddHotspot")}
+                  {isFirstHotspot 
+                    ? t("editor.hint.tapToAddHotspot") 
+                    : t("editor.hint.tapToAddAnother")}
                 </p>
               </div>
             </div>
           )}
 
-          {/* Click overlay for hotspot placement - ADD mode only (shows + cursor) */}
-          {videoSrc && isVideoReady && !isPreviewMode && isAddingHotspot && (
+          {/* Unified click overlay for hotspot creation - tap-first approach in Edit mode */}
+          {videoSrc && isVideoReady && !isPreviewMode && (
             <div
               className="absolute inset-0 bottom-[50px] hotspot-placement-cursor z-[5]"
               onClick={handleOverlayClick}
@@ -969,21 +951,6 @@ const VideoPlayer = ({
               onTouchEnd={(e) => e.preventDefault()} // Prevent click from double-firing
               style={{
                 touchAction: 'none', // Disable all browser touch actions for immediate response
-                WebkitUserSelect: 'none',
-                userSelect: 'none',
-                WebkitTapHighlightColor: 'transparent',
-                backgroundColor: 'rgba(0, 0, 0, 0.001)', // Nearly invisible but detectable on iOS
-              }}
-            />
-          )}
-
-          {/* Click overlay for SELECT mode - clicking empty space deselects hotspot */}
-          {videoSrc && isVideoReady && !isPreviewMode && !isAddingHotspot && (
-            <div
-              className="absolute inset-0 bottom-[50px] cursor-default z-[5]"
-              onClick={handleSelectModeClick}
-              style={{
-                touchAction: 'auto',
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
                 WebkitTapHighlightColor: 'transparent',

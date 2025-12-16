@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Play, Pause, Link2, Plus } from "lucide-react";
+import { Play, Pause, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
@@ -150,21 +150,7 @@ const MobileBottomControls = ({
           </div>
         </div>
 
-        {/* Add Hotspot Button - only show in Edit mode */}
-        {editorMode === "edit" && (
-          <button
-            onClick={onToggleAddMode}
-            className={cn(
-              "w-10 h-10 flex items-center justify-center rounded-full transition-colors",
-              isAddingHotspot
-                ? "bg-primary text-primary-foreground"
-                : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
-            )}
-            title={isAddingHotspot ? "Cancel adding hotspot" : "Add hotspot"}
-          >
-            <Plus className={cn("w-5 h-5 transition-transform", isAddingHotspot && "rotate-45")} />
-          </button>
-        )}
+        {/* Add Hotspot Button - hidden, tap video directly instead (tap-first approach) */}
 
         {/* CTA Button */}
         <button

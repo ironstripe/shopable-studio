@@ -735,8 +735,20 @@ const Index = () => {
 
   // FTUX computed states
   const showWelcomeOverlay = !ftuxComplete && ftuxStep === "welcome";
-  // Show placement hint when video is loaded, hotspots are loaded, in edit mode, and no hotspots exist
-  const showPlacementHint = videoSrc && !hotspotsLoading && editorMode === "edit" && hotspots.length === 0;
+  // Show placement hint when ready for next hotspot creation
+  // Conditions: video loaded, not loading, edit mode, no hotspot selected, no sheets open, not dragging
+  const showPlacementHint = videoSrc 
+    && !hotspotsLoading 
+    && editorMode === "edit" 
+    && !selectedHotspotId 
+    && !selectProductSheetOpen 
+    && !layoutBehaviorSheetOpen 
+    && !newProductSheetOpen 
+    && !hotspotDrawerOpen
+    && !isDeferringToolbar;
+  
+  // Determine which hint text to show
+  const isFirstHotspot = hotspots.length === 0;
   const showProductSheetHint = !ftuxComplete && ftuxStep === "productSelect";
 
   // Mobile layout
@@ -803,7 +815,8 @@ const Index = () => {
               onUpdateVideoCTA={setVideoCTA}
               showSafeZones={editorMode === "edit"}
               isMobile={true}
-              showPlacementHint={!!showPlacementHint && isAddingHotspot}
+              showPlacementHint={!!showPlacementHint}
+              isFirstHotspot={isFirstHotspot}
               onHotspotDragEnd={handleHotspotDragEnd}
               isDeferringToolbar={isDeferringToolbar}
               hotspotsLoading={hotspotsLoading}
