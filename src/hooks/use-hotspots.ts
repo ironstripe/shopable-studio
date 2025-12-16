@@ -180,38 +180,34 @@ export function useHotspots(
   const updateHotspot = useCallback(
     (updated: Partial<Hotspot> & { id: string }) => {
       // Check if this is ONLY a toolbarOffset update (no revision bump needed)
-      // toolbarOffset is client-only and doesn't need backend sync
       const updateKeys = Object.keys(updated);
       const isToolbarOffsetOnly = 
         updateKeys.length === 2 && 
         updateKeys.includes('id') && 
         updateKeys.includes('toolbarOffset');
 
-      // Track the merged hotspot for backend sync
-      let mergedHotspot: Hotspot | null = null;
+      // Find current hotspot SYNCHRONOUSLY before any state updates
+      // This avoids React 18 batching issues where setState callback defers
+      const currentHotspot = hotspotsRef.current.find(h => h.id === updated.id);
+      if (!currentHotspot) {
+        console.error("[useHotspots] Hotspot not found for update:", updated.id);
+        return;
+      }
 
+      // Compute merged hotspot BEFORE setState (avoids React 18 batching issues)
+      const nextRevision = isToolbarOffsetOnly 
+        ? (currentHotspot.revision ?? 0) 
+        : (currentHotspot.revision ?? 0) + 1;
+
+      const mergedHotspot: Hotspot = {
+        ...currentHotspot,
+        ...updated,
+        revision: nextRevision,
+      };
+
+      // Update local state with pre-computed merged hotspot
       setHotspots((prev) =>
-        prev.map((h) => {
-          if (h.id !== updated.id) return h;
-
-          // Skip revision bump for toolbar offset updates to prevent remount during drag
-          const nextRevision = isToolbarOffsetOnly 
-            ? (h.revision ?? 0) 
-            : (h.revision ?? 0) + 1;
-
-          const merged = {
-            ...h,
-            ...updated,
-            revision: nextRevision,
-          };
-          
-          // Capture merged hotspot for backend sync
-          if (!isToolbarOffsetOnly) {
-            mergedHotspot = merged;
-          }
-          
-          return merged;
-        })
+        prev.map((h) => (h.id === updated.id ? mergedHotspot : h))
       );
 
       // Don't persist toolbarOffset to backend (it's client-side only)
@@ -219,22 +215,18 @@ export function useHotspots(
         return;
       }
 
-      // Persist FULL hotspot to backend if videoId is available
-      // Use the merged hotspot (with all fields) to ensure complete persistence
-      const currentHotspot = mergedHotspot || hotspotsRef.current.find(h => h.id === updated.id);
-      const apiId = currentHotspot?.backendId;
-      
+      // Persist FULL merged hotspot to backend
+      const apiId = mergedHotspot.backendId;
       console.log("[useHotspots] updateHotspot called:", { 
         id: updated.id, 
         apiId, 
         hasVideoId: !!videoId,
-        updateKeys: Object.keys(updated),
-        hasCurrentHotspot: !!currentHotspot
+        updateKeys,
+        mergedProductUrl: mergedHotspot.productUrl,
       });
       
-      if (videoId && apiId && currentHotspot) {
-        // Send FULL hotspot payload to ensure all layout fields are persisted
-        const payload = mapFullHotspotToUpdatePayload(currentHotspot);
+      if (videoId && apiId) {
+        const payload = mapFullHotspotToUpdatePayload(mergedHotspot);
         console.log("[useHotspots] Syncing FULL hotspot to backend:", { apiId, payload });
         
         updateHotspotApi(videoId, apiId, payload)
@@ -249,7 +241,6 @@ export function useHotspots(
         console.log("[useHotspots] Skipping backend sync - missing data:", { 
           videoId, 
           apiId, 
-          hasCurrentHotspot: !!currentHotspot 
         });
       }
     },
