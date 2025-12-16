@@ -44,6 +44,42 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          created_at: string
+          creator_id: string
+          event_name: string
+          event_source: string
+          id: string
+          ip_hash: string | null
+          properties: Json | null
+          user_agent: string | null
+          video_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          event_name: string
+          event_source?: string
+          id?: string
+          ip_hash?: string | null
+          properties?: Json | null
+          user_agent?: string | null
+          video_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          event_name?: string
+          event_source?: string
+          id?: string
+          ip_hash?: string | null
+          properties?: Json | null
+          user_agent?: string | null
+          video_id?: string | null
+        }
+        Relationships: []
+      }
       hotspots: {
         Row: {
           card_style: string | null

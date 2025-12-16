@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocale } from "@/lib/i18n";
 import { Check, Copy, ArrowLeft, Link2 } from "lucide-react";
 import shopableLogo from "@/assets/shopable-logo.png";
+import { trackEvent } from "@/services/event-tracking";
 
 interface VideoData {
   id: string;
@@ -80,6 +81,16 @@ export default function ReadyToPostPage() {
       await navigator.clipboard.writeText(caption);
       setCaptionCopied(true);
       toast({ title: t("readyToPost.page.caption.copied") });
+      
+      // Track caption_copied event
+      if (creator && videoId) {
+        trackEvent({
+          eventName: "caption_copied",
+          creatorId: creator.id,
+          videoId,
+        });
+      }
+      
       setTimeout(() => setCaptionCopied(false), 2000);
     } catch (err) {
       toast({ title: "Failed to copy", variant: "destructive" });
@@ -91,6 +102,16 @@ export default function ReadyToPostPage() {
       await navigator.clipboard.writeText(`https://${bioUrl}`);
       setBioCopied(true);
       toast({ title: t("readyToPost.page.bio.copied") });
+      
+      // Track bio_link_copied event
+      if (creator && videoId) {
+        trackEvent({
+          eventName: "bio_link_copied",
+          creatorId: creator.id,
+          videoId,
+        });
+      }
+      
       setTimeout(() => setBioCopied(false), 2000);
     } catch (err) {
       toast({ title: "Failed to copy", variant: "destructive" });
