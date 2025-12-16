@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Hotspot, Product, VideoProject, VideoCTA, EditorMode, ClickBehavior } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import VideoGallery from "@/components/VideoGallery";
@@ -38,6 +39,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useFTUX } from "@/hooks/use-ftux";
 import { useHotspots } from "@/hooks/use-hotspots";
 import { useSceneState, isHotspotComplete } from "@/hooks/use-scene-state";
+import { useVideoState } from "@/hooks/use-video-state";
 import { useLocale } from "@/lib/i18n";
 import { useCreator } from "@/contexts/CreatorContext";
 import shopableLogo from "@/assets/shopable-logo.png";
@@ -45,9 +47,11 @@ import { listVideos, VideoDto, triggerRender } from "@/services/video-api";
 import VideoExportSection from "@/components/VideoExportSection";
 
 const Index = () => {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { t } = useLocale();
   const { creator } = useCreator();
+  const { transitionTo: transitionVideoState } = useVideoState();
   const { step: ftuxStep, isComplete: ftuxComplete, advanceStep, completeFTUX } = useFTUX();
   
   // Two-mode system: "select" (default) vs "add" mode
@@ -253,6 +257,12 @@ const Index = () => {
 
   // Handle selecting a video from the gallery
   const handleSelectVideoFromGallery = (video: VideoDto) => {
+    // STATE MACHINE GUARD: If video is already ready_to_post, redirect to exit flow
+    if (video.state === "ready_to_post" || video.state === "posted") {
+      navigate(`/ready/${video.id}`);
+      return;
+    }
+
     if (video.fileUrl) {
       setVideoSrc(video.fileUrl);
       setCurrentVideoId(video.id);
