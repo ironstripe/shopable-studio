@@ -39,6 +39,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "editor.mode.editHint": "Tap on the video to add hotspots",
     "editor.mode.previewHint": "See how viewers will experience your video",
     "editor.hint.tapToAddHotspot": "Tap on the video to place your first hotspot.",
+    "editor.hint.tapToAddAnother": "Tap the video again to add another hotspot.",
 
     // Hotspots
     "hotspots.title": "Hotspots",
@@ -214,6 +215,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "editor.mode.editHint": "Tippe auf das Video, um Hotspots hinzuzufügen",
     "editor.mode.previewHint": "Sieh dir an, wie Zuschauer dein Video erleben werden",
     "editor.hint.tapToAddHotspot": "Tippe auf das Video, um deinen ersten Hotspot zu setzen.",
+    "editor.hint.tapToAddAnother": "Tippe erneut auf das Video, um einen weiteren Hotspot zu setzen.",
 
     // Hotspots
     "hotspots.title": "Hotspots",
