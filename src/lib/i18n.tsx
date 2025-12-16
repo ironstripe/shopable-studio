@@ -23,7 +23,10 @@ const translations: Record<Locale, Record<string, string>> = {
     "header.untitled": "Untitled Video",
     "header.export": "Export",
     "header.replace": "Replace video",
+    "header.replaceHelper": "Keeps link, hotspots and analytics",
     "header.delete": "Delete video",
+    "header.deleteTitle": "Delete video",
+    "header.deleteConfirmation": "This will permanently delete the video and all hotspots. This action cannot be undone.",
     "header.settings": "Video settings",
     "header.help": "Help & Feedback",
 
@@ -125,6 +128,9 @@ const translations: Record<Locale, Record<string, string>> = {
     "actions.cancel": "Cancel",
     "actions.delete": "Delete",
     "actions.new": "New",
+    
+    // Common
+    "common.cancel": "Cancel",
     "actions.on": "On",
     "actions.off": "Off",
     "actions.or": "or",
@@ -192,7 +198,10 @@ const translations: Record<Locale, Record<string, string>> = {
     "header.untitled": "Unbenanntes Video",
     "header.export": "Exportieren",
     "header.replace": "Video ersetzen",
+    "header.replaceHelper": "Behält Link, Hotspots und Statistiken",
     "header.delete": "Video löschen",
+    "header.deleteTitle": "Video löschen",
+    "header.deleteConfirmation": "Das Video und alle Hotspots werden dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
     "header.settings": "Videoeinstellungen",
     "header.help": "Hilfe & Feedback",
 
@@ -294,6 +303,9 @@ const translations: Record<Locale, Record<string, string>> = {
     "actions.cancel": "Abbrechen",
     "actions.delete": "Löschen",
     "actions.new": "Neu",
+    
+    // Common
+    "common.cancel": "Abbrechen",
     "actions.on": "An",
     "actions.off": "Aus",
     "actions.or": "oder",
