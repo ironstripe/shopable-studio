@@ -22,6 +22,13 @@ export default function CompleteProfilePage() {
   const [creatorHandle, setCreatorHandle] = useState("");
   const [creatorKuerzel, setCreatorKuerzel] = useState("");
 
+  // On mount, refetch creator to catch profiles created during signup
+  useEffect(() => {
+    if (user) {
+      refetch();
+    }
+  }, [user]);
+
   // If no user, redirect to auth
   useEffect(() => {
     if (!user) {
@@ -31,10 +38,10 @@ export default function CompleteProfilePage() {
 
   // If creator profile already exists, redirect to home
   useEffect(() => {
-    if (creator) {
+    if (!loading && creator) {
       navigate("/");
     }
-  }, [creator, navigate]);
+  }, [creator, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +68,13 @@ export default function CompleteProfilePage() {
 
     setLoading(true);
 
+    // Check if creator already exists (race condition fix)
+    await refetch();
+    if (creator) {
+      navigate("/");
+      return;
+    }
+
     const { error } = await supabase.from("creators").insert({
       user_id: user.id,
       email: user.email || "",
@@ -70,11 +84,21 @@ export default function CompleteProfilePage() {
 
     if (error) {
       console.error("Failed to create creator profile:", error);
+      
+      // Handle duplicate key error gracefully - profile already exists
+      if (error.message.includes("duplicate")) {
+        await refetch();
+        toast({
+          title: "Profile found!",
+          description: "Redirecting to your dashboard...",
+        });
+        navigate("/");
+        return;
+      }
+      
       toast({
         title: "Error",
-        description: error.message.includes("duplicate") 
-          ? "This handle is already taken. Please choose another."
-          : error.message,
+        description: error.message,
         variant: "destructive",
       });
       setLoading(false);
