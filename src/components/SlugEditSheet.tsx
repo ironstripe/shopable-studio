@@ -135,14 +135,19 @@ ${videoUrl}
 
 ${generateHashtags(productTitle)}`;
 
+    // Use UPSERT to create the row if it doesn't exist (AWS videos may not be in Supabase yet)
     const { error } = await supabase
       .from("videos")
-      .update({
+      .upsert({
+        id: videoId,
+        creator_id: creator.id,
+        title: videoTitle || "Untitled",
         custom_slug: slug,
         slug_finalized: true,
         caption: caption,
-      })
-      .eq("id", videoId);
+      }, {
+        onConflict: 'id'
+      });
 
     if (error) {
       console.error("Failed to finalize slug:", error);
