@@ -254,7 +254,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "readyToPost.page.bio.label": "🔗 Bio link",
     "readyToPost.page.bio.copy": "Copy bio link",
     "readyToPost.page.bio.copied": "✓ Bio link copied",
-    "readyToPost.page.bio.helper": "Make sure this link is in your bio before posting.",
+    "readyToPost.page.bio.helper": "Make sure this link is in your bio.",
     "readyToPost.page.createNext": "Create next video",
     "readyToPost.page.backToVideos": "Back to videos",
   },

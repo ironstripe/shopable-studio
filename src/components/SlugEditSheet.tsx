@@ -111,10 +111,29 @@ export default function SlugEditSheet({
 
     setSaving(true);
 
-    // Generate caption with product name if available
+    // Generate smart caption with hook, CTA, and product-based hashtags
     const videoUrl = `shop.one/${creator.creator_kuerzel}/${slug}`;
     const productTitle = productName || videoTitle || "my latest pick";
-    const caption = `🔥 ${productTitle.toUpperCase()}\n\nCheck it out 👇\n\n👉 Link in bio:\n${videoUrl}\n\n#shopable #shopping`;
+    
+    // Generate product-based hashtags from product name
+    const generateHashtags = (name: string): string => {
+      const words = name.toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .split(' ')
+        .filter(w => w.length > 2)
+        .slice(0, 2);
+      const productTags = words.map(w => `#${w}`).join(' ');
+      return productTags ? `${productTags} #shopable` : '#shopable';
+    };
+
+    const caption = `🔥 ${productTitle.toUpperCase()} – worth it?
+
+If you want the exact one I'm using 👇
+
+👉 Link in bio:
+${videoUrl}
+
+${generateHashtags(productTitle)}`;
 
     const { error } = await supabase
       .from("videos")

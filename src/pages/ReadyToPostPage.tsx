@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useLocale } from "@/lib/i18n";
-import { Check, Copy, ArrowLeft, Plus, Link2 } from "lucide-react";
+import { Check, Copy, ArrowLeft, Link2 } from "lucide-react";
 import shopableLogo from "@/assets/shopable-logo.png";
 
 interface VideoData {
@@ -183,21 +183,14 @@ export default function ReadyToPostPage() {
             </p>
           </div>
 
-          {/* Section 4: Exit CTAs */}
-          <div className="space-y-3 pt-4">
+          {/* Section 4: Exit (task is over) */}
+          <div className="pt-6">
             <Button
               onClick={() => navigate("/")}
-              className="w-full h-12 text-base font-medium"
+              variant="outline"
+              className="w-full h-11"
             >
-              <Plus className="w-4 h-4 mr-2" />
               {t("readyToPost.page.createNext")}
-            </Button>
-            <Button
-              onClick={() => navigate("/")}
-              variant="ghost"
-              className="w-full h-11 text-muted-foreground"
-            >
-              {t("readyToPost.page.backToVideos")}
             </Button>
           </div>
         </div>
