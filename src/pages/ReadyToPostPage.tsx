@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCreator } from "@/contexts/CreatorContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +21,7 @@ export default function ReadyToPostPage() {
   const navigate = useNavigate();
   const { videoId } = useParams<{ videoId: string }>();
   const { creator } = useCreator();
+  const { signOut } = useAuth();
   const { toast } = useToast();
   const { t } = useLocale();
   
@@ -118,6 +120,11 @@ export default function ReadyToPostPage() {
     }
   };
 
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
@@ -139,20 +146,17 @@ export default function ReadyToPostPage() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center p-4 pt-8 overflow-y-auto">
         <div className="w-full max-w-sm space-y-8">
-          {/* Section 1: Success Status */}
+          {/* Section 0: Completion Confirmation */}
           <div className="flex flex-col items-center space-y-3 text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-3xl">🎉</span>
-            </div>
             <h1 className="text-2xl font-semibold text-foreground">
-              {t("readyToPost.page.title")}
+              🎉 {t("readyToPost.page.title")}
             </h1>
             <p className="text-sm text-muted-foreground">
               {t("readyToPost.page.subline")}
             </p>
           </div>
 
-          {/* Section 2: Caption Generator (Hero) */}
+          {/* Section 1: Caption */}
           <div className="space-y-3">
             <label className="text-sm font-medium text-foreground">
               {t("readyToPost.page.caption.label")}
@@ -160,6 +164,9 @@ export default function ReadyToPostPage() {
             <div className="bg-muted/50 rounded-lg p-4 text-sm text-foreground whitespace-pre-wrap border border-border/50 max-h-48 overflow-y-auto">
               {caption}
             </div>
+            <p className="text-xs text-muted-foreground">
+              👉 {t("readyToPost.page.caption.helper")}
+            </p>
             <Button
               onClick={handleCopyCaption}
               className="w-full h-12 text-base font-medium"
@@ -179,7 +186,7 @@ export default function ReadyToPostPage() {
             </Button>
           </div>
 
-          {/* Section 3: Bio Link Reminder */}
+          {/* Section 2: Bio Link */}
           <div className="space-y-3">
             <label className="text-sm font-medium text-foreground">
               {t("readyToPost.page.bio.label")}
@@ -212,15 +219,35 @@ export default function ReadyToPostPage() {
             </p>
           </div>
 
-          {/* Section 4: Exit (task is over) */}
-          <div className="pt-6">
+          {/* Section 3: Clear Exit Options */}
+          <div className="pt-6 space-y-4">
+            <p className="text-sm text-muted-foreground text-center">
+              {t("readyToPost.page.exitLabel")}
+            </p>
+            
+            {/* Primary CTA */}
             <Button
               onClick={() => navigate("/")}
-              variant="outline"
               className="w-full h-11"
             >
               {t("readyToPost.page.createNext")}
             </Button>
+            
+            {/* Secondary actions */}
+            <div className="flex justify-center gap-6">
+              <button
+                onClick={() => navigate("/")}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {t("readyToPost.page.backToVideos")}
+              </button>
+              <button
+                onClick={handleLogout}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {t("readyToPost.page.logout")}
+              </button>
+            </div>
           </div>
         </div>
       </main>
