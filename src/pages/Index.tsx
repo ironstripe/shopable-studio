@@ -828,11 +828,23 @@ const Index = () => {
         >
           {/* Show upload zone if no video selected (entry screen) */}
           {!videoSrc ? (
-            <VideoUploadZone
-              onVideoLoad={handleVideoLoad}
-              onUploadComplete={handleUploadComplete}
-              onOpenVideoGallery={handleOpenVideoGallery}
-            />
+            <div className="flex flex-col items-center w-full max-w-xl mx-auto px-4">
+              {/* Motivational headline */}
+              <div className="text-center mb-8">
+                <h1 className="text-[28px] md:text-[32px] font-semibold text-foreground mb-2">
+                  {t("entry.headline")}
+                </h1>
+                <p className="text-[16px] text-muted-foreground">
+                  {t("entry.subline")}
+                </p>
+              </div>
+              
+              <VideoUploadZone
+                onVideoLoad={handleVideoLoad}
+                onUploadComplete={handleUploadComplete}
+                onOpenVideoGallery={handleOpenVideoGallery}
+              />
+            </div>
           ) : (
             <VideoPlayer
               videoSrc={videoSrc}

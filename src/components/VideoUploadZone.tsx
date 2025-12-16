@@ -1,7 +1,7 @@
 // src/components/VideoUploadZone.tsx
 
 import React, { useCallback, useRef, useState } from "react";
-import { UploadCloud, Film, Images } from "lucide-react";
+import { UploadCloud, Images } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -149,11 +149,11 @@ const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({ onVideoLoad, onUpload
       >
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-white shadow flex items-center justify-center">
-            <UploadCloud className="w-6 h-6 text-blue-600" />
+            <UploadCloud className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-900">Drop a video here or click to upload</p>
-            <p className="text-xs text-gray-500 mt-1">MP4, MOV, WebM · Uploaded directly to S3 with a pre-signed URL</p>
+            <p className="text-sm font-medium text-foreground">Drop your video here</p>
+            <p className="text-xs text-muted-foreground mt-1">MP4, MOV, or WebM</p>
           </div>
           <div className="flex flex-wrap gap-2 justify-center mt-2">
             <Button
@@ -188,10 +188,6 @@ const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({ onVideoLoad, onUpload
         <input ref={fileInputRef} type="file" accept="video/*" className="hidden" onChange={handleFileChange} />
       </div>
 
-      <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
-        <Film className="w-4 h-4" />
-        <span>Shopable will generate interactive hotspots after upload.</span>
-      </div>
     </div>
   );
 };

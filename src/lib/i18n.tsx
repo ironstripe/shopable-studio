@@ -10,6 +10,10 @@ const translations: Record<Locale, Record<string, string>> = {
     "app.language.de": "Deutsch",
     "app.language.en": "English",
 
+    // Entry Screen
+    "entry.headline": "Turn your video into sales.",
+    "entry.subline": "Turn views into real conversions – in minutes.",
+
     // Upload
     "upload.title": "Upload your video",
     "upload.loading": "Loading video...",
@@ -38,13 +42,13 @@ const translations: Record<Locale, Record<string, string>> = {
     "editor.mode.preview": "Preview mode",
     "editor.mode.editHint": "Tap on the video to add hotspots",
     "editor.mode.previewHint": "See how viewers will experience your video",
-    "editor.hint.tapToAddHotspot": "Tap on the video to place your first hotspot.",
-    "editor.hint.tapToAddAnother": "Tap the video again to add another hotspot.",
+    "editor.hint.tapToAddHotspot": "Tap the video to place your first hotspot",
+    "editor.hint.tapToAddAnother": "Tap the video to add another hotspot",
 
     // Hotspots
     "hotspots.title": "Hotspots",
     "hotspots.empty": "No hotspots yet",
-    "hotspots.emptyHint": "Tap + Hotspot to add your first one",
+    "hotspots.emptyHint": "Tap the video to add one",
     "hotspots.new": "New hotspot – assign product",
     "hotspots.newHint": "Tap to choose a product",
     "hotspots.deleteConfirm": "Delete this hotspot?",
@@ -264,6 +268,10 @@ const translations: Record<Locale, Record<string, string>> = {
     "app.language.de": "Deutsch",
     "app.language.en": "English",
 
+    // Entry Screen
+    "entry.headline": "Mach dein Video shoppable.",
+    "entry.subline": "Verwandle Views in echte Conversions – in wenigen Minuten.",
+
     // Upload
     "upload.title": "Video hochladen",
     "upload.loading": "Video wird geladen...",
@@ -292,13 +300,13 @@ const translations: Record<Locale, Record<string, string>> = {
     "editor.mode.preview": "Vorschaumodus",
     "editor.mode.editHint": "Tippe auf das Video, um Hotspots hinzuzufügen",
     "editor.mode.previewHint": "Sieh dir an, wie Zuschauer dein Video erleben werden",
-    "editor.hint.tapToAddHotspot": "Tippe auf das Video, um deinen ersten Hotspot zu setzen.",
-    "editor.hint.tapToAddAnother": "Tippe erneut auf das Video, um einen weiteren Hotspot zu setzen.",
+    "editor.hint.tapToAddHotspot": "Tippe ins Video, um deinen ersten Hotspot zu setzen",
+    "editor.hint.tapToAddAnother": "Tippe ins Video, um einen weiteren Hotspot zu setzen",
 
     // Hotspots
     "hotspots.title": "Hotspots",
     "hotspots.empty": "Noch keine Hotspots",
-    "hotspots.emptyHint": "Tippe auf + Hotspot, um deinen ersten zu erstellen",
+    "hotspots.emptyHint": "Tippe aufs Video, um einen zu setzen",
     "hotspots.new": "Neuer Hotspot – Produkt zuweisen",
     "hotspots.newHint": "Tippe, um ein Produkt zu wählen",
     "hotspots.deleteConfirm": "Diesen Hotspot löschen?",

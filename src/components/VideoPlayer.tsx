@@ -990,28 +990,11 @@ const VideoPlayer = ({
             <SafeZoneOverlay />
           )}
 
-          {/* Zero-hotspots placement hint overlay - only when video is ready */}
+          {/* Zero-hotspots placement hint overlay - lighter, smaller, smarter */}
           {videoSrc && isVideoReady && !isPreviewMode && showPlacementHint && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[15]">
-              <div className="bg-black/75 backdrop-blur-sm text-white px-6 py-5 rounded-2xl text-center animate-fade-in shadow-xl max-w-[280px]">
-                {/* Helper icon - tap indicator */}
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/15 flex items-center justify-center">
-                  <svg 
-                    className="w-6 h-6 text-white" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={1.5} 
-                      d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" 
-                    />
-                  </svg>
-                </div>
-                
-                <p className="font-semibold text-[16px] leading-snug">
+              <div className="bg-black/50 backdrop-blur-md text-white px-4 py-3 rounded-full text-center animate-fade-in shadow-lg max-w-[280px]">
+                <p className="font-medium text-[13px] leading-snug">
                   {isFirstHotspot 
                     ? t("editor.hint.tapToAddHotspot") 
                     : t("editor.hint.tapToAddAnother")}

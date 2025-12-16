@@ -5,14 +5,11 @@ import {
   getFamilyById,
   getFamilyFromStyle,
 } from "@/types/templates";
-import {
-  Sheet,
-  SheetContent,
-} from "@/components/ui/sheet";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { Trash2 } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -140,25 +137,16 @@ const LayoutBehaviorSheet = ({
   const currentFamilyConfig = getFamilyById(selectedFamily);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent 
-        side="bottom" 
-        className="h-[90vh] max-h-[90vh] rounded-t-[20px] p-0 flex flex-col bg-white overflow-hidden"
-        hideCloseButton
-      >
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="h-[90vh] max-h-[90vh] bg-white flex flex-col rounded-t-[20px]">
         {/* Drag Handle */}
         <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
           <div className="w-10 h-1 rounded-full bg-[#D0D0D0]" />
         </div>
 
-        {/* Header - Matching Product Sheet */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[#EBEBEB]">
-          <button
-            onClick={handleCancel}
-            className="text-[15px] text-[#666666] hover:text-[#333333] transition-colors min-w-[60px] text-left font-medium"
-          >
-            {t("actions.cancel")}
-          </button>
+        {/* Header with X close button */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[#EBEBEB] relative">
+          <div className="w-16" /> {/* Spacer for centering */}
           
           <h2 className="text-[17px] font-semibold text-[#111111]">
             {t("layout.title")}
@@ -172,6 +160,15 @@ const LayoutBehaviorSheet = ({
           >
             {t("actions.save")}
           </Button>
+          
+          {/* X close button - top right */}
+          <button
+            onClick={handleCancel}
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted/50 transition-colors"
+            aria-label="Close"
+          >
+            <X className="w-5 h-5 text-muted-foreground" />
+          </button>
         </div>
 
         {/* Scrollable Content */}
@@ -481,8 +478,8 @@ const LayoutBehaviorSheet = ({
             )}
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   );
 };
 
