@@ -140,9 +140,35 @@ function logRequest(
   console.log(JSON.stringify(logData));
 }
 
+// Single source of truth for public player URL
+// MVP: Hardcoded for reliability. Phase 2: Move to env variable.
+const PUBLIC_PLAYER_BASE_URL = "https://shopable-hotspot-player.lovable.app";
+
+// Blocked domains - NEVER redirect to these
+const BLOCKED_DOMAINS = [
+  "shopable-spotlight.lovable.app",
+  "shopable.one",
+  "localhost",
+];
+
 function buildSafeRedirectUrl(videoId: string, creatorKuerzel: string): string {
-  // Only redirect to our own domain - prevent open redirect attacks
-  return `https://shopable.one/${encodeURIComponent(creatorKuerzel)}?vid=${encodeURIComponent(videoId)}`;
+  // CRITICAL: Always redirect to Public Player, NEVER to Creator Studio
+  const targetUrl = `${PUBLIC_PLAYER_BASE_URL}/${encodeURIComponent(creatorKuerzel)}?vid=${encodeURIComponent(videoId)}`;
+  
+  // Defense in depth: Ensure we NEVER redirect to blocked domains
+  try {
+    const targetHost = new URL(targetUrl).hostname;
+    if (BLOCKED_DOMAINS.some(blocked => targetHost.includes(blocked))) {
+      console.error(`[shortlink-redirect] CRITICAL: Attempted redirect to blocked domain: ${targetHost}`);
+      throw new Error("Invalid redirect target");
+    }
+  } catch (e) {
+    // If URL parsing fails or blocked, fall back to hardcoded safe URL
+    console.error("[shortlink-redirect] URL validation error:", e);
+    return `${PUBLIC_PLAYER_BASE_URL}/${encodeURIComponent(creatorKuerzel)}?vid=${encodeURIComponent(videoId)}`;
+  }
+  
+  return targetUrl;
 }
 
 serve(async (req) => {
