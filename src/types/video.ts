@@ -119,6 +119,7 @@ export interface Hotspot {
   productCurrency?: string; // Currency code (default "USD")
   productDescription?: string; // Product description for display
   productPromoCode?: string; // Promo/discount code
+  productCategory?: ProductCategory; // Product category for caption generation
   style: HotspotStyle;
   ctaLabel: string;
   scale: number;
@@ -129,6 +130,17 @@ export interface Hotspot {
   revision?: number; // Optional: Increments on every update, forces React re-mount via key change
 }
 
+// Product categories for AI caption generation
+export type ProductCategory = 
+  | "fashion" 
+  | "tech" 
+  | "cosmetics" 
+  | "dog" 
+  | "fitness" 
+  | "home" 
+  | "kitchen" 
+  | "other";
+
 export interface Product {
   id: string;
   title: string;
@@ -138,7 +150,8 @@ export interface Product {
   thumbnail?: string;
   ctaLabel?: string;
   defaultClickBehavior?: ClickBehavior;
-  promoCode?: string; // Promo/discount code
+  promoCode?: string;
+  category?: ProductCategory;
 }
 
 export interface VideoProject {

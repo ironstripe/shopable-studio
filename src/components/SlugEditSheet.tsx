@@ -15,6 +15,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useLocale } from "@/lib/i18n";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
+import type { ProductCategory } from "@/types/video";
 
 interface SlugEditSheetProps {
   open: boolean;
@@ -22,6 +23,8 @@ interface SlugEditSheetProps {
   videoId: string;
   videoTitle: string;
   productName?: string;
+  productDescription?: string;
+  productCategory?: ProductCategory;
 }
 
 /**
@@ -45,11 +48,13 @@ export default function SlugEditSheet({
   videoId,
   videoTitle,
   productName,
+  productDescription,
+  productCategory,
 }: SlugEditSheetProps) {
   const navigate = useNavigate();
   const { creator } = useCreator();
   const { toast } = useToast();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   
   const [slug, setSlug] = useState("");
   const [checking, setChecking] = useState(false);
@@ -111,29 +116,62 @@ export default function SlugEditSheet({
 
     setSaving(true);
 
-    // Generate smart caption with hook, CTA, and product-based hashtags
     const videoUrl = `shop.one/${creator.creator_kuerzel}/${slug}`;
     const productTitle = productName || videoTitle || "my latest pick";
     
-    // Generate product-based hashtags from product name
-    const generateHashtags = (name: string): string => {
-      const words = name.toLowerCase()
-        .replace(/[^a-z0-9\s]/g, '')
-        .split(' ')
-        .filter(w => w.length > 2)
-        .slice(0, 2);
-      const productTags = words.map(w => `#${w}`).join(' ');
-      return productTags ? `${productTags} #shopable` : '#shopable';
-    };
+    // Fallback caption generator
+    const generateFallbackCaption = (): string => {
+      const isGerman = locale === "de";
+      const hashtags = isGerman ? "#shopable #musthave" : "#shopable #musthave";
+      
+      if (isGerman) {
+        return `🔥 ${productTitle.toUpperCase()}
 
-    const caption = `🔥 ${productTitle.toUpperCase()} – worth it?
+Wenn du genau das gleiche willst 👇
+
+👉 Link in Bio:
+${videoUrl}
+
+${hashtags}`;
+      }
+      
+      return `🔥 ${productTitle.toUpperCase()}
 
 If you want the exact one I'm using 👇
 
 👉 Link in bio:
 ${videoUrl}
 
-${generateHashtags(productTitle)}`;
+${hashtags}`;
+    };
+
+    let caption: string;
+
+    try {
+      // Call AI edge function for category-aware caption
+      const { data: captionData, error: captionError } = await supabase.functions.invoke(
+        "generate-caption",
+        {
+          body: {
+            productName: productTitle,
+            productDescription: productDescription || "",
+            category: productCategory || "other",
+            language: locale,
+            videoUrl,
+          },
+        }
+      );
+
+      if (captionError || !captionData?.caption) {
+        console.warn("[SlugEditSheet] AI caption failed, using fallback:", captionError);
+        caption = generateFallbackCaption();
+      } else {
+        caption = captionData.caption;
+      }
+    } catch (err) {
+      console.warn("[SlugEditSheet] AI caption error, using fallback:", err);
+      caption = generateFallbackCaption();
+    }
 
     // Use UPSERT to create the row if it doesn't exist (AWS videos may not be in Supabase yet)
     const { error } = await supabase
