@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLocale } from "@/lib/i18n";
+import { supabase } from "@/integrations/supabase/client";
 import shopableLogo from "@/assets/shopable-logo.png";
 
 type AuthMode = "login" | "signup";
@@ -18,6 +19,7 @@ export default function AuthPage() {
   
   const [mode, setMode] = useState<AuthMode>("login");
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   
   // Form fields
   const [email, setEmail] = useState("");
@@ -33,49 +35,61 @@ export default function AuthPage() {
     }
   }, [user, navigate]);
 
+  // Clear form error when inputs change
+  useEffect(() => {
+    setFormError(null);
+  }, [email, password, mode]);
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      setFormError("Please enter your email address first.");
+      return;
+    }
+    
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+    setLoading(false);
+    
+    if (error) {
+      setFormError(error.message);
+    } else {
+      toast({
+        title: "Check your email",
+        description: "We've sent you a password reset link.",
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setFormError(null);
 
     try {
       if (mode === "signup") {
         // Validate signup fields
         if (password !== confirmPassword) {
-          toast({
-            title: "Passwords don't match",
-            description: "Please make sure your passwords match.",
-            variant: "destructive",
-          });
+          setFormError("Passwords don't match. Please try again.");
           setLoading(false);
           return;
         }
 
         if (password.length < 8) {
-          toast({
-            title: "Password too short",
-            description: "Password must be at least 8 characters.",
-            variant: "destructive",
-          });
+          setFormError("Password must be at least 8 characters.");
           setLoading(false);
           return;
         }
 
         if (!creatorHandle.trim()) {
-          toast({
-            title: "Handle required",
-            description: "Please enter your creator handle.",
-            variant: "destructive",
-          });
+          setFormError("Please enter your creator handle.");
           setLoading(false);
           return;
         }
 
         if (!creatorKuerzel.trim() || creatorKuerzel.length > 4) {
-          toast({
-            title: "Invalid Kürzel",
-            description: "Please enter a short creator code (1-4 characters).",
-            variant: "destructive",
-          });
+          setFormError("Please enter a short creator code (1-4 characters).");
           setLoading(false);
           return;
         }
@@ -83,11 +97,7 @@ export default function AuthPage() {
         const { error } = await signUp(email, password, creatorHandle.toLowerCase(), creatorKuerzel);
         
         if (error) {
-          toast({
-            title: "Signup failed",
-            description: error.message,
-            variant: "destructive",
-          });
+          setFormError(error.message);
         } else {
           toast({
             title: "Welcome!",
@@ -99,21 +109,13 @@ export default function AuthPage() {
         const { error } = await signIn(email, password);
         
         if (error) {
-          toast({
-            title: "Login failed",
-            description: error.message,
-            variant: "destructive",
-          });
+          setFormError("Invalid email or password. Please try again.");
         } else {
           navigate("/");
         }
       }
     } catch (err) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+      setFormError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -121,13 +123,10 @@ export default function AuthPage() {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
+    setFormError(null);
     const { error } = await signInWithGoogle();
     if (error) {
-      toast({
-        title: "Google sign-in failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      setFormError(error.message);
       setLoading(false);
     }
     // Note: OAuth redirects, so loading state will reset on return
@@ -200,6 +199,13 @@ export default function AuthPage() {
             </div>
           </div>
 
+          {/* Inline Error Message */}
+          {formError && (
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+              {formError}
+            </div>
+          )}
+
           {/* Email Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -216,7 +222,18 @@ export default function AuthPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                {mode === "login" && (
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
               <Input
                 id="password"
                 type="password"
