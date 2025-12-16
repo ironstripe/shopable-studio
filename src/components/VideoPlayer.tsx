@@ -18,7 +18,9 @@ import { useLocale } from "@/lib/i18n";
 import { isHotspotComplete, SceneState } from "@/hooks/use-scene-state";
 import { 
   isPointInSafeZone, 
-  clampHotspotPercentage, 
+  clampHotspotTopLeft,
+  centerToTopLeft,
+  topLeftToCenter,
   getMaxScaleInSafeZone,
   getFallbackDimensions,
 } from "@/utils/safe-zone";
@@ -224,21 +226,29 @@ const VideoPlayer = ({
         // Use MEASURED dimensions (or fallback)
         const { width, height } = getHotspotDimensions(hotspotId, !!hotspot.productId);
         
-        const { x, y, wasConstrained } = clampHotspotPercentage(
-          hotspot.x, hotspot.y,
-          width, height,
-          rect.width, rect.height,
-          'vertical_social'
+        // Convert CENTER (stored) to TOP-LEFT for clamping
+        const topLeft = centerToTopLeft(
+          hotspot.x, hotspot.y, width, height, rect.width, rect.height
         );
         
-        if (wasConstrained) {
+        // Clamp TOP-LEFT position
+        const clampedTopLeft = clampHotspotTopLeft(
+          topLeft.x, topLeft.y, width, height, rect.width, rect.height, 'vertical_social'
+        );
+        
+        // Convert back to CENTER for storage
+        const center = topLeftToCenter(
+          clampedTopLeft.x, clampedTopLeft.y, width, height, rect.width, rect.height
+        );
+        
+        if (clampedTopLeft.wasConstrained) {
           console.log('[SafeZone] Re-clamping hotspot:', hotspotId, { 
             from: { x: hotspot.x, y: hotspot.y }, 
-            to: { x, y },
+            to: { x: center.x, y: center.y },
             dimensions: { width, height },
             container: { width: rect.width, height: rect.height }
           });
-          onUpdateHotspotPosition(hotspotId, x, y);
+          onUpdateHotspotPosition(hotspotId, center.x, center.y);
         }
       });
       
@@ -393,10 +403,21 @@ const VideoPlayer = ({
     // Use generous fallback for initial placement (unassigned hotspot ~48px circle)
     const fallbackSize = 60; // Larger fallback for safety
     
-    // Clamp to safe zone using fallback (will re-clamp after DOM measurement)
-    const { x: safeX, y: safeY } = clampHotspotPercentage(
-      x, y, fallbackSize, fallbackSize, rect.width, rect.height, 'vertical_social'
+    // User tap point is where we want the CENTER of the hotspot
+    // Convert to TOP-LEFT for clamping
+    const topLeft = centerToTopLeft(x, y, fallbackSize, fallbackSize, rect.width, rect.height);
+    
+    // Clamp TOP-LEFT position
+    const clampedTopLeft = clampHotspotTopLeft(
+      topLeft.x, topLeft.y, fallbackSize, fallbackSize, rect.width, rect.height, 'vertical_social'
     );
+    
+    // Convert back to CENTER for storage (hotspot.x/y stores center position)
+    const center = topLeftToCenter(
+      clampedTopLeft.x, clampedTopLeft.y, fallbackSize, fallbackSize, rect.width, rect.height
+    );
+    const safeX = center.x;
+    const safeY = center.y;
 
     // Add tap indicator at click position (pixel coords)
     const pixelX = e.clientX - rect.left;
@@ -448,10 +469,21 @@ const VideoPlayer = ({
     // Use generous fallback for initial placement
     const fallbackSize = 60;
     
-    // Clamp to safe zone using fallback (will re-clamp after DOM measurement)
-    const { x: safeX, y: safeY } = clampHotspotPercentage(
-      x, y, fallbackSize, fallbackSize, rect.width, rect.height, 'vertical_social'
+    // User tap point is where we want the CENTER of the hotspot
+    // Convert to TOP-LEFT for clamping
+    const topLeft = centerToTopLeft(x, y, fallbackSize, fallbackSize, rect.width, rect.height);
+    
+    // Clamp TOP-LEFT position
+    const clampedTopLeft = clampHotspotTopLeft(
+      topLeft.x, topLeft.y, fallbackSize, fallbackSize, rect.width, rect.height, 'vertical_social'
     );
+    
+    // Convert back to CENTER for storage
+    const center = topLeftToCenter(
+      clampedTopLeft.x, clampedTopLeft.y, fallbackSize, fallbackSize, rect.width, rect.height
+    );
+    const safeX = center.x;
+    const safeY = center.y;
 
     // Add tap indicator at touch position with offset above thumb
     const pixelX = touch.clientX - rect.left;
@@ -520,18 +552,28 @@ const VideoPlayer = ({
     if (!hotspot) return;
     
     const rect = containerRef.current.getBoundingClientRect();
-    const rawX = (e.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
-    const rawY = (e.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
+    
+    // rawX, rawY is the proposed CENTER position (offset accounts for drag start offset from center)
+    const rawCenterX = (e.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
+    const rawCenterY = (e.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
     
     // Use MEASURED dimensions from DOM (or fallback)
     const { width, height } = getHotspotDimensions(hotspot.id, !!hotspot.productId);
     
-    // Clamp to safe zone
-    const { x, y } = clampHotspotPercentage(
-      rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
+    // Convert CENTER to TOP-LEFT for clamping
+    const topLeft = centerToTopLeft(rawCenterX, rawCenterY, width, height, rect.width, rect.height);
+    
+    // Clamp TOP-LEFT position
+    const clampedTopLeft = clampHotspotTopLeft(
+      topLeft.x, topLeft.y, width, height, rect.width, rect.height, 'vertical_social'
     );
     
-    onUpdateHotspotPosition(draggingHotspot.id, x, y);
+    // Convert back to CENTER for storage
+    const center = topLeftToCenter(
+      clampedTopLeft.x, clampedTopLeft.y, width, height, rect.width, rect.height
+    );
+    
+    onUpdateHotspotPosition(draggingHotspot.id, center.x, center.y);
     setDidDrag(true);
   };
 
@@ -547,18 +589,28 @@ const VideoPlayer = ({
     if (!touch) return;
     
     const rect = containerRef.current.getBoundingClientRect();
-    const rawX = (touch.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
-    const rawY = (touch.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
+    
+    // rawX, rawY is the proposed CENTER position
+    const rawCenterX = (touch.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
+    const rawCenterY = (touch.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
     
     // Use MEASURED dimensions from DOM (or fallback)
     const { width, height } = getHotspotDimensions(hotspot.id, !!hotspot.productId);
     
-    // Clamp to safe zone
-    const { x, y } = clampHotspotPercentage(
-      rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
+    // Convert CENTER to TOP-LEFT for clamping
+    const topLeft = centerToTopLeft(rawCenterX, rawCenterY, width, height, rect.width, rect.height);
+    
+    // Clamp TOP-LEFT position
+    const clampedTopLeft = clampHotspotTopLeft(
+      topLeft.x, topLeft.y, width, height, rect.width, rect.height, 'vertical_social'
     );
     
-    onUpdateHotspotPosition(draggingHotspot.id, x, y);
+    // Convert back to CENTER for storage
+    const center = topLeftToCenter(
+      clampedTopLeft.x, clampedTopLeft.y, width, height, rect.width, rect.height
+    );
+    
+    onUpdateHotspotPosition(draggingHotspot.id, center.x, center.y);
     setDidDrag(true);
   };
 
@@ -649,9 +701,12 @@ const VideoPlayer = ({
     const baseWidth = measured ? measured.width / hotspot.scale : 100;
     const baseHeight = measured ? measured.height / hotspot.scale : 50;
     
+    // Convert CENTER (stored) to TOP-LEFT for max scale calculation
+    const topLeft = centerToTopLeft(hotspot.x, hotspot.y, baseWidth, baseHeight, rect.width, rect.height);
+    
     // Get max scale that keeps hotspot in safe zone
     const maxScale = getMaxScaleInSafeZone(
-      hotspot.x, hotspot.y, baseWidth, baseHeight,
+      topLeft.x, topLeft.y, baseWidth, baseHeight,
       rect.width, rect.height, 'vertical_social'
     );
     newScale = Math.min(newScale, maxScale);
@@ -681,9 +736,12 @@ const VideoPlayer = ({
     const baseWidth = measured ? measured.width / hotspot.scale : 100;
     const baseHeight = measured ? measured.height / hotspot.scale : 50;
     
+    // Convert CENTER (stored) to TOP-LEFT for max scale calculation
+    const topLeft = centerToTopLeft(hotspot.x, hotspot.y, baseWidth, baseHeight, rect.width, rect.height);
+    
     // Get max scale that keeps hotspot in safe zone
     const maxScale = getMaxScaleInSafeZone(
-      hotspot.x, hotspot.y, baseWidth, baseHeight,
+      topLeft.x, topLeft.y, baseWidth, baseHeight,
       rect.width, rect.height, 'vertical_social'
     );
     newScale = Math.min(newScale, maxScale);
@@ -1079,6 +1137,19 @@ const VideoPlayer = ({
                 const isThisSelected = selectedHotspotId === hotspot.id;
                 const isAnyHotspotEditing = selectedHotspotId !== null;
                 
+                // Compute TOP-LEFT position for rendering from CENTER position stored in data
+                const containerRect = containerRef.current?.getBoundingClientRect();
+                const { width: contentWidth, height: contentHeight } = getHotspotDimensions(hotspot.id, !!hotspot.productId);
+                const containerWidth = containerRect?.width || 1;
+                const containerHeight = containerRect?.height || 1;
+                
+                // Convert CENTER (hotspot.x, hotspot.y) to TOP-LEFT for rendering
+                const topLeftPos = centerToTopLeft(
+                  hotspot.x, hotspot.y, 
+                  contentWidth, contentHeight, 
+                  containerWidth, containerHeight
+                );
+                
                 return (
                   <div
                     key={`hotspot-${hotspot.id}-rev${hotspot.revision ?? 0}-style${hotspot.style}`}
@@ -1108,6 +1179,8 @@ const VideoPlayer = ({
                       isAnyEditing={isAnyHotspotEditing}
                       forceVisible={isThisSelected}
                       onContentMeasure={(w, h) => handleContentMeasure(hotspot.id, w, h)}
+                      renderX={topLeftPos.x}
+                      renderY={topLeftPos.y}
                     />
                     {!isPreviewMode && isThisSelected && !draggingHotspot && !isDeferringToolbar && showToolbar && (
                       <HotspotInlineEditor
