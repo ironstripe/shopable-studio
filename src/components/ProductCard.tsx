@@ -327,10 +327,9 @@ const ProductCard = ({
       ref={cardRef}
       className={getCardWrapperClasses()}
       style={{
-        top: position.top !== undefined ? `${position.top}px` : undefined,
-        left: position.left !== undefined ? `${position.left}px` : undefined,
-        bottom: position.bottom !== undefined ? `${position.bottom}px` : undefined,
-        right: position.right !== undefined ? `${position.right}px` : undefined,
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
       }}
     >
       {/* Close Button */}
