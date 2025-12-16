@@ -25,6 +25,7 @@ export interface HotspotDto {
   productPrice?: string | null;
   productCurrency?: string | null;
   productDescription?: string | null;
+  productPromoCode?: string | null;
   ctaLabel?: string;
   clickBehavior?: string;
   scale?: number;
@@ -157,6 +158,7 @@ export function mapDtoToHotspot(dto: HotspotDto): Hotspot {
     productPrice: dto.productPrice ?? undefined,
     productCurrency: dto.productCurrency ?? undefined,
     productDescription: dto.productDescription ?? undefined,
+    productPromoCode: dto.productPromoCode ?? undefined,
     style: (dto.style as HotspotStyle) || "ecommerce-light-card",
     cardStyle: (dto.cardStyle as CardStyle) || (dto.style as CardStyle) || "ecommerce-light-card",
     ctaLabel: dto.ctaLabel || "Shop Now",
@@ -201,6 +203,7 @@ export function mapHotspotToPayload(
     productPrice: hotspot.productPrice ?? null,
     productCurrency: hotspot.productCurrency ?? null,
     productDescription: hotspot.productDescription ?? null,
+    productPromoCode: hotspot.productPromoCode ?? null,
     ctaLabel: hotspot.ctaLabel,
     clickBehavior: hotspot.clickBehavior,
     scale: hotspot.scale,
@@ -255,6 +258,9 @@ export function mapHotspotUpdateToPayload(
   if (update.productDescription !== undefined) {
     payload.productDescription = update.productDescription;
   }
+  if (update.productPromoCode !== undefined) {
+    payload.productPromoCode = update.productPromoCode;
+  }
   if (update.ctaLabel !== undefined) {
     payload.ctaLabel = update.ctaLabel;
   }
@@ -298,6 +304,7 @@ export function mapFullHotspotToUpdatePayload(
     productPrice: hotspot.productPrice ?? null,
     productCurrency: hotspot.productCurrency ?? null,
     productDescription: hotspot.productDescription ?? null,
+    productPromoCode: hotspot.productPromoCode ?? null,
     ctaLabel: hotspot.ctaLabel ?? null,
     clickBehavior: hotspot.clickBehavior ?? null,
     scale: hotspot.scale ?? null,

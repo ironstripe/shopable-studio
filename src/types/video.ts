@@ -118,6 +118,7 @@ export interface Hotspot {
   productPrice?: string; // Product price (string for flexibility)
   productCurrency?: string; // Currency code (default "USD")
   productDescription?: string; // Product description for display
+  productPromoCode?: string; // Promo/discount code
   style: HotspotStyle;
   ctaLabel: string;
   scale: number;
