@@ -45,6 +45,7 @@ import { useCreator } from "@/contexts/CreatorContext";
 import shopableLogo from "@/assets/shopable-logo.png";
 import { listVideos, VideoDto, triggerRender } from "@/services/video-api";
 import VideoExportSection from "@/components/VideoExportSection";
+import { trackEvent } from "@/services/event-tracking";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -327,6 +328,15 @@ const Index = () => {
     setVideoSrc(src);
     if (videoId) {
       setCurrentVideoId(videoId);
+      
+      // Track video_created event for new uploads
+      if (creator) {
+        trackEvent({
+          eventName: "video_created",
+          creatorId: creator.id,
+          videoId,
+        });
+      }
     }
     const filename = src.split('/').pop()?.split('.')[0] || t("header.untitled");
     setVideoTitle(filename);

@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocale } from "@/lib/i18n";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
 import type { ProductCategory } from "@/types/video";
+import { trackEvent } from "@/services/event-tracking";
 
 interface SlugEditSheetProps {
   open: boolean;
@@ -158,6 +159,8 @@ ${hashtags}`;
             category: productCategory || "other",
             language: locale,
             videoUrl,
+            creatorId: creator.id,
+            videoId,
           },
         }
       );
@@ -201,6 +204,20 @@ ${hashtags}`;
       setSaving(false);
       return;
     }
+
+    // Track events: hotspots_completed, slug_confirmed
+    trackEvent({
+      eventName: "hotspots_completed",
+      creatorId: creator.id,
+      videoId,
+    });
+    
+    trackEvent({
+      eventName: "slug_confirmed",
+      creatorId: creator.id,
+      videoId,
+      properties: { slug },
+    });
 
     onOpenChange(false);
     navigate(`/ready/${videoId}`);

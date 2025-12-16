@@ -3,3 +3,11 @@ project_id = "mdnhzhbfvnbowgklbvyf"
 [functions.generate-caption]
 enabled = true
 verify_jwt = false
+
+[functions.track-event]
+enabled = true
+verify_jwt = false
+
+[functions.shortlink-redirect]
+enabled = true
+verify_jwt = false

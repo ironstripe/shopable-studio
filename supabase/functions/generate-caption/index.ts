@@ -14,6 +14,8 @@ interface CaptionRequest {
   category: ProductCategory;
   language: Language;
   videoUrl: string;
+  creatorId?: string;
+  videoId?: string;
 }
 
 // Category-specific templates following the spec
@@ -159,7 +161,7 @@ serve(async (req) => {
   }
 
   try {
-    const { productName, productDescription, category, language, videoUrl }: CaptionRequest = await req.json();
+    const { productName, productDescription, category, language, videoUrl, creatorId, videoId }: CaptionRequest = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -261,6 +263,35 @@ Generate a ${langName} caption following the exact structure: HOOK â†’ CONTEXT â
     }
 
     console.log("[generate-caption] Generated caption successfully");
+
+    // Track caption_generated event if creatorId and videoId are provided
+    if (creatorId && videoId) {
+      try {
+        const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+        const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
+        
+        if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+          await fetch(`${SUPABASE_URL}/functions/v1/track-event`, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              eventName: "caption_generated",
+              creatorId,
+              videoId,
+              eventSource: "studio",
+              properties: { source: "ai", language: language || "en", category: category || "other" },
+            }),
+          });
+          console.log("[generate-caption] Tracked caption_generated event");
+        }
+      } catch (trackError) {
+        // Don't fail caption generation if tracking fails
+        console.error("[generate-caption] Failed to track event:", trackError);
+      }
+    }
 
     return new Response(JSON.stringify({ caption }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
