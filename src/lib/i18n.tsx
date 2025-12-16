@@ -179,6 +179,63 @@ const translations: Record<Locale, Record<string, string>> = {
     "dialog.deleteVideo.description": "This will remove the video and all hotspots. Products will be preserved.",
     "dialog.deleteVideo.confirm": "Delete",
     "dialog.deleteVideo.cancel": "Cancel",
+
+    // Help & Feedback Page
+    "help.title": "Help & Feedback",
+    "help.subtitle": "Quick answers. Clear guidance. Direct feedback.",
+    
+    // Quick Actions
+    "help.quickActions.title": "Quick Actions",
+    "help.quickActions.howHotspots": "How do hotspots work?",
+    "help.quickActions.whyCantPlace": "Why can't I place a hotspot here?",
+    "help.quickActions.whatIsSafeZone": "What is the safe zone?",
+    "help.quickActions.reportProblem": "Report a problem",
+    "help.quickActions.sendFeedback": "Send feedback",
+    
+    // FAQs
+    "help.faq.title": "Frequently Asked Questions",
+    "help.faq.howHotspotsWork.q": "How do hotspots work?",
+    "help.faq.howHotspotsWork.a": "Tap anywhere on the video to place a hotspot. Then link it to a product. Viewers can tap the hotspot to see product details.",
+    "help.faq.whyCantPlace.q": "Why can't I place a hotspot here?",
+    "help.faq.whyCantPlace.a": "Some areas are reserved for platform UI (like TikTok buttons or captions). These are called safe zones. Place hotspots inside the safe area.",
+    "help.faq.whatIsSafeZone.q": "What is the safe zone?",
+    "help.faq.whatIsSafeZone.a": "The safe zone is the area of the video that won't be covered by platform controls. Hotspots placed here stay visible on TikTok, Reels, and Shorts.",
+    "help.faq.howToEditHotspot.q": "How do I edit a hotspot?",
+    "help.faq.howToEditHotspot.a": "Tap the hotspot to select it. Use the toolbar to change the product, adjust timing, or delete it.",
+    "help.faq.howToDeleteHotspot.q": "How do I delete a hotspot?",
+    "help.faq.howToDeleteHotspot.a": "Select the hotspot, then tap the trash icon in the toolbar. Confirm to delete.",
+    "help.faq.whatIsPreviewMode.q": "What is Preview mode?",
+    "help.faq.whatIsPreviewMode.a": "Preview mode shows how viewers will experience your video. Tap hotspots to see product cards, just like your audience will.",
+    "help.faq.howToExport.q": "How do I export my video?",
+    "help.faq.howToExport.a": "Once your hotspots are set up, tap Export. Your video will be processed and ready to share.",
+    
+    // How it works
+    "help.howItWorks.title": "How it works",
+    "help.howItWorks.step1": "Upload your video",
+    "help.howItWorks.step2": "Tap to place hotspots",
+    "help.howItWorks.step3": "Link products",
+    "help.howItWorks.step4": "Share & publish",
+    
+    // Feedback
+    "help.feedback.title": "Send Feedback",
+    "help.feedback.placeholder": "What could be better?",
+    "help.feedback.categoryLabel": "Category (optional)",
+    "help.feedback.categoryBug": "Bug",
+    "help.feedback.categoryUX": "UX issue",
+    "help.feedback.categoryFeature": "Feature idea",
+    "help.feedback.submit": "Send feedback",
+    "help.feedback.success": "Thanks for your feedback!",
+    
+    // Report Problem
+    "help.report.title": "Report a Problem",
+    "help.report.placeholder": "What's not working?",
+    "help.report.submit": "Report problem",
+    "help.report.success": "Problem reported. We'll look into it.",
+    
+    // Contact
+    "help.contact.title": "Contact",
+    "help.contact.email": "support@shopable.one",
+    "help.contact.responseTime": "We typically respond within 24 hours.",
   },
 
   de: {
@@ -355,6 +412,63 @@ const translations: Record<Locale, Record<string, string>> = {
     "dialog.deleteVideo.description": "Das Video und alle Hotspots werden entfernt. Produkte bleiben erhalten.",
     "dialog.deleteVideo.confirm": "Löschen",
     "dialog.deleteVideo.cancel": "Abbrechen",
+
+    // Help & Feedback Page
+    "help.title": "Hilfe & Feedback",
+    "help.subtitle": "Schnelle Antworten. Klare Anleitungen. Direktes Feedback.",
+    
+    // Quick Actions
+    "help.quickActions.title": "Schnellzugriff",
+    "help.quickActions.howHotspots": "Wie funktionieren Hotspots?",
+    "help.quickActions.whyCantPlace": "Warum kann ich hier keinen Hotspot platzieren?",
+    "help.quickActions.whatIsSafeZone": "Was ist die Safe Zone?",
+    "help.quickActions.reportProblem": "Problem melden",
+    "help.quickActions.sendFeedback": "Feedback senden",
+    
+    // FAQs
+    "help.faq.title": "Häufig gestellte Fragen",
+    "help.faq.howHotspotsWork.q": "Wie funktionieren Hotspots?",
+    "help.faq.howHotspotsWork.a": "Tippe auf das Video, um einen Hotspot zu platzieren. Verknüpfe ihn dann mit einem Produkt. Zuschauer können auf den Hotspot tippen, um Produktdetails zu sehen.",
+    "help.faq.whyCantPlace.q": "Warum kann ich hier keinen Hotspot platzieren?",
+    "help.faq.whyCantPlace.a": "Einige Bereiche sind für Plattform-UI reserviert (z.B. TikTok-Buttons oder Untertitel). Diese nennt man Safe Zones. Platziere Hotspots im sicheren Bereich.",
+    "help.faq.whatIsSafeZone.q": "Was ist die Safe Zone?",
+    "help.faq.whatIsSafeZone.a": "Die Safe Zone ist der Bereich des Videos, der nicht von Plattform-Controls überdeckt wird. Hotspots hier bleiben auf TikTok, Reels und Shorts sichtbar.",
+    "help.faq.howToEditHotspot.q": "Wie bearbeite ich einen Hotspot?",
+    "help.faq.howToEditHotspot.a": "Tippe auf den Hotspot, um ihn auszuwählen. Nutze die Toolbar, um das Produkt zu ändern, das Timing anzupassen oder ihn zu löschen.",
+    "help.faq.howToDeleteHotspot.q": "Wie lösche ich einen Hotspot?",
+    "help.faq.howToDeleteHotspot.a": "Wähle den Hotspot aus und tippe auf das Papierkorb-Symbol in der Toolbar. Bestätige zum Löschen.",
+    "help.faq.whatIsPreviewMode.q": "Was ist der Vorschaumodus?",
+    "help.faq.whatIsPreviewMode.a": "Der Vorschaumodus zeigt, wie Zuschauer dein Video erleben werden. Tippe auf Hotspots, um Produktkarten zu sehen – genau wie dein Publikum.",
+    "help.faq.howToExport.q": "Wie exportiere ich mein Video?",
+    "help.faq.howToExport.a": "Sobald deine Hotspots eingerichtet sind, tippe auf Exportieren. Dein Video wird verarbeitet und ist dann bereit zum Teilen.",
+    
+    // How it works
+    "help.howItWorks.title": "So funktioniert's",
+    "help.howItWorks.step1": "Video hochladen",
+    "help.howItWorks.step2": "Hotspots per Tippen platzieren",
+    "help.howItWorks.step3": "Produkte verknüpfen",
+    "help.howItWorks.step4": "Teilen & veröffentlichen",
+    
+    // Feedback
+    "help.feedback.title": "Feedback senden",
+    "help.feedback.placeholder": "Was könnte besser sein?",
+    "help.feedback.categoryLabel": "Kategorie (optional)",
+    "help.feedback.categoryBug": "Bug",
+    "help.feedback.categoryUX": "UX-Problem",
+    "help.feedback.categoryFeature": "Feature-Idee",
+    "help.feedback.submit": "Feedback senden",
+    "help.feedback.success": "Danke für dein Feedback!",
+    
+    // Report Problem
+    "help.report.title": "Problem melden",
+    "help.report.placeholder": "Was funktioniert nicht?",
+    "help.report.submit": "Problem melden",
+    "help.report.success": "Problem gemeldet. Wir schauen uns das an.",
+    
+    // Contact
+    "help.contact.title": "Kontakt",
+    "help.contact.email": "support@shopable.one",
+    "help.contact.responseTime": "Wir antworten normalerweise innerhalb von 24 Stunden.",
   },
 };
 

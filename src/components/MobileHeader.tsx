@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChevronLeft, RefreshCw, Download, HelpCircle, Trash2, MoreVertical, Check, Globe, FolderOpen, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -56,6 +57,7 @@ const MobileHeader = ({
   renderStatus,
 }: MobileHeaderProps) => {
   const { t, locale, setLocale } = useLocale();
+  const navigate = useNavigate();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(videoTitle);
   const [showSavedCheck, setShowSavedCheck] = useState(false);
@@ -222,7 +224,7 @@ const MobileHeader = ({
                 <Globe className="w-4 h-4" />
                 {locale === "de" ? t("app.language.en") : t("app.language.de")}
               </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2">
+              <DropdownMenuItem onClick={() => navigate("/help")} className="gap-2">
                 <HelpCircle className="w-4 h-4" />
                 {t("header.help")}
               </DropdownMenuItem>
