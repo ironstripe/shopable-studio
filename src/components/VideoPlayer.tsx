@@ -20,6 +20,7 @@ import {
   isPointInSafeZone, 
   clampHotspotPercentage, 
   getMaxScaleInSafeZone,
+  getHotspotPixelDimensions,
 } from "@/utils/safe-zone";
 
 interface VideoPlayerProps {
@@ -158,31 +159,33 @@ const VideoPlayer = ({
     hotspotCount: number;
   } | null>(null);
   
-  // Store measured DOM dimensions per hotspot
-  const hotspotDimensionsRef = useRef<Map<string, { width: number; height: number }>>(new Map());
-  
-  // Track previous dimensions to detect changes that need re-clamping
-  const prevDimensionsRef = useRef<Map<string, { width: number; height: number }>>(new Map());
-  
-  // Queue for hotspots that need re-clamping after dimension change
+  // Queue for hotspots that need re-clamping after style/product change
   const [reclampQueue, setReclampQueue] = useState<string[]>([]);
   
-  // Callback for VideoHotspot to report measured dimensions
-  const handleHotspotMeasure = useCallback((id: string, width: number, height: number) => {
-    const prev = hotspotDimensionsRef.current.get(id);
-    hotspotDimensionsRef.current.set(id, { width, height });
-    
-    // If dimensions changed significantly (more than 5px), queue for re-clamping
-    if (prev && (Math.abs(prev.width - width) > 5 || Math.abs(prev.height - height) > 5)) {
-      console.log('[VideoPlayer] Hotspot dimensions changed:', id, { prev, new: { width, height } });
-      setReclampQueue(q => q.includes(id) ? q : [...q, id]);
-    } else if (!prev) {
-      // First measurement - also queue for initial clamp verification
-      setReclampQueue(q => q.includes(id) ? q : [...q, id]);
-    }
-  }, []);
+  // Track hotspot state to detect changes that need re-clamping
+  const prevHotspotStateRef = useRef<Map<string, { hasProduct: boolean; style: string; scale: number }>>(new Map());
   
-  // Re-clamp hotspots when their dimensions change
+  // Detect when hotspot state changes and queue for re-clamp
+  useEffect(() => {
+    hotspots.forEach(hotspot => {
+      const prev = prevHotspotStateRef.current.get(hotspot.id);
+      const hasProduct = !!hotspot.productId;
+      const current = { hasProduct, style: hotspot.style, scale: hotspot.scale };
+      
+      if (!prev) {
+        // New hotspot - queue for initial clamp
+        setReclampQueue(q => q.includes(hotspot.id) ? q : [...q, hotspot.id]);
+      } else if (prev.hasProduct !== hasProduct || prev.style !== hotspot.style || prev.scale !== hotspot.scale) {
+        // State changed - queue for re-clamp
+        console.log('[VideoPlayer] Hotspot state changed, queuing re-clamp:', hotspot.id, { prev, current });
+        setReclampQueue(q => q.includes(hotspot.id) ? q : [...q, hotspot.id]);
+      }
+      
+      prevHotspotStateRef.current.set(hotspot.id, current);
+    });
+  }, [hotspots]);
+  
+  // Re-clamp hotspots when their state changes (product assigned, style changed)
   useEffect(() => {
     if (reclampQueue.length === 0 || !containerRef.current) return;
     
@@ -191,30 +194,31 @@ const VideoPlayer = ({
     
     reclampQueue.forEach(hotspotId => {
       const hotspot = hotspots.find(h => h.id === hotspotId);
-      const measured = hotspotDimensionsRef.current.get(hotspotId);
+      if (!hotspot) return;
       
-      if (!hotspot || !measured) return;
+      // Use FIXED dimensions based on style - NO DOM measurement
+      const { width, height } = getHotspotPixelDimensions(
+        hotspot.style,
+        hotspot.scale,
+        !!hotspot.productId
+      );
       
-      // getBoundingClientRect already includes CSS transforms (scale), so don't multiply again
-      // The measured dimensions are the actual visual pixel size
       const { x, y, wasConstrained } = clampHotspotPercentage(
         hotspot.x, hotspot.y,
-        measured.width, measured.height,
+        width, height,
         rect.width, rect.height,
         'vertical_social'
       );
       
       if (wasConstrained) {
-        console.log('[VideoPlayer] Re-clamping hotspot after dimension change:', hotspotId, { 
+        console.log('[VideoPlayer] Re-clamping hotspot:', hotspotId, { 
           from: { x: hotspot.x, y: hotspot.y }, 
           to: { x, y },
-          measured 
+          dimensions: { width, height },
+          container: { width: rect.width, height: rect.height }
         });
         onUpdateHotspotPosition(hotspotId, x, y);
       }
-      
-      // Update previous dimensions after processing
-      prevDimensionsRef.current.set(hotspotId, { ...measured });
     });
     
     // Clear the queue
@@ -488,7 +492,6 @@ const VideoPlayer = ({
   const handleDragMove = (e: MouseEvent) => {
     if (!draggingHotspot || !containerRef.current) return;
     
-    // Find the hotspot to get its actual scale and style
     const hotspot = hotspots.find(h => h.id === draggingHotspot.id);
     if (!hotspot) return;
     
@@ -496,28 +499,17 @@ const VideoPlayer = ({
     const rawX = (e.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
     const rawY = (e.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
     
-    // Use MEASURED dimensions from DOM - getBoundingClientRect already includes scale
-    // Fallback to larger realistic sizes for typical card layouts
-    const measured = hotspotDimensionsRef.current.get(hotspot.id);
-    const width = measured?.width ?? 200;
-    const height = measured?.height ?? 90;
-    
-    // Clamp to safe zone using actual pixel dimensions
-    const { x, y, wasConstrained } = clampHotspotPercentage(
-      rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
+    // Use FIXED dimensions based on style - NO DOM measurement
+    const { width, height } = getHotspotPixelDimensions(
+      hotspot.style,
+      hotspot.scale,
+      !!hotspot.productId
     );
     
-    // Debug logging
-    console.log('[SafeZone] Drag clamping:', {
-      hotspotId: hotspot.id,
-      measured: measured ? { width: measured.width, height: measured.height } : 'FALLBACK (200x90)',
-      containerWidth: rect.width,
-      safeRight: rect.width * 0.85,
-      rawX: rawX.toFixed(3),
-      clampedX: x.toFixed(3),
-      rightEdgePx: (x * rect.width + width / 2).toFixed(1),
-      wasConstrained
-    });
+    // Clamp to safe zone
+    const { x, y } = clampHotspotPercentage(
+      rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
+    );
     
     onUpdateHotspotPosition(draggingHotspot.id, x, y);
     setDidDrag(true);
@@ -526,9 +518,8 @@ const VideoPlayer = ({
   const handleTouchDragMove = (e: TouchEvent) => {
     if (!draggingHotspot || !containerRef.current) return;
     
-    e.preventDefault(); // Prevent scroll while dragging
+    e.preventDefault();
     
-    // Find the hotspot to get its actual scale and style
     const hotspot = hotspots.find(h => h.id === draggingHotspot.id);
     if (!hotspot) return;
     
@@ -539,28 +530,17 @@ const VideoPlayer = ({
     const rawX = (touch.clientX - rect.left) / rect.width - draggingHotspot.offsetX;
     const rawY = (touch.clientY - rect.top) / rect.height - draggingHotspot.offsetY;
     
-    // Use MEASURED dimensions from DOM - getBoundingClientRect already includes scale
-    // Fallback to larger realistic sizes for typical card layouts
-    const measured = hotspotDimensionsRef.current.get(hotspot.id);
-    const width = measured?.width ?? 200;
-    const height = measured?.height ?? 90;
-    
-    // Clamp to safe zone using actual pixel dimensions
-    const { x, y, wasConstrained } = clampHotspotPercentage(
-      rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
+    // Use FIXED dimensions based on style - NO DOM measurement
+    const { width, height } = getHotspotPixelDimensions(
+      hotspot.style,
+      hotspot.scale,
+      !!hotspot.productId
     );
     
-    // Debug logging
-    console.log('[SafeZone] Touch drag clamping:', {
-      hotspotId: hotspot.id,
-      measured: measured ? { width: measured.width, height: measured.height } : 'FALLBACK (200x90)',
-      containerWidth: rect.width,
-      safeRight: rect.width * 0.85,
-      rawX: rawX.toFixed(3),
-      clampedX: x.toFixed(3),
-      rightEdgePx: (x * rect.width + width / 2).toFixed(1),
-      wasConstrained
-    });
+    // Clamp to safe zone
+    const { x, y } = clampHotspotPercentage(
+      rawX, rawY, width, height, rect.width, rect.height, 'vertical_social'
+    );
     
     onUpdateHotspotPosition(draggingHotspot.id, x, y);
     setDidDrag(true);
@@ -648,21 +628,12 @@ const VideoPlayer = ({
     const scaleRatio = currentDistance / currentResizing.initialDistance;
     let newScale = Math.min(2, Math.max(0.5, currentResizing.initialScale * scaleRatio));
     
-    // Use measured dimensions to calculate max scale
-    const measured = hotspotDimensionsRef.current.get(hotspot.id);
-    if (measured) {
-      // Calculate what the size would be at proposed scale
-      const currentScale = hotspot.scale;
-      const baseWidth = measured.width / currentScale;
-      const baseHeight = measured.height / currentScale;
-      
-      // Get max scale that keeps hotspot in safe zone
-      const maxScale = getMaxScaleInSafeZone(
-        hotspot.x, hotspot.y, hotspot.style, !!hotspot.productId,
-        rect.width, rect.height, 'vertical_social'
-      );
-      newScale = Math.min(newScale, maxScale);
-    }
+    // Get max scale that keeps hotspot in safe zone
+    const maxScale = getMaxScaleInSafeZone(
+      hotspot.x, hotspot.y, hotspot.style, !!hotspot.productId,
+      rect.width, rect.height, 'vertical_social'
+    );
+    newScale = Math.min(newScale, maxScale);
     
     onUpdateHotspotScale(currentResizing.id, newScale);
   }, [onUpdateHotspotScale, getDistanceFromCenter]);
@@ -684,15 +655,12 @@ const VideoPlayer = ({
     const scaleRatio = currentDistance / currentResizing.initialDistance;
     let newScale = Math.min(2, Math.max(0.5, currentResizing.initialScale * scaleRatio));
     
-    // Use measured dimensions to calculate max scale
-    const measured = hotspotDimensionsRef.current.get(hotspot.id);
-    if (measured) {
-      const maxScale = getMaxScaleInSafeZone(
-        hotspot.x, hotspot.y, hotspot.style, !!hotspot.productId,
-        rect.width, rect.height, 'vertical_social'
-      );
-      newScale = Math.min(newScale, maxScale);
-    }
+    // Get max scale that keeps hotspot in safe zone
+    const maxScale = getMaxScaleInSafeZone(
+      hotspot.x, hotspot.y, hotspot.style, !!hotspot.productId,
+      rect.width, rect.height, 'vertical_social'
+    );
+    newScale = Math.min(newScale, maxScale);
     
     onUpdateHotspotScale(currentResizing.id, newScale);
   }, [onUpdateHotspotScale, getDistanceFromCenter]);
@@ -1112,7 +1080,6 @@ const VideoPlayer = ({
                       isHighlighted={highlightedHotspotId === hotspot.id}
                       isAnyEditing={isAnyHotspotEditing}
                       forceVisible={isThisSelected}
-                      onMeasure={handleHotspotMeasure}
                     />
                     {!isPreviewMode && isThisSelected && !draggingHotspot && !isDeferringToolbar && showToolbar && (
                       <HotspotInlineEditor

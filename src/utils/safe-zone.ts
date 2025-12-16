@@ -231,8 +231,9 @@ export function clampHotspotPercentage(
 }
 
 /**
- * Get estimated hotspot pixel dimensions based on style
- * Used as fallback when DOM measurements aren't available
+ * Get FIXED hotspot pixel dimensions based on style.
+ * These are the AUTHORITATIVE dimensions used for safe zone clamping.
+ * DO NOT use DOM measurements - they are unreliable.
  */
 export const getHotspotPixelDimensions = (
   style: HotspotStyle,
@@ -240,17 +241,18 @@ export const getHotspotPixelDimensions = (
   hasProduct: boolean
 ): { width: number; height: number } => {
   if (!hasProduct) {
-    // EmptyHotspotIndicator: 48px base, minimum 44px
-    const size = Math.max(44, 48 * scale);
+    // EmptyHotspotIndicator: 48px diameter circle
+    const size = 48 * scale;
     return { width: size, height: size };
   }
   
+  // Fixed dimensions for each style - these MUST match the actual rendered size
   let baseWidth = 160;
-  let baseHeight = 60;
+  let baseHeight = 74;
   
   switch (style) {
     case "ecommerce-light-card":
-      baseWidth = 192; baseHeight = 72; break;
+      baseWidth = 160; baseHeight = 74; break;
     case "ecommerce-sale-boost":
       baseWidth = 212; baseHeight = 160; break;
     case "ecommerce-minimal":
@@ -266,7 +268,7 @@ export const getHotspotPixelDimensions = (
     case "seasonal-black-friday":
       baseWidth = 150; baseHeight = 40; break;
     default:
-      baseWidth = 160; baseHeight = 60;
+      baseWidth = 160; baseHeight = 74;
   }
   
   return { 
