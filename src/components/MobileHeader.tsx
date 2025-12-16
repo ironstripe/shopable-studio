@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronLeft, RefreshCw, Download, HelpCircle, Trash2, Settings, MoreVertical, Check, Globe, FolderOpen, Loader2 } from "lucide-react";
+import { ChevronLeft, RefreshCw, Download, HelpCircle, Trash2, MoreVertical, Check, Globe, FolderOpen, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -215,11 +215,6 @@ const MobileHeader = ({
                       {t("header.delete")}
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem disabled className="gap-2 opacity-50">
-                    <Settings className="w-4 h-4" />
-                    {t("header.settings")}
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}
