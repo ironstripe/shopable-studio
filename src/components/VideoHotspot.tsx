@@ -52,18 +52,23 @@ const VideoHotspot = ({
   const countdown = Math.ceil(hotspot.timeEnd - currentTime);
   const isActive = currentTime >= hotspot.timeStart && currentTime <= hotspot.timeEnd;
   
-  // Ref for measuring actual DOM dimensions
-  const hotspotRef = useRef<HTMLDivElement>(null);
+  // Ref for the outer wrapper (used for positioning)
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  
+  // Ref for the VISUAL CONTENT ONLY (excludes toolbar, warning badges)
+  // This is what we measure for safe zone clamping
+  const contentRef = useRef<HTMLDivElement>(null);
   
   // Track if pop-in animation should play
   const [showPopIn, setShowPopIn] = useState(isNew);
   const [showSelectionHalo, setShowSelectionHalo] = useState(false);
   const prevSelectedRef = useRef(isSelected);
   
-  // Measure actual DOM dimensions after render and report to parent
+  // Measure CONTENT dimensions after render and report to parent
+  // CRITICAL: Measure contentRef (visual content only), NOT wrapperRef
   useLayoutEffect(() => {
-    if (hotspotRef.current && onMeasure) {
-      const rect = hotspotRef.current.getBoundingClientRect();
+    if (contentRef.current && onMeasure) {
+      const rect = contentRef.current.getBoundingClientRect();
       onMeasure(hotspot.id, rect.width, rect.height);
     }
   }, [hotspot.id, hotspot.style, hotspot.scale, hasProduct, onMeasure]);
@@ -95,7 +100,7 @@ const VideoHotspot = ({
 
   return (
     <div
-      ref={hotspotRef}
+      ref={wrapperRef}
       className={cn(
         "absolute select-none pointer-events-auto hotspot-draggable",
         isDragging ? "" : "transition-all duration-150",
@@ -138,15 +143,17 @@ const VideoHotspot = ({
       )}
       
       {!hasProduct ? (
-        // Unassigned hotspot - EmptyHotspotIndicator handles its own larger size in edit mode
-        <EmptyHotspotIndicator
-          index={hotspotIndex || 0}
-          isSelected={isSelected}
-          isDragging={isDragging}
-          isResizing={isResizing}
-          scale={hotspot.scale}
-          isEditMode={isEditMode}
-        />
+        // Unassigned hotspot - wrap in content ref for measurement
+        <div ref={contentRef}>
+          <EmptyHotspotIndicator
+            index={hotspotIndex || 0}
+            isSelected={isSelected}
+            isDragging={isDragging}
+            isResizing={isResizing}
+            scale={hotspot.scale}
+            isEditMode={isEditMode}
+          />
+        </div>
       ) : (
         // Assigned hotspot - render HotspotIcon with countdown and resize handle
         <div className="flex flex-col items-center gap-1.5">
@@ -160,7 +167,9 @@ const VideoHotspot = ({
           )}
           
           {/* Hotspot card wrapper with resize handle - SCALE APPLIED HERE */}
+          {/* contentRef measures THIS element for safe zone clamping (excludes countdown above/below) */}
           <div 
+            ref={contentRef}
             className="relative"
             style={{ 
               transform: `scale(${hotspot.scale})`,
@@ -176,7 +185,7 @@ const VideoHotspot = ({
               price={price}
             />
             
-            {/* Countdown CORNER (absolute positioned) */}
+            {/* Countdown CORNER (absolute positioned - extends outside, NOT measured) */}
             {hotspot.countdown?.active && hotspot.countdown.position === "corner" && (
               <div className="absolute -top-2 -right-2 z-[15]">
                 <HotspotCountdown 
@@ -187,7 +196,7 @@ const VideoHotspot = ({
               </div>
             )}
             
-            {/* Resize handle - positioned at bottom-right corner of actual card */}
+            {/* Resize handle - positioned outside card bounds, NOT measured */}
             {isEditMode && isSelected && (
               <div
                 className={cn(
