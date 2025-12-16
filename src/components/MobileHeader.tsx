@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, RefreshCw, Download, HelpCircle, Trash2, MoreVertical, Check, Globe, FolderOpen, Loader2 } from "lucide-react";
+import { ChevronLeft, RefreshCw, Download, HelpCircle, Trash2, MoreVertical, Check, Globe, FolderOpen, Loader2, LogOut, Share2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +25,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useLocale } from "@/lib/i18n";
+import { useAuth } from "@/contexts/AuthContext";
 import shopableLogo from "@/assets/shopable-logo.png";
 import { RenderStatus } from "@/services/video-api";
 
@@ -40,8 +41,10 @@ interface MobileHeaderProps {
   onBack?: () => void;
   onDeleteVideo?: () => void;
   onOpenVideoGallery?: () => void;
+  onFinalize?: () => void;
   isExporting?: boolean;
   renderStatus?: RenderStatus | null;
+  canFinalize?: boolean;
 }
 
 const MobileHeader = ({
@@ -53,9 +56,12 @@ const MobileHeader = ({
   onBack,
   onDeleteVideo,
   onOpenVideoGallery,
+  onFinalize,
   isExporting = false,
   renderStatus,
+  canFinalize = false,
 }: MobileHeaderProps) => {
+  const { signOut } = useAuth();
   const { t, locale, setLocale } = useLocale();
   const navigate = useNavigate();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -149,8 +155,19 @@ const MobileHeader = ({
             )}
           </div>
 
-          {/* Right: My Videos button + Three-dot menu */}
+          {/* Right: Finalize button + My Videos button + Three-dot menu */}
           <div className="flex items-center gap-1">
+            {/* Finalize button - show when video has complete hotspots */}
+            {hasVideo && canFinalize && onFinalize && (
+              <button
+                onClick={onFinalize}
+                className="h-9 px-4 flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>Finalize</span>
+              </button>
+            )}
+            
             {/* My Videos button - show when on entry screen (no video) */}
             {!hasVideo && onOpenVideoGallery && (
               <button
@@ -227,6 +244,11 @@ const MobileHeader = ({
               <DropdownMenuItem onClick={() => navigate("/help")} className="gap-2">
                 <HelpCircle className="w-4 h-4" />
                 {t("header.help")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={signOut} className="gap-2 text-destructive focus:text-destructive focus:bg-destructive/10">
+                <LogOut className="w-4 h-4" />
+                Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>
             </DropdownMenu>

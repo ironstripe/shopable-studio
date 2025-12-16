@@ -7,6 +7,7 @@ import HotspotSidebar from "@/components/HotspotSidebar";
 import MobileHeader from "@/components/MobileHeader";
 import MobileBottomControls from "@/components/MobileBottomControls";
 import HotspotDrawer from "@/components/HotspotDrawer";
+import SlugEditSheet from "@/components/SlugEditSheet";
 
 import SelectProductSheet from "@/components/SelectProductSheet";
 import NewProductSheet from "@/components/NewProductSheet";
@@ -38,6 +39,7 @@ import { useFTUX } from "@/hooks/use-ftux";
 import { useHotspots } from "@/hooks/use-hotspots";
 import { useSceneState, isHotspotComplete } from "@/hooks/use-scene-state";
 import { useLocale } from "@/lib/i18n";
+import { useCreator } from "@/contexts/CreatorContext";
 import shopableLogo from "@/assets/shopable-logo.png";
 import { listVideos, VideoDto, triggerRender } from "@/services/video-api";
 import VideoExportSection from "@/components/VideoExportSection";
@@ -45,6 +47,7 @@ import VideoExportSection from "@/components/VideoExportSection";
 const Index = () => {
   const isMobile = useIsMobile();
   const { t } = useLocale();
+  const { creator } = useCreator();
   const { step: ftuxStep, isComplete: ftuxComplete, advanceStep, completeFTUX } = useFTUX();
   
   // Two-mode system: "select" (default) vs "add" mode
@@ -58,6 +61,9 @@ const Index = () => {
   
   // Backend video state
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
+  
+  // Slug sheet state
+  const [slugSheetOpen, setSlugSheetOpen] = useState(false);
   
   // Centralized hotspot management via hook - pass videoId for backend sync
   const {
@@ -109,6 +115,18 @@ const Index = () => {
   const [duration, setDuration] = useState(0);
   const [shownPreviewHint, setShownPreviewHint] = useState(false);
   const [shownExportHint, setShownExportHint] = useState(false);
+  
+  // Computed: Can finalize (at least one complete hotspot)
+  const canFinalize = useMemo(() => {
+    return hotspots.some(h => isHotspotComplete(h));
+  }, [hotspots]);
+  
+  // Get first product name for slug generation
+  const firstProductName = useMemo(() => {
+    const completeHotspot = hotspots.find(h => h.productTitle);
+    return completeHotspot?.productTitle || undefined;
+  }, [hotspots]);
+  
   const [videoCTA, setVideoCTA] = useState<VideoCTA>({
     label: "Shop Now",
     url: "",
@@ -763,9 +781,22 @@ const Index = () => {
           hasVideo={!!videoSrc}
           onDeleteVideo={() => setShowReplaceVideoDialog(true)}
           onOpenVideoGallery={handleOpenVideoGallery}
+          onFinalize={() => setSlugSheetOpen(true)}
           isExporting={isExporting}
           renderStatus={currentVideoRenderStatus}
+          canFinalize={canFinalize}
         />
+
+        {/* Slug Edit Sheet */}
+        {currentVideoId && (
+          <SlugEditSheet
+            open={slugSheetOpen}
+            onOpenChange={setSlugSheetOpen}
+            videoId={currentVideoId}
+            videoTitle={videoTitle}
+            productName={firstProductName}
+          />
+        )}
 
         {/* Main content area - accounts for header with safe area and bottom controls */}
         <main 
