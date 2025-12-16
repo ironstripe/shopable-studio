@@ -157,15 +157,21 @@ const MobileHeader = ({
 
           {/* Right: Finalize button + My Videos button + Three-dot menu */}
           <div className="flex items-center gap-1">
-            {/* Finalize button - show when video has complete hotspots */}
+            {/* Finalize button with exit framing - show when video has complete hotspots */}
             {hasVideo && canFinalize && onFinalize && (
-              <button
-                onClick={onFinalize}
-                className="h-9 px-4 flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
-              >
-                <Share2 className="w-4 h-4" />
-                <span>{t("readyToPost.button")}</span>
-              </button>
+              <div className="flex flex-col items-end gap-0.5">
+                <button
+                  onClick={onFinalize}
+                  className="h-9 px-4 flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>{t("readyToPost.button")}</span>
+                </button>
+                {/* FTUX Step 4: Exit framing microcopy */}
+                <p className="text-[10px] text-muted-foreground/70 text-right max-w-[160px] leading-tight hidden sm:block">
+                  {t("ftux.exitHint")}
+                </p>
+              </div>
             )}
             
             {/* My Videos button - show when on entry screen (no video) */}

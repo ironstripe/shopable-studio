@@ -14,7 +14,7 @@ import SelectProductSheet from "@/components/SelectProductSheet";
 import NewProductSheet from "@/components/NewProductSheet";
 import LayoutBehaviorSheet from "@/components/LayoutBehaviorSheet";
 import VideoCTASheet from "@/components/VideoCTASheet";
-import WelcomeOverlay from "@/components/ftux/WelcomeOverlay";
+// WelcomeOverlay removed - entry screen IS the FTUX now
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -121,6 +121,11 @@ const Index = () => {
   const [shownPreviewHint, setShownPreviewHint] = useState(false);
   const [shownExportHint, setShownExportHint] = useState(false);
   
+  // FTUX Step 3: First success toast state (persisted)
+  const [hasShownFirstSuccess, setHasShownFirstSuccess] = useState(() => {
+    return localStorage.getItem("shopable_ftux_first_success") === "true";
+  });
+  
   // Computed: Can finalize (at least one complete hotspot)
   const canFinalize = useMemo(() => {
     return hotspots.some(h => isHotspotComplete(h));
@@ -180,6 +185,18 @@ const Index = () => {
       setProducts(productsFromHotspots);
     }
   }, [hotspots]);
+
+  // FTUX Step 3: Show first success toast when first product is linked
+  useEffect(() => {
+    if (hasShownFirstSuccess) return;
+    
+    const firstHotspotWithProduct = hotspots.find(h => h.productId);
+    if (firstHotspotWithProduct) {
+      toast.success(t("ftux.firstSuccess"));
+      setHasShownFirstSuccess(true);
+      localStorage.setItem("shopable_ftux_first_success", "true");
+    }
+  }, [hotspots, hasShownFirstSuccess, t]);
 
   const isPreviewMode = editorMode === "preview";
   
@@ -765,14 +782,7 @@ const Index = () => {
     }
   };
 
-
-  // FTUX: Handle welcome overlay close
-  const handleWelcomeClose = () => {
-    advanceStep("emptyEditor");
-  };
-
-  // FTUX computed states
-  const showWelcomeOverlay = !ftuxComplete && ftuxStep === "welcome";
+  // FTUX computed states (WelcomeOverlay removed - entry screen IS the FTUX)
   // Show placement hint when ready for next hotspot creation
   // Conditions: video loaded, not loading, edit mode, no hotspot selected, no sheets open, not dragging
   const showPlacementHint = videoSrc 
@@ -829,13 +839,17 @@ const Index = () => {
           {/* Show upload zone if no video selected (entry screen) */}
           {!videoSrc ? (
             <div className="flex flex-col items-center w-full max-w-xl mx-auto px-4">
-              {/* Motivational headline */}
+              {/* Motivational headline - THIS IS THE FTUX */}
               <div className="text-center mb-8">
                 <h1 className="text-[28px] md:text-[32px] font-semibold text-foreground mb-2">
                   {t("entry.headline")}
                 </h1>
-                <p className="text-[16px] text-muted-foreground">
+                <p className="text-[16px] text-muted-foreground mb-4">
                   {t("entry.subline")}
+                </p>
+                {/* Micro-trust line - small, subtle */}
+                <p className="text-[13px] text-muted-foreground/70">
+                  {t("entry.microTrust")}
                 </p>
               </div>
               
@@ -1010,8 +1024,7 @@ const Index = () => {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Welcome Overlay - shown on first visit */}
-        {showWelcomeOverlay && <WelcomeOverlay onStart={handleWelcomeClose} />}
+        {/* FTUX: Entry screen IS the welcome experience - no overlay needed */}
 
         {/* Video Gallery Sheet */}
         <Sheet open={showVideoGallerySheet} onOpenChange={setShowVideoGallerySheet}>
@@ -1244,8 +1257,7 @@ const Index = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Welcome Overlay - shown on first visit */}
-      {showWelcomeOverlay && <WelcomeOverlay onStart={handleWelcomeClose} />}
+      {/* FTUX: Entry screen IS the welcome experience - no overlay needed */}
 
       {/* Video Gallery Sheet (Desktop) */}
       <Sheet open={showVideoGallerySheet} onOpenChange={setShowVideoGallerySheet}>
