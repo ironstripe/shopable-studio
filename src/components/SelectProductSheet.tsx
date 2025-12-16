@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Product } from "@/types/video";
+import { Product, ProductCategory } from "@/types/video";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Plus, Check, Package, ImageIcon, ArrowLeft, ChevronDown } from "lucide-react";
@@ -8,6 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocale } from "@/lib/i18n";
 import { SUPPORTED_CURRENCIES, DEFAULT_CURRENCY, CURRENCY_SYMBOLS, normalizePrice, type CurrencyCode } from "@/utils/price-utils";
+
+const PRODUCT_CATEGORIES: { value: ProductCategory; labelEn: string; labelDe: string; emoji: string }[] = [
+  { value: "fashion", labelEn: "Fashion", labelDe: "Mode", emoji: "👗" },
+  { value: "tech", labelEn: "Tech & Gadgets", labelDe: "Tech & Gadgets", emoji: "📱" },
+  { value: "cosmetics", labelEn: "Cosmetics", labelDe: "Kosmetik", emoji: "💄" },
+  { value: "dog", labelEn: "Dog & Pets", labelDe: "Hund & Haustiere", emoji: "🐶" },
+  { value: "fitness", labelEn: "Fitness & Health", labelDe: "Fitness & Gesundheit", emoji: "🏋️" },
+  { value: "home", labelEn: "Home & Living", labelDe: "Wohnen", emoji: "🏠" },
+  { value: "kitchen", labelEn: "Kitchen & Food", labelDe: "Küche & Kochen", emoji: "🍳" },
+  { value: "other", labelEn: "Other", labelDe: "Sonstiges", emoji: "➕" },
+];
 
 interface SelectProductSheetProps {
   open: boolean;
@@ -37,7 +48,7 @@ const SelectProductSheet = ({
   onUpdateProduct,
   onRemoveProduct,
 }: SelectProductSheetProps) => {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"select" | "edit">("select");
   const [editFormData, setEditFormData] = useState({
@@ -49,6 +60,7 @@ const SelectProductSheet = ({
     currency: DEFAULT_CURRENCY as CurrencyCode,
     thumbnail: "",
     promoCode: "",
+    category: "other" as ProductCategory,
   });
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -70,6 +82,7 @@ const SelectProductSheet = ({
           currency: ((product as any).currency as CurrencyCode) || DEFAULT_CURRENCY,
           thumbnail: product.thumbnail || "",
           promoCode: product.promoCode || "",
+          category: product.category || "other",
         });
       } else {
         // No assigned product - start in select mode
@@ -118,6 +131,7 @@ const SelectProductSheet = ({
       thumbnail: editFormData.thumbnail || undefined,
       promoCode: editFormData.promoCode || undefined,
       currency: editFormData.currency,
+      category: editFormData.category,
     };
     
     onUpdateProduct(updatedProduct as Product);
@@ -342,6 +356,32 @@ const SelectProductSheet = ({
                     placeholder="https://…"
                     className="h-11 text-[15px] bg-white border-[#E0E0E0] text-[#111111]"
                   />
+                </div>
+
+                {/* Category */}
+                <div>
+                  <label className="text-[12px] font-medium text-[#666666] mb-1.5 block">
+                    {locale === "de" ? "Kategorie" : "Category"}
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={editFormData.category}
+                      onChange={(e) => setEditFormData({...editFormData, category: e.target.value as ProductCategory})}
+                      className="w-full h-11 pl-3 pr-8 text-[14px] bg-white border border-[#E0E0E0] text-[#111111] rounded-lg appearance-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none cursor-pointer"
+                    >
+                      {PRODUCT_CATEGORIES.map((cat) => (
+                        <option key={cat.value} value={cat.value}>
+                          {cat.emoji} {locale === "de" ? cat.labelDe : cat.labelEn}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#888888] pointer-events-none" />
+                  </div>
+                  <p className="text-[11px] text-[#888888] mt-1">
+                    {locale === "de" 
+                      ? "Wird für die automatische Caption-Generierung verwendet"
+                      : "Used for automatic caption generation"}
+                  </p>
                 </div>
 
                 {/* CTA Label */}

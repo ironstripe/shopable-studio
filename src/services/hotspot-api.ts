@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "./api-config";
-import { Hotspot, HotspotStyle, CardStyle, ClickBehavior, CountdownStyle, CountdownPosition } from "@/types/video";
+import { Hotspot, HotspotStyle, CardStyle, ClickBehavior, CountdownStyle, CountdownPosition, ProductCategory } from "@/types/video";
 import { getFamilyFromStyle } from "@/types/templates";
 
 // DTO types matching backend API
@@ -26,6 +26,7 @@ export interface HotspotDto {
   productCurrency?: string | null;
   productDescription?: string | null;
   productPromoCode?: string | null;
+  productCategory?: string | null;
   ctaLabel?: string;
   clickBehavior?: string;
   scale?: number;
@@ -159,6 +160,7 @@ export function mapDtoToHotspot(dto: HotspotDto): Hotspot {
     productCurrency: dto.productCurrency ?? undefined,
     productDescription: dto.productDescription ?? undefined,
     productPromoCode: dto.productPromoCode ?? undefined,
+    productCategory: (dto.productCategory as ProductCategory) ?? undefined,
     style: (dto.style as HotspotStyle) || "ecommerce-light-card",
     cardStyle: (dto.cardStyle as CardStyle) || (dto.style as CardStyle) || "ecommerce-light-card",
     ctaLabel: dto.ctaLabel || "Shop Now",
@@ -204,6 +206,7 @@ export function mapHotspotToPayload(
     productCurrency: hotspot.productCurrency ?? null,
     productDescription: hotspot.productDescription ?? null,
     productPromoCode: hotspot.productPromoCode ?? null,
+    productCategory: hotspot.productCategory ?? null,
     ctaLabel: hotspot.ctaLabel,
     clickBehavior: hotspot.clickBehavior,
     scale: hotspot.scale,
@@ -261,6 +264,9 @@ export function mapHotspotUpdateToPayload(
   if (update.productPromoCode !== undefined) {
     payload.productPromoCode = update.productPromoCode;
   }
+  if (update.productCategory !== undefined) {
+    payload.productCategory = update.productCategory;
+  }
   if (update.ctaLabel !== undefined) {
     payload.ctaLabel = update.ctaLabel;
   }
@@ -305,6 +311,7 @@ export function mapFullHotspotToUpdatePayload(
     productCurrency: hotspot.productCurrency ?? null,
     productDescription: hotspot.productDescription ?? null,
     productPromoCode: hotspot.productPromoCode ?? null,
+    productCategory: hotspot.productCategory ?? null,
     ctaLabel: hotspot.ctaLabel ?? null,
     clickBehavior: hotspot.clickBehavior ?? null,
     scale: hotspot.scale ?? null,
