@@ -8,7 +8,14 @@ const corsHeaders = {
 type ProductCategory = "fashion" | "tech" | "cosmetics" | "dog" | "fitness" | "home" | "kitchen" | "other";
 type Language = "en" | "de";
 
-interface CaptionRequest {
+// Input validation schema
+const VALID_CATEGORIES: ProductCategory[] = ["fashion", "tech", "cosmetics", "dog", "fitness", "home", "kitchen", "other"];
+const VALID_LANGUAGES: Language[] = ["en", "de"];
+const MAX_PRODUCT_NAME_LENGTH = 200;
+const MAX_PRODUCT_DESCRIPTION_LENGTH = 1000;
+const MAX_VIDEO_URL_LENGTH = 500;
+
+interface ValidatedCaptionRequest {
   productName: string;
   productDescription?: string;
   category: ProductCategory;
@@ -16,6 +23,112 @@ interface CaptionRequest {
   videoUrl: string;
   creatorId?: string;
   videoId?: string;
+}
+
+/**
+ * Validate and sanitize the caption request
+ */
+function validateRequest(body: unknown): ValidatedCaptionRequest {
+  if (!body || typeof body !== 'object') {
+    throw new Error("Invalid request body");
+  }
+
+  const req = body as Record<string, unknown>;
+
+  // Validate productName (required, string, max length)
+  if (typeof req.productName !== 'string' || req.productName.trim().length === 0) {
+    throw new Error("productName is required and must be a non-empty string");
+  }
+  if (req.productName.length > MAX_PRODUCT_NAME_LENGTH) {
+    throw new Error(`productName must be at most ${MAX_PRODUCT_NAME_LENGTH} characters`);
+  }
+
+  // Validate productDescription (optional, string, max length)
+  let productDescription: string | undefined;
+  if (req.productDescription !== undefined && req.productDescription !== null) {
+    if (typeof req.productDescription !== 'string') {
+      throw new Error("productDescription must be a string");
+    }
+    if (req.productDescription.length > MAX_PRODUCT_DESCRIPTION_LENGTH) {
+      throw new Error(`productDescription must be at most ${MAX_PRODUCT_DESCRIPTION_LENGTH} characters`);
+    }
+    productDescription = req.productDescription.trim() || undefined;
+  }
+
+  // Validate category (required, must be valid enum)
+  const category = (req.category as string)?.toLowerCase() as ProductCategory;
+  if (!VALID_CATEGORIES.includes(category)) {
+    throw new Error(`category must be one of: ${VALID_CATEGORIES.join(", ")}`);
+  }
+
+  // Validate language (required, must be valid enum)
+  const language = (req.language as string)?.toLowerCase() as Language;
+  if (!VALID_LANGUAGES.includes(language)) {
+    throw new Error(`language must be one of: ${VALID_LANGUAGES.join(", ")}`);
+  }
+
+  // Validate videoUrl (required, string, max length, basic URL format)
+  if (typeof req.videoUrl !== 'string' || req.videoUrl.trim().length === 0) {
+    throw new Error("videoUrl is required and must be a non-empty string");
+  }
+  if (req.videoUrl.length > MAX_VIDEO_URL_LENGTH) {
+    throw new Error(`videoUrl must be at most ${MAX_VIDEO_URL_LENGTH} characters`);
+  }
+  // Basic URL validation
+  try {
+    new URL(req.videoUrl);
+  } catch {
+    throw new Error("videoUrl must be a valid URL");
+  }
+
+  // Validate creatorId (optional, uuid format)
+  let creatorId: string | undefined;
+  if (req.creatorId !== undefined && req.creatorId !== null) {
+    if (typeof req.creatorId !== 'string') {
+      throw new Error("creatorId must be a string");
+    }
+    // Basic UUID validation
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(req.creatorId)) {
+      throw new Error("creatorId must be a valid UUID");
+    }
+    creatorId = req.creatorId;
+  }
+
+  // Validate videoId (optional, uuid format)
+  let videoId: string | undefined;
+  if (req.videoId !== undefined && req.videoId !== null) {
+    if (typeof req.videoId !== 'string') {
+      throw new Error("videoId must be a string");
+    }
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(req.videoId)) {
+      throw new Error("videoId must be a valid UUID");
+    }
+    videoId = req.videoId;
+  }
+
+  return {
+    productName: req.productName.trim(),
+    productDescription,
+    category,
+    language,
+    videoUrl: req.videoUrl.trim(),
+    creatorId,
+    videoId,
+  };
+}
+
+/**
+ * Sanitize text to prevent prompt injection attacks
+ */
+function sanitizeForPrompt(text: string): string {
+  // Remove or escape characters that could break prompt structure
+  return text
+    .replace(/```/g, "'''") // Replace triple backticks
+    .replace(/\n{3,}/g, "\n\n") // Limit consecutive newlines
+    .replace(/[<>]/g, "") // Remove angle brackets
+    .trim();
 }
 
 // Category-specific templates following the spec
@@ -161,7 +274,30 @@ serve(async (req) => {
   }
 
   try {
-    const { productName, productDescription, category, language, videoUrl, creatorId, videoId }: CaptionRequest = await req.json();
+    // Parse and validate request body
+    let rawBody: unknown;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON in request body" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate all input fields
+    let validatedRequest: ValidatedCaptionRequest;
+    try {
+      validatedRequest = validateRequest(rawBody);
+    } catch (validationError) {
+      console.error("[generate-caption] Validation error:", validationError);
+      return new Response(
+        JSON.stringify({ error: validationError instanceof Error ? validationError.message : "Invalid input" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { productName, productDescription, category, language, videoUrl, creatorId, videoId } = validatedRequest;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -169,8 +305,13 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const categoryPrompt = getCategoryPrompt(category || "other", language || "en");
+    const categoryPrompt = getCategoryPrompt(category, language);
     const langName = language === "de" ? "German" : "English";
+
+    // Sanitize user inputs before embedding in prompt
+    const sanitizedProductName = sanitizeForPrompt(productName);
+    const sanitizedProductDescription = productDescription ? sanitizeForPrompt(productDescription) : undefined;
+    const sanitizedVideoUrl = sanitizeForPrompt(videoUrl);
 
     const systemPrompt = `You are a category-aware caption and hashtag optimization engine for short-form social commerce videos (Instagram, TikTok, YouTube Shorts).
 
@@ -210,14 +351,14 @@ Do NOT include any explanations or meta-text.`;
 
     const userPrompt = `Generate a caption for this product:
 
-Product Name: ${productName}
-${productDescription ? `Description: ${productDescription}` : ""}
-Category: ${category || "other"}
-Video URL: ${videoUrl}
+Product Name: ${sanitizedProductName}
+${sanitizedProductDescription ? `Description: ${sanitizedProductDescription}` : ""}
+Category: ${category}
+Video URL: ${sanitizedVideoUrl}
 
 Generate a ${langName} caption following the exact structure: HOOK → CONTEXT → CTA → LINK → HASHTAGS`;
 
-    console.log("[generate-caption] Calling Lovable AI with:", { productName, category, language });
+    console.log("[generate-caption] Calling Lovable AI with:", { productName: sanitizedProductName, category, language });
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -282,7 +423,7 @@ Generate a ${langName} caption following the exact structure: HOOK → CONTEXT �
               creatorId,
               videoId,
               eventSource: "studio",
-              properties: { source: "ai", language: language || "en", category: category || "other" },
+              properties: { source: "ai", language, category },
             }),
           });
           console.log("[generate-caption] Tracked caption_generated event");
