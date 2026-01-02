@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "./api-config";
+import { getAuthHeaders, getAuthHeadersForUpload } from "./api-auth";
 
 // S3 bucket base URL for constructing playable video URLs
 const S3_BASE_URL = "https://shopable-prod-media.s3.eu-west-1.amazonaws.com/";
@@ -96,8 +97,10 @@ function mapBackendItemToVideoDto(item: any): VideoDto | null {
 export async function listVideos(): Promise<VideoDto[]> {
   console.log('[Videos] Fetching video list from:', API_BASE_URL);
   
+  const headers = await getAuthHeaders();
   const res = await fetch(`${API_BASE_URL}/videos`, {
     method: "GET",
+    headers,
   });
   
   if (!res.ok) {
@@ -141,8 +144,10 @@ export async function triggerRender(videoId: string): Promise<TriggerRenderRespo
   const url = `${API_BASE_URL}/videos/${encodeURIComponent(videoId)}/render`;
   console.log("[Render] Calling:", "POST", url);
 
+  const headers = await getAuthHeaders();
   const res = await fetch(url, {
     method: "POST",
+    headers,
   });
 
   if (!res.ok) {
@@ -173,11 +178,10 @@ export async function registerUpload(payload: {
   console.log("[Uploads] Calling:", "POST", url);
   console.log("[Uploads] Payload:", payload);
 
+  const headers = await getAuthHeaders();
   const res = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify(payload),
   });
 

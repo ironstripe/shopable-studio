@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "./api-config";
+import { getAuthHeaders } from "./api-auth";
 import { Hotspot, HotspotStyle, CardStyle, ClickBehavior, CountdownStyle, CountdownPosition, ProductCategory } from "@/types/video";
 import { getFamilyFromStyle } from "@/types/templates";
 
@@ -45,8 +46,10 @@ export async function listHotspots(videoId: string): Promise<HotspotDto[]> {
   console.log('[hotspot-api] GET request:', url);
   
   try {
+    const headers = await getAuthHeaders();
     const res = await fetch(url, {
       method: "GET",
+      headers,
     });
     if (!res.ok) {
       const errorText = await res.text();
@@ -69,9 +72,10 @@ export async function createHotspot(
   console.log('[hotspot-api] POST request:', { url, payload });
   
   try {
+    const headers = await getAuthHeaders();
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
     });
     if (!res.ok) {
@@ -97,9 +101,10 @@ export async function updateHotspot(
   console.log('[hotspot-api] PUT request:', { url, payload });
   
   try {
+    const headers = await getAuthHeaders();
     const res = await fetch(url, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
     });
     if (!res.ok) {
@@ -124,8 +129,10 @@ export async function deleteHotspot(
   console.log('[hotspot-api] DELETE request:', url);
   
   try {
+    const headers = await getAuthHeaders();
     const res = await fetch(url, {
       method: "DELETE",
+      headers,
     });
     if (!res.ok) {
       const errorText = await res.text();
