@@ -9,43 +9,58 @@ export default function OAuthCallbackPage() {
   const [debugInfo, setDebugInfo] = useState<string>("");
 
   useEffect(() => {
-    let cancelled = false;
-
     const handleCallback = async () => {
       const url = new URL(window.location.href);
       const code = url.searchParams.get("code");
       const searchType = url.searchParams.get("type");
       const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
       const hashType = hashParams.get("type");
+      const hashAccessToken = hashParams.get("access_token");
+      const hashRefreshToken = hashParams.get("refresh_token");
       const isRecovery = searchType === "recovery" || hashType === "recovery";
 
-      console.log("[OAuthCallback] Processing callback:", { code: !!code, isRecovery, path: url.pathname });
-      setDebugInfo(`code: ${!!code}, isRecovery: ${isRecovery}`);
+      console.log("[OAuthCallback] Processing callback:", { 
+        hasCode: !!code, 
+        hasHashToken: !!hashAccessToken,
+        isRecovery, 
+        path: url.pathname 
+      });
+      setDebugInfo(`code: ${!!code}, hashToken: ${!!hashAccessToken}, isRecovery: ${isRecovery}`);
 
       // If it's password recovery, redirect to reset-password page
       if (isRecovery) {
         console.log("[OAuthCallback] Recovery flow detected, redirecting to /reset-password");
-        // Keep URL params for reset-password page
         window.location.href = `/reset-password${window.location.search}${window.location.hash}`;
         return;
       }
 
-      // No code means nothing to exchange
-      if (!code) {
-        console.log("[OAuthCallback] No code found, checking existing session");
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          await redirectBasedOnCreator(session.user.id);
-        } else {
-          setStatus("error");
-          setErrorMessage("No authentication code found. Please try signing in again.");
-        }
+      // Handle PKCE flow with ?code=
+      if (code) {
+        await handlePKCEFlow(code);
         return;
       }
 
-      // Exchange the code for session with timeout
+      // Handle Implicit flow with #access_token=
+      if (hashAccessToken && hashRefreshToken) {
+        await handleImplicitFlow(hashAccessToken, hashRefreshToken);
+        return;
+      }
+
+      // No code and no hash tokens - check existing session
+      console.log("[OAuthCallback] No code or hash tokens found, checking existing session");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await redirectBasedOnCreator(session.user.id);
+      } else {
+        setStatus("error");
+        setErrorMessage("No authentication code found. Please try signing in again.");
+      }
+    };
+
+    // Handle PKCE flow (code in query params)
+    const handlePKCEFlow = async (code: string) => {
       try {
-        console.log("[OAuthCallback] Exchanging code for session...");
+        console.log("[OAuthCallback] PKCE flow: Exchanging code for session...");
         
         const exchangePromise = supabase.auth.exchangeCodeForSession(code);
         const timeoutPromise = new Promise<never>((_, reject) => 
@@ -63,41 +78,77 @@ export default function OAuthCallbackPage() {
         }
 
         console.log("[OAuthCallback] Code exchange successful, waiting for auth state sync...");
-
-        // Wait for auth state to sync before continuing
-        await new Promise<void>((resolve) => {
-          const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-            console.log("[OAuthCallback] Auth state change event:", event);
-            if (event === 'SIGNED_IN') {
-              subscription.unsubscribe();
-              resolve();
-            }
-          });
-          // Timeout in case event already fired
-          setTimeout(() => {
-            subscription.unsubscribe();
-            resolve();
-          }, 2000);
-        });
-
-        // Get session to verify and get user ID
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError || !session) {
-          console.error("[OAuthCallback] Session error after exchange:", sessionError);
-          setStatus("error");
-          setErrorMessage(sessionError?.message || "No session found after authentication");
-          return;
-        }
-
-        console.log("[OAuthCallback] Session established for:", session.user.email);
-        await redirectBasedOnCreator(session.user.id);
-
+        await waitForAuthStateSync();
+        await finalizeSession();
       } catch (err) {
-        console.error("[OAuthCallback] Unexpected error:", err);
+        console.error("[OAuthCallback] PKCE flow error:", err);
         setStatus("error");
         setErrorMessage(err instanceof Error ? err.message : "An unexpected error occurred");
       }
+    };
+
+    // Handle Implicit flow (tokens in hash)
+    const handleImplicitFlow = async (accessToken: string, refreshToken: string) => {
+      try {
+        console.log("[OAuthCallback] Implicit flow: Setting session from hash tokens...");
+        
+        const { error: setSessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        // Clean the URL to remove tokens from hash
+        window.history.replaceState(null, "", window.location.pathname);
+
+        if (setSessionError) {
+          console.error("[OAuthCallback] Set session error:", setSessionError);
+          setStatus("error");
+          setErrorMessage(setSessionError.message || "Failed to establish session");
+          setDebugInfo(JSON.stringify(setSessionError, null, 2));
+          return;
+        }
+
+        console.log("[OAuthCallback] Session set from hash tokens successfully");
+        await waitForAuthStateSync();
+        await finalizeSession();
+      } catch (err) {
+        console.error("[OAuthCallback] Implicit flow error:", err);
+        setStatus("error");
+        setErrorMessage(err instanceof Error ? err.message : "An unexpected error occurred");
+      }
+    };
+
+    // Wait for auth state to sync
+    const waitForAuthStateSync = () => {
+      return new Promise<void>((resolve) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+          console.log("[OAuthCallback] Auth state change event:", event);
+          if (event === 'SIGNED_IN') {
+            subscription.unsubscribe();
+            resolve();
+          }
+        });
+        // Timeout in case event already fired
+        setTimeout(() => {
+          subscription.unsubscribe();
+          resolve();
+        }, 2000);
+      });
+    };
+
+    // Finalize session and redirect
+    const finalizeSession = async () => {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        console.error("[OAuthCallback] Session error after flow:", sessionError);
+        setStatus("error");
+        setErrorMessage(sessionError?.message || "No session found after authentication");
+        return;
+      }
+
+      console.log("[OAuthCallback] Session established for:", session.user.email);
+      await redirectBasedOnCreator(session.user.id);
     };
 
     const redirectBasedOnCreator = async (userId: string) => {
