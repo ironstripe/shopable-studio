@@ -23,6 +23,8 @@ interface PostModeSheetProps {
   hotspotCount: number;
   onDownloadVideo?: () => void;
   onSaveToGallery?: () => void;
+  creatorKuerzel?: string;
+  videoSlug?: string;
 }
 
 const DEFAULT_CAPTION = `Shop what you see 👀✨
@@ -49,13 +51,33 @@ const PostModeSheet = ({
   hotspotCount,
   onDownloadVideo,
   onSaveToGallery,
+  creatorKuerzel,
+  videoSlug,
 }: PostModeSheetProps) => {
   const [copiedCaption, setCopiedCaption] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [localCaption, setLocalCaption] = useState(initialCaption || DEFAULT_CAPTION);
 
-  // Canonical shop link
-  const shopLink = `https://shopable.link/${videoId}`;
+  // Generate slug from video title if not provided
+  const generateSlugFromTitle = (text: string): string => {
+    return text
+      .toLowerCase()
+      .replace(/[äöüß]/g, (match) => {
+        const map: Record<string, string> = { "ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss" };
+        return map[match] || match;
+      })
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 50);
+  };
+
+  // Tiny URL format: shop.one/{kuerzel}/{slug}
+  const effectiveSlug = videoSlug || generateSlugFromTitle(videoTitle);
+  const shopLink = creatorKuerzel && effectiveSlug
+    ? `shop.one/${creatorKuerzel}/${effectiveSlug}`
+    : creatorKuerzel
+      ? `shop.one/${creatorKuerzel}`
+      : `shopable.link/${videoId}`;
 
   const handleCopyCaption = async () => {
     if (!localCaption.trim()) {

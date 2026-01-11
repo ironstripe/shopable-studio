@@ -16,6 +16,7 @@ export interface VideoDto {
   renderStatus: RenderStatus | null;
   renderUpdatedAt: string | null;
   state?: "draft" | "editing" | "ready_to_post" | "posted" | null; // Video state machine
+  customSlug?: string | null; // Custom URL slug for tiny URLs
 }
 
 export interface TriggerRenderResponse {
@@ -88,6 +89,7 @@ function mapBackendItemToVideoDto(item: any): VideoDto | null {
     renderUpdatedAt: item.renderUpdatedAt || null,
     createdAt: item.createdAt || null,
     state: item.state || null, // Video state machine
+    customSlug: item.custom_slug || item.customSlug || null, // Custom URL slug
   };
 }
 

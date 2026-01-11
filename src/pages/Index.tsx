@@ -1041,6 +1041,8 @@ const Index = () => {
           videoCTA={videoCTA}
           hotspotCount={hotspots.length}
           onDownloadVideo={handleExportVideo}
+          creatorKuerzel={creator?.creator_kuerzel}
+          videoSlug={videos.find(v => v.id === currentVideoId)?.customSlug || undefined}
         />
 
 
