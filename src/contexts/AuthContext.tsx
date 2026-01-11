@@ -125,14 +125,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async (): Promise<{ error: Error | null }> => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        // Redirect to dedicated callback page that handles code exchange
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    return { error: error ? new Error(error.message) : null };
+    try {
+      // Detect if we're in an embedded context (iframe)
+      let isEmbedded = false;
+      try {
+        isEmbedded = window.self !== window.top;
+      } catch {
+        // Cross-origin iframe - treat as embedded
+        isEmbedded = true;
+      }
+
+      console.log("[Auth] Google sign-in, embedded:", isEmbedded);
+
+      if (isEmbedded) {
+        // In iframe: get OAuth URL without redirecting, then open in new tab
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
+            skipBrowserRedirect: true,
+          },
+        });
+
+        if (error) return { error: new Error(error.message) };
+        if (data?.url) {
+          console.log("[Auth] Opening Google OAuth in new tab");
+          window.open(data.url, "_blank");
+        }
+        return { error: null };
+      } else {
+        // Not in iframe: normal redirect flow
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
+          },
+        });
+        return { error: error ? new Error(error.message) : null };
+      }
+    } catch (err) {
+      console.error("[Auth] Google sign-in error:", err);
+      return { error: err instanceof Error ? err : new Error("Google sign-in failed") };
+    }
   };
 
   const signOut = async () => {

@@ -34,7 +34,16 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Download, Pencil, RefreshCw, Loader2 } from "lucide-react";
+import { Download, Pencil, RefreshCw, Loader2, User, LogOut, HelpCircle } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -54,6 +63,17 @@ const Index = () => {
   const isMobile = useIsMobile();
   const { t } = useLocale();
   const { creator } = useCreator();
+  const { user, signOut } = useAuth();
+
+  // Sign out handler
+  const handleSignOut = async () => {
+    await signOut();
+    // Clean up any URL fragments
+    if (window.location.hash || window.location.search) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+    navigate("/auth", { replace: true });
+  };
   const { transitionTo: transitionVideoState } = useVideoState();
   const { step: ftuxStep, isComplete: ftuxComplete, advanceStep, completeFTUX } = useFTUX();
   
@@ -1223,6 +1243,30 @@ const Index = () => {
                 </>
               )}
             </button>
+
+            {/* Account Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-8 h-8 rounded-full bg-[#F3F4F6] flex items-center justify-center hover:bg-[#E5E7EB] transition-colors">
+                  <User className="w-4 h-4 text-[#6B7280]" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-white z-50">
+                <DropdownMenuLabel className="font-normal">
+                  <p className="text-sm font-medium truncate">{user?.email ?? "Account"}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate("/help")}>
+                  <HelpCircle className="w-4 h-4 mr-2" />
+                  Help & Feedback
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-red-600 focus:text-red-600">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
