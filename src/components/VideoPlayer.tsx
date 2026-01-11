@@ -1045,8 +1045,8 @@ const VideoPlayer = ({
             <CreationModeHint isVisible={isTimeNavigationMode} />
           )}
 
-          {/* Draggable Control Bar - mobile only, compact pill */}
-          {videoSrc && isVideoReady && !isPreviewMode && isMobile && onPlayPause && (
+          {/* Draggable Control Bar - mobile only, compact pill (visible in preview for playback control) */}
+          {videoSrc && isVideoReady && isMobile && onPlayPause && (
             <DraggableControlBar
               isPlaying={isPlaying}
               currentTime={currentTime}
