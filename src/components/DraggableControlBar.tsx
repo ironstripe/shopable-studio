@@ -211,25 +211,25 @@ const DraggableControlBar = ({
         )}
       </div>
       
-      {/* Progress/Scrub Bar */}
+      {/* Progress/Scrub Bar - enlarged for finger touch */}
       <div
         ref={progressRef}
-        className="relative w-20 h-5 flex items-center cursor-pointer"
+        className="relative w-28 h-10 flex items-center cursor-pointer"
         onMouseDown={handleProgressMouseDown}
         onTouchStart={handleProgressTouchStart}
       >
         {/* Track background */}
-        <div className="absolute left-0 right-0 h-1 bg-white/30 rounded-full" />
+        <div className="absolute left-0 right-0 h-1.5 bg-white/30 rounded-full" />
         
         {/* Progress fill */}
         <div 
-          className="absolute left-0 h-1 bg-white rounded-full"
+          className="absolute left-0 h-1.5 bg-white rounded-full"
           style={{ width: `${progressPercent}%` }}
         />
         
-        {/* Thumb indicator */}
+        {/* Thumb indicator - larger for touch */}
         <div 
-          className="absolute w-2.5 h-2.5 bg-white rounded-full shadow-sm transform -translate-x-1/2"
+          className="absolute w-4 h-4 bg-white rounded-full shadow-md transform -translate-x-1/2 active:scale-125 transition-transform"
           style={{ left: `${progressPercent}%` }}
         />
       </div>
