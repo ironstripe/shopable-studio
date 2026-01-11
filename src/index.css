@@ -704,10 +704,10 @@ All colors MUST be HSL.
   z-index: 50 !important;
 }
 
-/* Dimmed state for non-active hotspots during editing */
+/* Dimmed state for non-active hotspots during editing - STILL CLICKABLE for switching selection */
 .hotspot-editing-dimmed {
-  opacity: 0.3 !important;
-  pointer-events: none !important;
+  opacity: 0.6 !important;
+  /* pointer-events: auto - hotspots remain clickable to switch selection */
   transition: opacity 150ms ease-out;
 }
 
