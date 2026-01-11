@@ -11,6 +11,7 @@ import HotspotNavigationPill from "./HotspotNavigationPill";
 import NextHotspotChip from "./NextHotspotChip";
 import HotspotSavedSnackbar from "./HotspotSavedSnackbar";
 import SceneStateBanner from "./SceneStateBanner";
+import InVideoPlayButton from "./InVideoPlayButton";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { formatPriceDisplay, type CurrencyCode } from "@/utils/price-utils";
@@ -54,9 +55,8 @@ interface VideoPlayerProps {
   onHotspotDragEnd?: (hotspotId: string) => void;
   isDeferringToolbar?: boolean;
   hotspotsLoading?: boolean;
-  isAddingHotspot?: boolean;
-  onExitAddMode?: () => void;
-  onToggleAddMode?: () => void;
+  isTimeNavigationMode?: boolean;
+  onPlayPause?: () => void;
   showToolbar?: boolean;
   onToolbarDone?: () => void;
   showSavedIndicator?: boolean;
@@ -107,9 +107,8 @@ const VideoPlayer = ({
   onHotspotDragEnd,
   isDeferringToolbar = false,
   hotspotsLoading = false,
-  isAddingHotspot = false,
-  onExitAddMode,
-  onToggleAddMode,
+  isTimeNavigationMode = false,
+  onPlayPause,
   showToolbar = true,
   onToolbarDone,
   showSavedIndicator = false,
@@ -378,9 +377,8 @@ const VideoPlayer = ({
   }, [hotspots, pendingDragPosition, draggingHotspot]);
 
   // Handle click on overlay
-  // BROWSE mode: clicking empty space does nothing (deselects if something was selected)
-  // CREATE mode: creates hotspot, then exits to EDIT mode
-  // EDIT mode: clicking empty space deselects and returns to BROWSE
+  // TIME-NAVIGATION mode (video playing): tapping creates hotspot
+  // HOTSPOT-FOCUS mode (video paused): clicking empty space deselects
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // Don't handle if click originated from an existing hotspot element
     if ((e.target as HTMLElement).closest('.hotspot-draggable')) {
@@ -388,18 +386,17 @@ const VideoPlayer = ({
       return;
     }
     
-    // BROWSE mode: clicking empty space does NOTHING
-    // EDIT mode: clicking empty space deselects → return to BROWSE
-    if (!isAddingHotspot) {
-      console.log("[VideoPlayer] Not in CREATE mode, deselecting", { isAddingHotspot, selectedHotspotId });
+    // HOTSPOT-FOCUS mode: clicking empty space deselects
+    if (!isTimeNavigationMode) {
+      console.log("[VideoPlayer] Not in TIME-NAVIGATION mode, deselecting", { isTimeNavigationMode, selectedHotspotId });
       if (selectedHotspotId) {
         onSelectHotspot(null);
       }
       return;
     }
     
-    // CREATE mode: create ONE hotspot
-    console.log("[VideoPlayer] CREATE mode - placing hotspot", { 
+    // TIME-NAVIGATION mode: create hotspot
+    console.log("[VideoPlayer] TIME-NAVIGATION mode - placing hotspot", { 
       currentTime: videoRef.current?.currentTime,
       clientX: e.clientX,
       clientY: e.clientY 
@@ -446,15 +443,12 @@ const VideoPlayer = ({
       setTimeout(() => setSafeZoneTooltip(prev => ({ ...prev, show: false })), 2500);
     }
 
-    // Create hotspot (parent will handle mode transition CREATE → EDIT)
+    // Create hotspot (parent will handle pause and mode transition)
     onAddHotspot(safeX, safeY, actualTime);
-    videoRef.current.pause();
-    
-    // Exit CREATE mode is handled by parent after hotspot creation
   };
 
   // iOS touch event handler for hotspot placement
-  // Same three-mode logic as click handler
+  // Same two-mode logic as click handler
   const handleOverlayTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     // Don't handle if touch originated from an existing hotspot element
     if ((e.target as HTMLElement).closest('.hotspot-draggable')) {
@@ -467,22 +461,21 @@ const VideoPlayer = ({
     const touch = e.touches[0];
     if (!touch) return;
 
-    // BROWSE mode: do nothing
-    // EDIT mode: deselect → return to BROWSE
-    if (!isAddingHotspot) {
-      console.log("[VideoPlayer] Not in CREATE mode, deselecting (touch)", { isAddingHotspot, selectedHotspotId });
+    // HOTSPOT-FOCUS mode: deselect
+    if (!isTimeNavigationMode) {
+      console.log("[VideoPlayer] Not in TIME-NAVIGATION mode, deselecting (touch)", { isTimeNavigationMode, selectedHotspotId });
       if (selectedHotspotId) {
         onSelectHotspot(null);
       }
       return;
     }
 
-    // CREATE mode: create ONE hotspot
+    // TIME-NAVIGATION mode: create hotspot
     // Prevent default to stop click from firing and enable immediate interaction
     e.preventDefault();
     e.stopPropagation();
 
-    console.log('[VideoPlayer] CREATE mode - placing hotspot (touch)');
+    console.log('[VideoPlayer] TIME-NAVIGATION mode - placing hotspot (touch)');
     
     const actualTime = videoRef.current.currentTime;
     setCurrentTime(actualTime);
@@ -530,11 +523,8 @@ const VideoPlayer = ({
       hotspotCount: hotspots.length,
     });
 
-    // Create hotspot (parent will handle mode transition CREATE → EDIT)
+    // Create hotspot (parent will handle pause and mode transition)
     onAddHotspot(safeX, safeY, actualTime);
-    videoRef.current.pause();
-    
-    // Exit CREATE mode is handled by parent after hotspot creation
   };
 
   // Mouse drag handlers
@@ -909,30 +899,27 @@ const VideoPlayer = ({
               </button>
             </div>
             
-            {/* Add Hotspot Button - only in edit mode */}
-            {!isPreviewMode && (
+            {/* Play/Pause Button - desktop in-video control */}
+            {!isPreviewMode && onPlayPause && (
               <button
-                onClick={onToggleAddMode}
+                onClick={onPlayPause}
                 className={cn(
                   "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150",
-                  isAddingHotspot
+                  isTimeNavigationMode
                     ? "bg-[#3B82F6] text-white shadow-sm"
                     : "bg-white border border-[rgba(0,0,0,0.12)] text-[#374151] hover:bg-[rgba(59,130,246,0.05)] hover:border-[rgba(59,130,246,0.3)]"
                 )}
               >
-                <svg className={cn("w-4 h-4 transition-transform", isAddingHotspot && "rotate-45")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                {isAddingHotspot ? "Cancel" : "Add Hotspot"}
+                {isTimeNavigationMode ? "Pause to Edit" : "Play to Add Hotspots"}
               </button>
             )}
           </div>
 
           {!isPreviewMode && (
             <p className="text-[12px] text-[#6B7280] mt-3 text-center">
-              {isAddingHotspot 
-                ? "✚ Click in the video to place a hotspot, or click Cancel to exit."
-                : "✎ Select mode – click hotspots to edit. Click 'Add Hotspot' to create new ones."
+              {isTimeNavigationMode 
+                ? "▶ Tap video to place hotspots. Tap existing hotspot or pause to edit."
+                : "✎ Tap hotspots to edit. Press Play to add new hotspots."
               }
             </p>
           )}
@@ -1025,6 +1012,14 @@ const VideoPlayer = ({
             <SafeZoneOverlay />
           )}
 
+          {/* In-Video Play/Pause Button - mobile only, centered at bottom */}
+          {videoSrc && isVideoReady && !isPreviewMode && isMobile && onPlayPause && (
+            <InVideoPlayButton
+              isPlaying={isTimeNavigationMode}
+              onToggle={onPlayPause}
+            />
+          )}
+
           {/* Zero-hotspots placement hint overlay - FTUX Step 2: lighter, smaller, auto-dismiss */}
           {/* Only show for first hotspot (isFirstHotspot), then disappear forever */}
           {videoSrc && isVideoReady && !isPreviewMode && showPlacementHint && isFirstHotspot && (
@@ -1037,13 +1032,13 @@ const VideoPlayer = ({
             </div>
           )}
 
-          {/* Unified click overlay for hotspot creation - tap-first approach in Edit mode */}
-          {/* Only show placement cursor in CREATE mode */}
+          {/* Unified click overlay for hotspot creation - TIME-NAVIGATION mode */}
+          {/* Show placement cursor when in time-navigation mode */}
           {videoSrc && isVideoReady && !isPreviewMode && (
             <div
               className={cn(
                 "absolute inset-0 bottom-[50px] z-[5]",
-                isAddingHotspot ? "hotspot-placement-cursor" : "cursor-default"
+                isTimeNavigationMode ? "hotspot-placement-cursor" : "cursor-default"
               )}
               onClick={handleOverlayClick}
               onTouchStart={handleOverlayTouchStart}
@@ -1190,7 +1185,7 @@ const VideoPlayer = ({
                       isDragging={draggingHotspot?.id === hotspot.id}
                       isResizing={resizingHotspot?.id === hotspot.id}
                       isEditMode={!isPreviewMode}
-                      isAddingHotspot={isAddingHotspot}
+                      isAddingHotspot={isTimeNavigationMode}
                       onClick={(e) => handleHotspotClick(hotspot, e)}
                       onDragStart={(e) => handleDragStart(hotspot, e)}
                       onTouchDragStart={(e) => handleTouchDragStart(hotspot, e)}

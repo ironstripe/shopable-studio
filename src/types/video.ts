@@ -1,11 +1,10 @@
 // Editor mode
 export type EditorMode = "edit" | "preview";
 
-// Hotspot interaction mode (explicit state machine)
-// BROWSE: Default - click hotspot to select, click empty space does nothing
-// CREATE: Entered via "+ Add Hotspot" button - next click creates ONE hotspot, then → EDIT
-// EDIT: Selected hotspot is editable - click another to switch, click empty → BROWSE
-export type InteractionMode = "browse" | "create" | "edit";
+// Two-mode interaction system tied to playback state:
+// HOTSPOT-FOCUS (default, when paused): Select/edit hotspots, no creation, video static
+// TIME-NAVIGATION (when playing): Create hotspots by tapping, timeline active, hotspots not editable
+export type InteractionMode = "hotspot-focus" | "time-navigation";
 
 // Video state machine states
 export type VideoState = "draft" | "editing" | "ready_to_post" | "posted";

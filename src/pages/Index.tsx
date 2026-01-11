@@ -55,12 +55,13 @@ const Index = () => {
   const { transitionTo: transitionVideoState } = useVideoState();
   const { step: ftuxStep, isComplete: ftuxComplete, advanceStep, completeFTUX } = useFTUX();
   
-  // Three-mode interaction system: BROWSE (default), CREATE, EDIT
-  const [interactionMode, setInteractionMode] = useState<InteractionMode>("browse");
+  // Two-mode interaction system tied to playback:
+  // "hotspot-focus" (default, when paused): Select/edit hotspots, no creation
+  // "time-navigation" (when playing): Create hotspots by tapping
+  const [interactionMode, setInteractionMode] = useState<InteractionMode>("hotspot-focus");
   
-  // Derived states for backward compatibility
-  const isAddingHotspot = interactionMode === "create";
-  const isEditingHotspot = interactionMode === "edit";
+  // Derived state: in time-navigation mode, tapping video creates hotspots
+  const isTimeNavigationMode = interactionMode === "time-navigation";
   
   // Toolbar visibility (can be closed via Done while keeping hotspot selected)
   const [showToolbar, setShowToolbar] = useState(true);
@@ -385,9 +386,9 @@ const Index = () => {
   };
 
   const handleAddHotspot = (x: number, y: number, time: number) => {
-    // Only create hotspot if we're in CREATE mode
-    if (interactionMode !== "create") {
-      console.log("[Index] handleAddHotspot called but not in CREATE mode, ignoring");
+    // Only create hotspot if we're in TIME-NAVIGATION mode (video is playing/was playing)
+    if (interactionMode !== "time-navigation") {
+      console.log("[Index] handleAddHotspot called but not in TIME-NAVIGATION mode, ignoring");
       return;
     }
     
@@ -395,8 +396,11 @@ const Index = () => {
     // Just create the hotspot at the provided (already clamped) position
     const newHotspot = addHotspotCore(x, y, time);
     
-    // Exit CREATE mode → Enter EDIT mode for new hotspot
-    setInteractionMode("edit");
+    // Pause video and switch to HOTSPOT-FOCUS mode
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+    setInteractionMode("hotspot-focus");
     
     // Defer toolbar and panel opening - allow drag first
     setIsDeferringToolbar(true);
@@ -407,22 +411,24 @@ const Index = () => {
 
   const handleHotspotSelect = (hotspotId: string | null) => {
     if (hotspotId) {
-      // Selecting a hotspot → enter EDIT mode
-      setInteractionMode("edit");
+      // Selecting a hotspot → pause video, switch to HOTSPOT-FOCUS
+      if (videoRef.current && !videoRef.current.paused) {
+        videoRef.current.pause();
+      }
+      setInteractionMode("hotspot-focus");
       selectHotspot(hotspotId);
       setShowToolbar(true);
     } else {
-      // Deselecting → return to BROWSE mode
-      setInteractionMode("browse");
+      // Deselecting → stay in HOTSPOT-FOCUS (no auto-switch to navigation)
       selectHotspot(null);
     }
   };
 
-  // Handle toolbar "Done" button - hide toolbar, return to BROWSE mode, show snackbar
+  // Handle toolbar "Done" button - hide toolbar, stay in HOTSPOT-FOCUS, show snackbar
   const handleToolbarDone = () => {
     setShowToolbar(false);
     selectHotspot(null);
-    setInteractionMode("browse");
+    // Stay in hotspot-focus mode - user must explicitly press Play to navigate
     setShowSavedSnackbar(true);
   };
 
@@ -719,39 +725,49 @@ const Index = () => {
 
   const handleToggleMode = () => {
     if (editorMode === "edit") {
-      // Switching to preview: close panels, clear selection, return to BROWSE mode
+      // Switching to preview: close panels, clear selection
       selectHotspot(null);
       setHotspotDrawerOpen(false);
       setVideoCTASheetOpen(false);
-      setInteractionMode("browse");
     }
     setEditorMode(editorMode === "edit" ? "preview" : "edit");
   };
 
-  // Exit CREATE mode → return to BROWSE
-  const handleExitCreateMode = () => {
-    setInteractionMode("browse");
-  };
-  
-  // Toggle CREATE mode
-  const handleToggleCreateMode = () => {
-    if (interactionMode === "create") {
-      setInteractionMode("browse");
-    } else {
-      setInteractionMode("create");
+  // Handle play/pause - ties interaction mode to playback state
+  const handlePlayPause = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        // Starting playback → Enter TIME-NAVIGATION mode
+        videoRef.current.play();
+        setInteractionMode("time-navigation");
+        // Deselect any hotspot, hide toolbar
+        selectHotspot(null);
+        setShowToolbar(false);
+      } else {
+        // Pausing → Return to HOTSPOT-FOCUS mode
+        videoRef.current.pause();
+        setInteractionMode("hotspot-focus");
+      }
     }
   };
 
-  // ESC key handler to exit CREATE mode and close panels
+  const handleSeek = (time: number) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = time;
+    }
+  };
+
+  // ESC key handler to pause video and close panels
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        // Exit CREATE mode → BROWSE
-        if (interactionMode === "create") {
-          setInteractionMode("browse");
+        // Pause video if playing
+        if (videoRef.current && !videoRef.current.paused) {
+          videoRef.current.pause();
+          setInteractionMode("hotspot-focus");
           return;
         }
-        // Close panels but stay in current mode
+        // Close panels
         if (selectProductSheetOpen) setSelectProductSheetOpen(false);
         if (layoutBehaviorSheetOpen) setLayoutBehaviorSheetOpen(false);
         if (newProductSheetOpen) setNewProductSheetOpen(false);
@@ -761,7 +777,7 @@ const Index = () => {
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [interactionMode, selectProductSheetOpen, layoutBehaviorSheetOpen, newProductSheetOpen, videoCTASheetOpen]);
+  }, [selectProductSheetOpen, layoutBehaviorSheetOpen, newProductSheetOpen, videoCTASheetOpen]);
 
   const handleReplaceVideo = () => {
     // Clear all video-related state
@@ -807,21 +823,7 @@ const Index = () => {
     handleExportVideo();
   };
 
-  const handlePlayPause = () => {
-    if (videoRef.current) {
-      if (videoRef.current.paused) {
-        videoRef.current.play();
-      } else {
-        videoRef.current.pause();
-      }
-    }
-  };
-
-  const handleSeek = (time: number) => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = time;
-    }
-  };
+  // Note: handlePlayPause and handleSeek are defined above (lines 737-760)
 
   // FTUX computed states (WelcomeOverlay removed - entry screen IS the FTUX)
   // Show placement hint when ready for next hotspot creation
@@ -940,9 +942,8 @@ const Index = () => {
               onHotspotDragEnd={handleHotspotDragEnd}
               isDeferringToolbar={isDeferringToolbar}
               hotspotsLoading={hotspotsLoading}
-              isAddingHotspot={isAddingHotspot}
-              onExitAddMode={handleExitCreateMode}
-              onToggleAddMode={handleToggleCreateMode}
+              isTimeNavigationMode={isTimeNavigationMode}
+              onPlayPause={handlePlayPause}
               showToolbar={showToolbar}
               onToolbarDone={handleToolbarDone}
               showSavedIndicator={showSavedIndicator}
@@ -968,21 +969,12 @@ const Index = () => {
         {/* Export Section - REMOVED on mobile per UX spec: "Bottom bar is the ONLY control surface" */}
         {/* VideoExportSection disabled to prevent extra document height causing vertical scroll */}
 
-        {/* Mobile bottom controls */}
+        {/* Mobile bottom controls - simplified: only Hotspots + CTA buttons */}
         {videoSrc && (
           <MobileBottomControls
-            isPlaying={isPlaying}
-            currentTime={currentTime}
-            duration={duration}
-            editorMode={editorMode}
-            onPlayPause={handlePlayPause}
-            onSeek={handleSeek}
-            onToggleMode={handleToggleMode}
             onOpenHotspotDrawer={() => setHotspotDrawerOpen(true)}
             onOpenCTASettings={() => setVideoCTASheetOpen(true)}
             hotspotCount={hotspots.length}
-            isAddingHotspot={isAddingHotspot}
-            onToggleAddMode={handleToggleCreateMode}
           />
         )}
 
@@ -1190,13 +1182,12 @@ const Index = () => {
               onUpdateVideoCTA={setVideoCTA}
               showSafeZones={editorMode === "edit"}
               isMobile={false}
-              showPlacementHint={!!showPlacementHint && isAddingHotspot}
+              showPlacementHint={!!showPlacementHint && isTimeNavigationMode}
               onHotspotDragEnd={handleHotspotDragEnd}
               isDeferringToolbar={isDeferringToolbar}
               hotspotsLoading={hotspotsLoading}
-              isAddingHotspot={isAddingHotspot}
-              onExitAddMode={handleExitCreateMode}
-              onToggleAddMode={handleToggleCreateMode}
+              isTimeNavigationMode={isTimeNavigationMode}
+              onPlayPause={handlePlayPause}
               showToolbar={showToolbar}
               onToolbarDone={handleToolbarDone}
               showSavedIndicator={showSavedIndicator}
