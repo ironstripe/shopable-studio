@@ -8,7 +8,11 @@ interface DraggableControlBarProps {
   duration: number;
   onPlayPause: () => void;
   onSeek: (time: number) => void;
+  onSeekEnd?: (time: number) => void; // Called when scrubbing ends for final seek
 }
+
+// Throttle interval for video seeking during scrub (ms)
+const SEEK_THROTTLE_MS = 60;
 
 /**
  * Compact, draggable control bar for video playback.
@@ -21,11 +25,16 @@ const DraggableControlBar = ({
   duration,
   onPlayPause,
   onSeek,
+  onSeekEnd,
 }: DraggableControlBarProps) => {
   const [offset, setOffset] = useState({ x: 16, y: -16 }); // Default: bottom-left (16px from edges)
+  const [isScrubbing, setIsScrubbing] = useState(false); // Track scrubbing for visual feedback
+  const [scrubTime, setScrubTime] = useState<number | null>(null); // Optimistic UI time during scrub
   const isDraggingRef = useRef(false);
   const hasDraggedRef = useRef(false); // Track if any actual dragging occurred
   const isScrubbingRef = useRef(false); // Track progress bar scrubbing
+  const lastSeekTimeRef = useRef(0); // Timestamp of last actual video seek
+  const pendingSeekTimeRef = useRef<number | null>(null); // Pending time for final seek
   const startMouseRef = useRef({ x: 0, y: 0 });
   const startOffsetRef = useRef({ x: 0, y: 0 });
   const barRef = useRef<HTMLDivElement>(null);
@@ -39,10 +48,11 @@ const DraggableControlBar = ({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Progress percentage
-  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
+  // Use scrubTime during scrubbing for optimistic UI, otherwise use actual currentTime
+  const displayTime = scrubTime !== null ? scrubTime : currentTime;
+  const progressPercent = duration > 0 ? (displayTime / duration) * 100 : 0;
 
-  // Handle progress bar interaction (seek)
+  // Handle progress bar interaction (seek) - with throttling
   const handleProgressInteraction = useCallback((clientX: number) => {
     if (!progressRef.current || duration <= 0) return;
     
@@ -51,19 +61,48 @@ const DraggableControlBar = ({
     const percentage = Math.max(0, Math.min(1, x / rect.width));
     const newTime = percentage * duration;
     
-    onSeek(newTime);
+    // Always update optimistic UI immediately (smooth slider)
+    setScrubTime(newTime);
+    pendingSeekTimeRef.current = newTime;
+    
+    // Throttle actual video seeking to prevent flickering
+    const now = Date.now();
+    if (now - lastSeekTimeRef.current >= SEEK_THROTTLE_MS) {
+      onSeek(newTime);
+      lastSeekTimeRef.current = now;
+    }
   }, [duration, onSeek]);
+
+  // Handle scrub end - perform final seek
+  const handleScrubEnd = useCallback(() => {
+    if (pendingSeekTimeRef.current !== null) {
+      // Final seek to exact position
+      if (onSeekEnd) {
+        onSeekEnd(pendingSeekTimeRef.current);
+      } else {
+        onSeek(pendingSeekTimeRef.current);
+      }
+    }
+    pendingSeekTimeRef.current = null;
+    setScrubTime(null);
+    setIsScrubbing(false);
+    isScrubbingRef.current = false;
+  }, [onSeek, onSeekEnd]);
 
   const handleProgressMouseDown = useCallback((e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent bar drag
     e.preventDefault();
     isScrubbingRef.current = true;
+    setIsScrubbing(true);
+    lastSeekTimeRef.current = 0; // Reset throttle to allow immediate first seek
     handleProgressInteraction(e.clientX);
   }, [handleProgressInteraction]);
 
   const handleProgressTouchStart = useCallback((e: React.TouchEvent) => {
     e.stopPropagation(); // Prevent bar drag
     isScrubbingRef.current = true;
+    setIsScrubbing(true);
+    lastSeekTimeRef.current = 0; // Reset throttle to allow immediate first seek
     if (e.touches[0]) {
       handleProgressInteraction(e.touches[0].clientX);
     }
@@ -149,7 +188,7 @@ const DraggableControlBar = ({
     const handleEnd = () => {
       // Handle progress bar scrub end
       if (isScrubbingRef.current) {
-        isScrubbingRef.current = false;
+        handleScrubEnd();
         return;
       }
       
@@ -178,7 +217,7 @@ const DraggableControlBar = ({
       document.removeEventListener("touchend", handleEnd);
       document.removeEventListener("touchcancel", handleEnd);
     };
-  }, [onPlayPause, handleProgressInteraction]);
+  }, [onPlayPause, handleProgressInteraction, handleScrubEnd]);
 
   return (
     <div
@@ -227,16 +266,19 @@ const DraggableControlBar = ({
           style={{ width: `${progressPercent}%` }}
         />
         
-        {/* Thumb indicator - larger for touch */}
+        {/* Thumb indicator - larger for touch, grows when scrubbing */}
         <div 
-          className="absolute w-4 h-4 bg-white rounded-full shadow-md transform -translate-x-1/2 active:scale-125 transition-transform"
+          className={cn(
+            "absolute bg-white rounded-full shadow-md transform -translate-x-1/2 transition-transform",
+            isScrubbing ? "w-5 h-5 scale-110" : "w-4 h-4"
+          )}
           style={{ left: `${progressPercent}%` }}
         />
       </div>
       
       {/* Current time / duration */}
       <span className="text-white text-xs font-medium tabular-nums min-w-[70px]">
-        {formatTime(currentTime)} / {formatTime(duration)}
+        {formatTime(displayTime)} / {formatTime(duration)}
       </span>
     </div>
   );
