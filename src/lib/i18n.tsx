@@ -58,6 +58,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "hotspots.deleteFailed": "Failed to delete hotspot. Please try again.",
     "hotspots.createFailed": "Failed to save hotspot. Changes are local only.",
     "hotspots.unknownProduct": "Unknown Product",
+    "hotspots.alreadyExists": "A hotspot already exists at this time. Scrub to a different moment.",
 
     // Layout
     "layout.title": "Layout & Behavior",
@@ -350,6 +351,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "hotspots.deleteFailed": "Hotspot konnte nicht gelöscht werden. Bitte erneut versuchen.",
     "hotspots.createFailed": "Hotspot konnte nicht gespeichert werden. Änderungen sind nur lokal.",
     "hotspots.unknownProduct": "Unbekanntes Produkt",
+    "hotspots.alreadyExists": "Es existiert bereits ein Hotspot zu diesem Zeitpunkt. Wischen Sie zu einem anderen Moment.",
 
     // Layout
     "layout.title": "Layout & Verhalten",
