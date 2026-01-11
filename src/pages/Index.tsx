@@ -148,11 +148,20 @@ const Index = () => {
       && !newProductSheetOpen;
   }, [canFinalize, editorMode, selectProductSheetOpen, layoutBehaviorSheetOpen, newProductSheetOpen]);
   
-  // Get first product name for slug generation
-  const firstProductName = useMemo(() => {
+  // Get first product info for caption generation (from hotspot data - single source of truth)
+  const firstProductInfo = useMemo(() => {
     const completeHotspot = hotspots.find(h => h.productTitle);
-    return completeHotspot?.productTitle || undefined;
+    if (!completeHotspot) return null;
+    return {
+      name: completeHotspot.productTitle || undefined,
+      description: completeHotspot.productDescription || undefined,
+      price: completeHotspot.productPrice || undefined,
+      currency: completeHotspot.productCurrency || undefined,
+      category: completeHotspot.productCategory || undefined,
+    };
   }, [hotspots]);
+  
+  const firstProductName = firstProductInfo?.name;
   
   const [videoCTA, setVideoCTA] = useState<VideoCTA>({
     label: "Shop Now",
@@ -627,6 +636,7 @@ const Index = () => {
       productImageUrl: product?.thumbnail ?? null,
       productPrice: product?.price ?? null,
       productCurrency: (product as Product & { currency?: string })?.currency ?? "USD",
+      productCategory: product?.category ?? undefined,
       clickBehavior,
     });
 
@@ -663,6 +673,7 @@ const Index = () => {
           productImageUrl: productData.thumbnail ?? null,
           productPrice: productData.price ?? null,
           productCurrency: productData.currency ?? "USD",
+          productCategory: productData.category ?? undefined,
           productPromoCode: productData.promoCode ?? null,
           ctaLabel: productData.ctaLabel ?? "Shop Now",
           clickBehavior: finalClickBehavior,
@@ -693,6 +704,7 @@ const Index = () => {
           productImageUrl: updatedProduct.thumbnail ?? null,
           productPrice: updatedProduct.price ?? null,
           productCurrency: updatedProduct.currency ?? h.productCurrency ?? "USD",
+          productCategory: updatedProduct.category ?? h.productCategory ?? undefined,
           productPromoCode: updatedProduct.promoCode ?? null,
         });
       }
@@ -898,7 +910,11 @@ const Index = () => {
             onOpenChange={setSlugSheetOpen}
             videoId={currentVideoId}
             videoTitle={videoTitle}
-            productName={firstProductName}
+            productName={firstProductInfo?.name}
+            productDescription={firstProductInfo?.description}
+            productCategory={firstProductInfo?.category as any}
+            productPrice={firstProductInfo?.price}
+            productCurrency={firstProductInfo?.currency}
           />
         )}
 
