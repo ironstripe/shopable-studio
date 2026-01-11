@@ -12,6 +12,7 @@ import NextHotspotChip from "./NextHotspotChip";
 import HotspotSavedSnackbar from "./HotspotSavedSnackbar";
 import SceneStateBanner from "./SceneStateBanner";
 import InVideoPlayButton from "./InVideoPlayButton";
+import StatusPill from "./StatusPill";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { formatPriceDisplay, type CurrencyCode } from "@/utils/price-utils";
@@ -76,6 +77,8 @@ interface VideoPlayerProps {
   onSnackbarDismiss?: () => void;
   // Scene state overlay props
   sceneState?: SceneState;
+  // Status pill props
+  completeHotspotCount?: number;
 }
 
 const VideoPlayer = ({
@@ -127,6 +130,7 @@ const VideoPlayer = ({
   onJumpToNext,
   onSnackbarDismiss,
   sceneState,
+  completeHotspotCount = 0,
 }: VideoPlayerProps) => {
   const { t } = useLocale();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -159,6 +163,14 @@ const VideoPlayer = ({
     y: number;
     hotspotCount: number;
   } | null>(null);
+  
+  // Swipe-to-scrub state for mobile
+  const swipeState = useRef<{ isSwiping: boolean; startX: number; startTime: number }>({
+    isSwiping: false,
+    startX: 0,
+    startTime: 0,
+  });
+  const SWIPE_SENSITIVITY = 100; // pixels per second of video time
   
   // Queue for hotspots that need re-clamping after style/product change
   const [reclampQueue, setReclampQueue] = useState<string[]>([]);
@@ -1032,7 +1044,7 @@ const VideoPlayer = ({
             </div>
           )}
 
-          {/* Unified click overlay for hotspot creation - TIME-NAVIGATION mode */}
+          {/* Unified click/touch overlay for hotspot creation and swipe scrubbing */}
           {/* Show placement cursor when in time-navigation mode */}
           {videoSrc && isVideoReady && !isPreviewMode && (
             <div
@@ -1041,10 +1053,48 @@ const VideoPlayer = ({
                 isTimeNavigationMode ? "hotspot-placement-cursor" : "cursor-default"
               )}
               onClick={handleOverlayClick}
-              onTouchStart={handleOverlayTouchStart}
-              onTouchEnd={(e) => e.preventDefault()} // Prevent click from double-firing
+              onTouchStart={(e) => {
+                // Check for horizontal swipe gesture vs tap
+                if (e.touches.length === 1 && videoRef.current) {
+                  const touch = e.touches[0];
+                  swipeState.current = {
+                    isSwiping: false, // Will be true after movement threshold
+                    startX: touch.clientX,
+                    startTime: videoRef.current.currentTime,
+                  };
+                }
+                // Also handle hotspot placement touch
+                handleOverlayTouchStart(e);
+              }}
+              onTouchMove={(e) => {
+                if (!videoRef.current || e.touches.length !== 1) return;
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - swipeState.current.startX;
+                
+                // Only start scrubbing after 15px threshold (to distinguish from tap)
+                if (Math.abs(deltaX) > 15) {
+                  swipeState.current.isSwiping = true;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
+                  const deltaTime = deltaX / SWIPE_SENSITIVITY;
+                  const video = videoRef.current;
+                  const newTime = Math.max(0, Math.min(video.duration, swipeState.current.startTime + deltaTime));
+                  video.currentTime = newTime;
+                }
+              }}
+              onTouchEnd={(e) => {
+                if (swipeState.current.isSwiping) {
+                  // Was a swipe, not a tap - prevent default
+                  e.preventDefault();
+                  swipeState.current.isSwiping = false;
+                } else {
+                  // Normal tap - prevent click from double-firing
+                  e.preventDefault();
+                }
+              }}
               style={{
-                touchAction: 'none', // Disable all browser touch actions for immediate response
+                touchAction: 'pan-y', // Allow vertical scroll but capture horizontal
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
                 WebkitTapHighlightColor: 'transparent',
@@ -1078,14 +1128,12 @@ const VideoPlayer = ({
             </div>
           )}
 
-          {/* Scene state overlay - top right corner */}
-          {/* Includes "All done ✓" completion badge when all hotspots are complete */}
-          {videoSrc && isVideoReady && !isPreviewMode && sceneState && onJumpToNext && (
-            <div className="absolute right-3 top-3 z-20 pointer-events-auto">
-              <SceneStateBanner
-                sceneState={sceneState}
-                onJumpToNext={onJumpToNext}
-                isEditMode={!isPreviewMode}
+          {/* Status pill - top right corner, non-clickable */}
+          {videoSrc && isVideoReady && !isPreviewMode && totalHotspotCount > 0 && (
+            <div className="absolute right-3 top-3 z-20">
+              <StatusPill
+                completeCount={completeHotspotCount}
+                totalCount={totalHotspotCount}
               />
             </div>
           )}

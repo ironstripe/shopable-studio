@@ -6,9 +6,11 @@ import VideoGallery from "@/components/VideoGallery";
 import VideoUploadZone from "@/components/VideoUploadZone";
 import HotspotSidebar from "@/components/HotspotSidebar";
 import MobileHeader from "@/components/MobileHeader";
-import MobileBottomControls from "@/components/MobileBottomControls";
+import MobileModeSwitcher from "@/components/MobileModeSwitcher";
 import HotspotDrawer from "@/components/HotspotDrawer";
 import SlugEditSheet from "@/components/SlugEditSheet";
+import PostModeSheet from "@/components/PostModeSheet";
+import StatusPill from "@/components/StatusPill";
 
 import SelectProductSheet from "@/components/SelectProductSheet";
 import NewProductSheet from "@/components/NewProductSheet";
@@ -723,15 +725,43 @@ const Index = () => {
     return id;
   };
 
-  const handleToggleMode = () => {
-    if (editorMode === "edit") {
-      // Switching to preview: close panels, clear selection
+  // Post mode sheet state
+  const [postModeSheetOpen, setPostModeSheetOpen] = useState(false);
+
+  // Handle mode switching with proper cleanup
+  const handleModeChange = (newMode: EditorMode) => {
+    // Close all panels when switching modes
+    if (newMode !== "edit") {
       selectHotspot(null);
       setHotspotDrawerOpen(false);
       setVideoCTASheetOpen(false);
+      setSelectProductSheetOpen(false);
+      setLayoutBehaviorSheetOpen(false);
+      setNewProductSheetOpen(false);
+      // Pause video when leaving edit mode
+      if (videoRef.current && !videoRef.current.paused) {
+        videoRef.current.pause();
+        setInteractionMode("hotspot-focus");
+      }
     }
-    setEditorMode(editorMode === "edit" ? "preview" : "edit");
+    
+    // Open post sheet when entering post mode
+    if (newMode === "post") {
+      setPostModeSheetOpen(true);
+    }
+    
+    setEditorMode(newMode);
   };
+
+  // Legacy toggle for desktop
+  const handleToggleMode = () => {
+    handleModeChange(editorMode === "edit" ? "preview" : "edit");
+  };
+
+  // Computed: complete hotspot count for status pill
+  const completeHotspotCount = useMemo(() => {
+    return hotspots.filter(h => isHotspotComplete(h)).length;
+  }, [hotspots]);
 
   // Handle play/pause - ties interaction mode to playback state
   const handlePlayPause = () => {
@@ -962,6 +992,7 @@ const Index = () => {
               onJumpToNext={jumpToNextHotspot}
               onSnackbarDismiss={() => setShowSavedSnackbar(false)}
               sceneState={sceneState}
+              completeHotspotCount={completeHotspotCount}
             />
           )}
         </main>
@@ -969,14 +1000,32 @@ const Index = () => {
         {/* Export Section - REMOVED on mobile per UX spec: "Bottom bar is the ONLY control surface" */}
         {/* VideoExportSection disabled to prevent extra document height causing vertical scroll */}
 
-        {/* Mobile bottom controls - simplified: only Hotspots + CTA buttons */}
+        {/* Mobile Mode Switcher - [Hotspots] Preview Post */}
         {videoSrc && (
-          <MobileBottomControls
-            onOpenHotspotDrawer={() => setHotspotDrawerOpen(true)}
-            onOpenCTASettings={() => setVideoCTASheetOpen(true)}
+          <MobileModeSwitcher
+            activeMode={editorMode}
+            onModeChange={handleModeChange}
             hotspotCount={hotspots.length}
           />
         )}
+
+        {/* Post Mode Sheet */}
+        <PostModeSheet
+          open={postModeSheetOpen}
+          onOpenChange={(open) => {
+            setPostModeSheetOpen(open);
+            // Return to edit mode when sheet closes
+            if (!open && editorMode === "post") {
+              setEditorMode("edit");
+            }
+          }}
+          videoSrc={videoSrc}
+          videoTitle={videoTitle}
+          videoCTA={videoCTA}
+          caption=""
+          hotspotCount={hotspots.length}
+          onDownloadVideo={handleExportVideo}
+        />
 
 
         {/* Hotspot Drawer */}
@@ -1206,6 +1255,7 @@ const Index = () => {
               onJumpToNext={jumpToNextHotspot}
               onSnackbarDismiss={() => setShowSavedSnackbar(false)}
               sceneState={sceneState}
+              completeHotspotCount={completeHotspotCount}
             />
           )}
         </div>
