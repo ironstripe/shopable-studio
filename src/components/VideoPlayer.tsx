@@ -403,9 +403,7 @@ const VideoPlayer = ({
     }
   }, [hotspots, pendingDragPosition, draggingHotspot]);
 
-  // Handle click on overlay
-  // TIME-NAVIGATION mode (video playing): tapping creates hotspot
-  // HOTSPOT-FOCUS mode (video paused): clicking empty space deselects
+  // Handle click on overlay - creates hotspot in Edit mode
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // Don't handle if click originated from an existing hotspot element
     if ((e.target as HTMLElement).closest('.hotspot-draggable')) {
@@ -413,17 +411,13 @@ const VideoPlayer = ({
       return;
     }
     
-    // HOTSPOT-FOCUS mode: clicking empty space deselects
-    if (!isTimeNavigationMode) {
-      console.log("[VideoPlayer] Not in TIME-NAVIGATION mode, deselecting", { isTimeNavigationMode, selectedHotspotId });
-      if (selectedHotspotId) {
-        onSelectHotspot(null);
-      }
-      return;
+    // In edit mode, tapping empty space always creates a hotspot
+    // Deselect any selected hotspot first
+    if (selectedHotspotId) {
+      onSelectHotspot(null);
     }
     
-    // TIME-NAVIGATION mode: create hotspot
-    console.log("[VideoPlayer] TIME-NAVIGATION mode - placing hotspot", { 
+    console.log("[VideoPlayer] Edit mode - placing hotspot", { 
       currentTime: videoRef.current?.currentTime,
       clientX: e.clientX,
       clientY: e.clientY 
@@ -474,8 +468,7 @@ const VideoPlayer = ({
     onAddHotspot(safeX, safeY, actualTime);
   };
 
-  // iOS touch event handler for hotspot placement
-  // Same two-mode logic as click handler
+  // iOS touch event handler for hotspot placement - creates hotspot in Edit mode
   const handleOverlayTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     // Don't handle if touch originated from an existing hotspot element
     if ((e.target as HTMLElement).closest('.hotspot-draggable')) {
@@ -488,21 +481,17 @@ const VideoPlayer = ({
     const touch = e.touches[0];
     if (!touch) return;
 
-    // HOTSPOT-FOCUS mode: deselect
-    if (!isTimeNavigationMode) {
-      console.log("[VideoPlayer] Not in TIME-NAVIGATION mode, deselecting (touch)", { isTimeNavigationMode, selectedHotspotId });
-      if (selectedHotspotId) {
-        onSelectHotspot(null);
-      }
-      return;
-    }
-
-    // TIME-NAVIGATION mode: create hotspot
+    // In edit mode, tapping empty space always creates a hotspot
     // Prevent default to stop click from firing and enable immediate interaction
     e.preventDefault();
     e.stopPropagation();
+    
+    // Deselect any selected hotspot first
+    if (selectedHotspotId) {
+      onSelectHotspot(null);
+    }
 
-    console.log('[VideoPlayer] TIME-NAVIGATION mode - placing hotspot (touch)');
+    console.log('[VideoPlayer] Edit mode - placing hotspot (touch)');
     
     const actualTime = videoRef.current.currentTime;
     setCurrentTime(actualTime);
