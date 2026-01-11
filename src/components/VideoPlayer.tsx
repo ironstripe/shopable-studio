@@ -944,8 +944,8 @@ const VideoPlayer = ({
         <div
           ref={containerRef}
           className={cn(
-            "relative w-full min-h-[300px] overflow-visible transition-all duration-200",
-            isMobile && "aspect-[9/16] max-h-[80vh]",
+            "relative w-full min-h-[300px] overflow-hidden transition-all duration-200",
+            isMobile && "aspect-[9/16]",
             // Light neutral background while loading, then subtle container when ready
             videoSrc && !isVideoReady && "bg-neutral-100 rounded-[14px] flex items-center justify-center",
             videoSrc && isVideoReady && "bg-neutral-100 rounded-[14px] p-1",
@@ -954,6 +954,9 @@ const VideoPlayer = ({
           )}
           style={{
             minHeight: videoSrc ? '200px' : undefined,
+            // Prevent nested scrolling - video canvas is a fixed viewport
+            contain: 'layout',
+            maxHeight: isMobile ? 'calc(100vh - 56px - 140px - 24px)' : undefined,
           }}
         >
           {/* Loading indicator while video is processing */}
@@ -1028,9 +1031,13 @@ const VideoPlayer = ({
           )}
 
           {/* Unified click overlay for hotspot creation - tap-first approach in Edit mode */}
+          {/* Only show placement cursor in CREATE mode */}
           {videoSrc && isVideoReady && !isPreviewMode && (
             <div
-              className="absolute inset-0 bottom-[50px] hotspot-placement-cursor z-[5]"
+              className={cn(
+                "absolute inset-0 bottom-[50px] z-[5]",
+                isAddingHotspot ? "hotspot-placement-cursor" : "cursor-default"
+              )}
               onClick={handleOverlayClick}
               onTouchStart={handleOverlayTouchStart}
               onTouchEnd={(e) => e.preventDefault()} // Prevent click from double-firing
@@ -1102,7 +1109,7 @@ const VideoPlayer = ({
             />
           )}
 
-          {/* Hotspot saved snackbar - post-edit feedback */}
+          {/* Hotspot saved snackbar - post-edit feedback with progress context */}
           {videoSrc && !isPreviewMode && onJumpToNext && onSnackbarDismiss && (
             <HotspotSavedSnackbar
               visible={showSnackbar}
@@ -1111,6 +1118,8 @@ const VideoPlayer = ({
               allComplete={allComplete}
               onJump={onJumpToNext}
               onDismiss={onSnackbarDismiss}
+              currentHotspotIndex={currentHotspotIndex}
+              totalHotspotCount={totalHotspotCount}
             />
           )}
 

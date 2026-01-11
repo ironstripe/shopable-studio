@@ -135,6 +135,17 @@ const Index = () => {
     return hotspots.some(h => isHotspotComplete(h));
   }, [hotspots]);
   
+  // Computed: Show finalize button only when not actively editing
+  // Conditions: can finalize + not in CREATE mode + not in EDIT mode + no sheets open
+  const showFinalizeButton = useMemo(() => {
+    return canFinalize 
+      && interactionMode === "browse" 
+      && !selectProductSheetOpen 
+      && !layoutBehaviorSheetOpen 
+      && !newProductSheetOpen
+      && !selectedHotspotId;
+  }, [canFinalize, interactionMode, selectProductSheetOpen, layoutBehaviorSheetOpen, newProductSheetOpen, selectedHotspotId]);
+  
   // Get first product name for slug generation
   const firstProductName = useMemo(() => {
     const completeHotspot = hotspots.find(h => h.productTitle);
@@ -846,6 +857,7 @@ const Index = () => {
           isExporting={isExporting}
           renderStatus={currentVideoRenderStatus}
           canFinalize={canFinalize}
+          showFinalize={showFinalizeButton}
         />
 
         {/* Slug Edit Sheet */}

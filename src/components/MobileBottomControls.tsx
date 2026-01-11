@@ -155,12 +155,12 @@ const MobileBottomControls = ({
           <button
             onClick={onToggleAddMode}
             className={cn(
-              "w-10 h-10 flex items-center justify-center rounded-full transition-colors",
+              "w-10 h-10 flex items-center justify-center rounded-full transition-all",
               isAddingHotspot
-                ? "bg-primary text-primary-foreground"
+                ? "bg-primary text-primary-foreground ring-2 ring-primary/30 animate-pulse"
                 : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
             )}
-            title={isAddingHotspot ? "Cancel" : "Add Hotspot"}
+            title={isAddingHotspot ? "Tap video to place, or cancel" : "Add Hotspot"}
           >
             {isAddingHotspot ? (
               <X className="w-4 h-4" />
