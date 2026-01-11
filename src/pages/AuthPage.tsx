@@ -144,15 +144,15 @@ export default function AuthPage() {
     setLoading(true);
     setFormError(null);
     
-    // Clear any existing session to prevent conflicts with 2FA
-    await supabase.auth.signOut();
+    // Clear local session only (faster, avoids network issues)
+    await supabase.auth.signOut({ scope: "local" });
     
     const { error } = await signInWithGoogle();
     if (error) {
       setFormError(error.message);
       setLoading(false);
     }
-    // Note: OAuth redirects, so loading state will reset on return
+    // Note: OAuth may open new tab in embedded context, or redirect in normal context
   };
 
   return (
