@@ -4,6 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 type CallbackStatus = "processing" | "error" | "success";
 
 export default function OAuthCallbackPage() {
+  // Log immediately on component mount - before any hooks
+  console.log("[OAuthCallbackPage] Component MOUNTING, URL:", window.location.href);
+  console.log("[OAuthCallbackPage] Search params:", window.location.search);
+  console.log("[OAuthCallbackPage] Hash:", window.location.hash ? window.location.hash.substring(0, 50) + "..." : "(none)");
+  
   const [status, setStatus] = useState<CallbackStatus>("processing");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [debugInfo, setDebugInfo] = useState<string>("");
