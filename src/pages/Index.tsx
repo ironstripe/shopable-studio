@@ -1020,9 +1020,9 @@ const Index = () => {
             }
           }}
           videoSrc={videoSrc}
+          videoId={currentVideoId || ""}
           videoTitle={videoTitle}
           videoCTA={videoCTA}
-          caption=""
           hotspotCount={hotspots.length}
           onDownloadVideo={handleExportVideo}
         />

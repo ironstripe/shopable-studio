@@ -6,7 +6,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Download, Copy, Image, Check } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Download, Copy, Image, Check, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { VideoCTA as VideoCTAType } from "@/types/video";
@@ -15,6 +16,7 @@ interface PostModeSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   videoSrc: string | null;
+  videoId: string;
   videoTitle: string;
   videoCTA?: VideoCTAType;
   caption?: string;
@@ -23,39 +25,62 @@ interface PostModeSheetProps {
   onSaveToGallery?: () => void;
 }
 
+const DEFAULT_CAPTION = `Shop what you see 👀✨
+Tap the link to explore the products from this video.
+
+#shopable`;
+
 /**
  * Post mode bottom sheet.
  * Shows video preview summary and actions:
  * - Download video
  * - Save to gallery
  * - Copy caption
+ * - Copy shop link
  */
 const PostModeSheet = ({
   open,
   onOpenChange,
   videoSrc,
+  videoId,
   videoTitle,
   videoCTA,
-  caption = "",
+  caption: initialCaption,
   hotspotCount,
   onDownloadVideo,
   onSaveToGallery,
 }: PostModeSheetProps) => {
   const [copiedCaption, setCopiedCaption] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [localCaption, setLocalCaption] = useState(initialCaption || DEFAULT_CAPTION);
+
+  // Canonical shop link
+  const shopLink = `https://shopable.link/${videoId}`;
 
   const handleCopyCaption = async () => {
-    if (!caption) {
+    if (!localCaption.trim()) {
       toast.error("No caption to copy");
       return;
     }
     
     try {
-      await navigator.clipboard.writeText(caption);
+      await navigator.clipboard.writeText(localCaption);
       setCopiedCaption(true);
       toast.success("Caption copied!");
       setTimeout(() => setCopiedCaption(false), 2000);
     } catch {
       toast.error("Failed to copy caption");
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shopLink);
+      setCopiedLink(true);
+      toast.success("Link copied!");
+      setTimeout(() => setCopiedLink(false), 2000);
+    } catch {
+      toast.error("Failed to copy link");
     }
   };
 
@@ -77,10 +102,10 @@ const PostModeSheet = ({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-auto max-h-[85vh] rounded-t-[20px] px-6 py-5">
+      <SheetContent side="bottom" className="h-auto max-h-[90vh] rounded-t-[20px] px-6 py-5 overflow-y-auto">
         <SheetHeader className="pb-4">
           <SheetTitle className="text-lg font-semibold text-center">
-            Ready to Post
+            🎉 Ready to Post
           </SheetTitle>
         </SheetHeader>
 
@@ -112,18 +137,37 @@ const PostModeSheet = ({
             </div>
           </div>
 
-          {/* Caption Section */}
-          {caption && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Caption</label>
-              <div className="bg-neutral-50 rounded-xl p-3 text-sm text-muted-foreground max-h-24 overflow-y-auto">
-                {caption}
-              </div>
+          {/* Caption Section - Editable */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Caption</label>
+            <Textarea
+              value={localCaption}
+              onChange={(e) => setLocalCaption(e.target.value)}
+              placeholder="Write your caption..."
+              className="min-h-[100px] bg-neutral-50 border-neutral-200 rounded-xl text-sm resize-none"
+            />
+            <p className="text-xs text-muted-foreground">
+              Edit the caption above, then copy to your post
+            </p>
+          </div>
+
+          {/* Shop Link Section */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Shop Link</label>
+            <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-3 flex items-center gap-2">
+              <Link2 className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <span className="text-sm text-foreground font-mono truncate flex-1">
+                {shopLink}
+              </span>
             </div>
-          )}
+            <p className="text-xs text-muted-foreground">
+              Paste this link into your bio or post description
+            </p>
+          </div>
 
           {/* Action Buttons */}
-          <div className="space-y-3">
+          <div className="space-y-3 pt-2">
+            {/* Primary: Download */}
             <Button
               onClick={handleDownload}
               className="w-full h-12 rounded-xl font-medium"
@@ -133,6 +177,7 @@ const PostModeSheet = ({
               Download Video
             </Button>
 
+            {/* Secondary row: Save to Gallery */}
             <Button
               onClick={handleSaveToGallery}
               variant="outline"
@@ -142,12 +187,13 @@ const PostModeSheet = ({
               Save to Gallery
             </Button>
 
-            {caption && (
+            {/* Copy buttons row */}
+            <div className="flex gap-3">
               <Button
                 onClick={handleCopyCaption}
                 variant="outline"
                 className={cn(
-                  "w-full h-12 rounded-xl font-medium transition-colors",
+                  "flex-1 h-12 rounded-xl font-medium transition-colors",
                   copiedCaption && "bg-green-50 border-green-200 text-green-700"
                 )}
               >
@@ -163,7 +209,28 @@ const PostModeSheet = ({
                   </>
                 )}
               </Button>
-            )}
+
+              <Button
+                onClick={handleCopyLink}
+                variant="outline"
+                className={cn(
+                  "flex-1 h-12 rounded-xl font-medium transition-colors",
+                  copiedLink && "bg-green-50 border-green-200 text-green-700"
+                )}
+              >
+                {copiedLink ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Link2 className="w-4 h-4 mr-2" />
+                    Copy Link
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </SheetContent>
