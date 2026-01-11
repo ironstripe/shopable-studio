@@ -22,13 +22,22 @@ const queryClient = new QueryClient();
 
 /**
  * Global safety net: Consumes OAuth tokens from URL hash if present.
- * This handles edge cases where Google redirects to / instead of /auth/callback.
+ * NOTE: Primary hash consumption now happens in main.tsx BEFORE React mounts.
+ * This is a fallback for edge cases.
  */
 function AuthUrlSessionHandler() {
   useEffect(() => {
+    console.log("[AuthUrlSessionHandler] Component mounted, checking for hash tokens...");
+    console.log("[AuthUrlSessionHandler] Current URL:", window.location.href);
+    
     const consumeHashTokens = async () => {
       const hash = window.location.hash;
-      if (!hash) return;
+      if (!hash) {
+        console.log("[AuthUrlSessionHandler] No hash present");
+        return;
+      }
+
+      console.log("[AuthUrlSessionHandler] Hash found:", hash.substring(0, 50) + "...");
 
       const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
       const accessToken = hashParams.get("access_token");
@@ -43,25 +52,30 @@ function AuthUrlSessionHandler() {
 
       // If we have tokens in the hash, consume them
       if (accessToken && refreshToken) {
-        console.log("[AuthUrlSessionHandler] Found tokens in URL hash, setting session...");
+        console.log("[AuthUrlSessionHandler] Found tokens in hash, consuming (fallback path)...");
         
         try {
-          const { error } = await supabase.auth.setSession({
+          // Force sign out existing session first to prevent conflicts
+          await supabase.auth.signOut();
+          
+          const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
 
-          // Clean the URL
-          window.history.replaceState(null, "", window.location.pathname);
-
           if (error) {
             console.error("[AuthUrlSessionHandler] Failed to set session:", error);
           } else {
-            console.log("[AuthUrlSessionHandler] Session set successfully from hash tokens");
+            console.log("[AuthUrlSessionHandler] Session established, user:", data.user?.email);
+            window.history.replaceState(null, "", window.location.pathname);
+            // Force reload to ensure clean state
+            window.location.href = window.location.pathname;
           }
         } catch (err) {
           console.error("[AuthUrlSessionHandler] Error consuming hash tokens:", err);
         }
+      } else {
+        console.log("[AuthUrlSessionHandler] Hash present but no valid tokens");
       }
     };
 
