@@ -20,6 +20,8 @@ interface SlugEditSheetProps {
   productName?: string;
   productDescription?: string;
   productCategory?: ProductCategory;
+  productPrice?: string;
+  productCurrency?: string;
 }
 
 /**
@@ -45,6 +47,8 @@ export default function SlugEditSheet({
   productName,
   productDescription,
   productCategory,
+  productPrice,
+  productCurrency,
 }: SlugEditSheetProps) {
   const navigate = useNavigate();
   const { creator } = useCreator();
@@ -114,13 +118,20 @@ export default function SlugEditSheet({
     const videoUrl = `shop.one/${creator.creator_kuerzel}/${slug}`;
     const productTitle = productName || videoTitle || "my latest pick";
     
-    // Fallback caption generator
+    // Format price for display
+    const formattedPrice = productPrice && productCurrency 
+      ? `${productPrice} ${productCurrency}`
+      : productPrice || "";
+    
+    // Fallback caption generator with product info
     const generateFallbackCaption = (): string => {
       const isGerman = locale === "de";
       const hashtags = isGerman ? "#shopable #musthave" : "#shopable #musthave";
+      const priceText = formattedPrice ? `\n${isGerman ? "Preis:" : "Price:"} ${formattedPrice}` : "";
       
       if (isGerman) {
         return `🔥 ${productTitle.toUpperCase()}
+${priceText}
 
 Wenn du genau das gleiche willst 👇
 
@@ -131,6 +142,7 @@ ${hashtags}`;
       }
       
       return `🔥 ${productTitle.toUpperCase()}
+${priceText}
 
 If you want the exact one I'm using 👇
 
@@ -143,13 +155,15 @@ ${hashtags}`;
     let caption: string;
 
     try {
-      // Call AI edge function for category-aware caption
+      // Call AI edge function for category-aware caption with product details
       const { data: captionData, error: captionError } = await supabase.functions.invoke(
         "generate-caption",
         {
           body: {
             productName: productTitle,
             productDescription: productDescription || "",
+            productPrice: productPrice || "",
+            productCurrency: productCurrency || "",
             category: productCategory || "other",
             language: locale,
             videoUrl,

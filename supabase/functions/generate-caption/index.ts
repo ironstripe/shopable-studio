@@ -18,6 +18,8 @@ const MAX_VIDEO_URL_LENGTH = 500;
 interface ValidatedCaptionRequest {
   productName: string;
   productDescription?: string;
+  productPrice?: string;
+  productCurrency?: string;
   category: ProductCategory;
   language: Language;
   videoUrl: string;
@@ -108,9 +110,29 @@ function validateRequest(body: unknown): ValidatedCaptionRequest {
     videoId = req.videoId;
   }
 
+  // Validate productPrice (optional, string)
+  let productPrice: string | undefined;
+  if (req.productPrice !== undefined && req.productPrice !== null) {
+    if (typeof req.productPrice !== 'string') {
+      throw new Error("productPrice must be a string");
+    }
+    productPrice = req.productPrice.trim() || undefined;
+  }
+
+  // Validate productCurrency (optional, string)
+  let productCurrency: string | undefined;
+  if (req.productCurrency !== undefined && req.productCurrency !== null) {
+    if (typeof req.productCurrency !== 'string') {
+      throw new Error("productCurrency must be a string");
+    }
+    productCurrency = req.productCurrency.trim() || undefined;
+  }
+
   return {
     productName: req.productName.trim(),
     productDescription,
+    productPrice,
+    productCurrency,
     category,
     language,
     videoUrl: req.videoUrl.trim(),
@@ -297,7 +319,7 @@ serve(async (req) => {
       );
     }
 
-    const { productName, productDescription, category, language, videoUrl, creatorId, videoId } = validatedRequest;
+    const { productName, productDescription, productPrice, productCurrency, category, language, videoUrl, creatorId, videoId } = validatedRequest;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -312,6 +334,11 @@ serve(async (req) => {
     const sanitizedProductName = sanitizeForPrompt(productName);
     const sanitizedProductDescription = productDescription ? sanitizeForPrompt(productDescription) : undefined;
     const sanitizedVideoUrl = sanitizeForPrompt(videoUrl);
+    
+    // Format price for prompt (if available)
+    const priceDisplay = productPrice && productCurrency 
+      ? `${productPrice} ${productCurrency}` 
+      : productPrice || "";
 
     const systemPrompt = `You are a category-aware caption and hashtag optimization engine for short-form social commerce videos (Instagram, TikTok, YouTube Shorts).
 
@@ -319,11 +346,11 @@ Your task is to generate STRUCTURED, DISCOVERY-OPTIMIZED captions.
 
 GLOBAL RULES (NON-NEGOTIABLE):
 Every caption MUST follow this exact structure:
-1. HOOK (with 🔥 emoji at start)
-2. CONTEXT / KEYWORDS (2-3 sentences about product benefits)
+1. HOOK (with 🔥 emoji at start) - short, impactful, mentions product naturally
+2. CONTEXT / KEYWORDS (2-3 sentences about product benefits)${priceDisplay ? ` - mention price (${priceDisplay}) if it adds value` : ""}
 3. CTA (call to action with 👇)
 4. LINK (with 👉)
-5. HASHTAGS
+5. HASHTAGS (3-5 relevant hashtags)
 
 Never change the order. Never merge sections. Never omit a section.
 
@@ -353,6 +380,7 @@ Do NOT include any explanations or meta-text.`;
 
 Product Name: ${sanitizedProductName}
 ${sanitizedProductDescription ? `Description: ${sanitizedProductDescription}` : ""}
+${priceDisplay ? `Price: ${priceDisplay}` : ""}
 Category: ${category}
 Video URL: ${sanitizedVideoUrl}
 
