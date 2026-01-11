@@ -1082,10 +1082,7 @@ const VideoPlayer = ({
           {/* Show placement cursor when in time-navigation mode */}
           {videoSrc && isVideoReady && !isPreviewMode && (
             <div
-              className={cn(
-                "absolute inset-0 bottom-[50px] z-[5]",
-                isTimeNavigationMode ? "hotspot-placement-cursor" : "cursor-default"
-              )}
+              className="absolute inset-0 bottom-[50px] z-[5] hotspot-placement-cursor"
               onClick={handleOverlayClick}
               onTouchStart={(e) => {
                 // Check for horizontal swipe gesture vs tap
