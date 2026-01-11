@@ -136,6 +136,7 @@ const VideoPlayer = ({
   const { t } = useLocale();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isScrubbingRef = useRef(false); // Track scrubbing to prevent event listener conflicts
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
@@ -343,7 +344,11 @@ const VideoPlayer = ({
     const video = videoRef.current;
     if (!video) return;
 
-    const handleTimeUpdate = () => setCurrentTime(video.currentTime);
+    const handleTimeUpdate = () => {
+      // Ignore video events during scrubbing to prevent state conflicts
+      if (isScrubbingRef.current) return;
+      setCurrentTime(video.currentTime);
+    };
     const handlePlay = () => {
       setIsPlaying(true);
       handleTimeUpdate();
@@ -1039,10 +1044,14 @@ const VideoPlayer = ({
               currentTime={currentTime}
               duration={videoRef.current?.duration || 0}
               onPlayPause={onPlayPause}
+              onScrubStart={() => {
+                isScrubbingRef.current = true;
+              }}
               onSeek={(time) => {
-                // Throttled seek during scrubbing - only update UI, video is throttled in DraggableControlBar
+                // Throttled seek during scrubbing - update both video and UI
                 if (videoRef.current) {
                   videoRef.current.currentTime = time;
+                  setCurrentTime(time); // Update UI immediately during scrub
                 }
               }}
               onSeekEnd={(time) => {
@@ -1051,6 +1060,7 @@ const VideoPlayer = ({
                   videoRef.current.currentTime = time;
                   setCurrentTime(time);
                 }
+                isScrubbingRef.current = false; // Resume event listening
               }}
             />
           )}

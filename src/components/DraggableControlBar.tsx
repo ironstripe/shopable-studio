@@ -9,6 +9,7 @@ interface DraggableControlBarProps {
   onPlayPause: () => void;
   onSeek: (time: number) => void;
   onSeekEnd?: (time: number) => void; // Called when scrubbing ends for final seek
+  onScrubStart?: () => void; // Called when scrubbing begins
 }
 
 // Throttle interval for video seeking during scrub (ms)
@@ -26,6 +27,7 @@ const DraggableControlBar = ({
   onPlayPause,
   onSeek,
   onSeekEnd,
+  onScrubStart,
 }: DraggableControlBarProps) => {
   const [offset, setOffset] = useState({ x: 16, y: -16 }); // Default: bottom-left (16px from edges)
   const [isScrubbing, setIsScrubbing] = useState(false); // Track scrubbing for visual feedback
@@ -95,18 +97,20 @@ const DraggableControlBar = ({
     isScrubbingRef.current = true;
     setIsScrubbing(true);
     lastSeekTimeRef.current = 0; // Reset throttle to allow immediate first seek
+    onScrubStart?.(); // Notify parent that scrubbing started
     handleProgressInteraction(e.clientX);
-  }, [handleProgressInteraction]);
+  }, [handleProgressInteraction, onScrubStart]);
 
   const handleProgressTouchStart = useCallback((e: React.TouchEvent) => {
     e.stopPropagation(); // Prevent bar drag
     isScrubbingRef.current = true;
     setIsScrubbing(true);
     lastSeekTimeRef.current = 0; // Reset throttle to allow immediate first seek
+    onScrubStart?.(); // Notify parent that scrubbing started
     if (e.touches[0]) {
       handleProgressInteraction(e.touches[0].clientX);
     }
-  }, [handleProgressInteraction]);
+  }, [handleProgressInteraction, onScrubStart]);
 
   const handleDragStart = useCallback((clientX: number, clientY: number) => {
     isDraggingRef.current = true;
