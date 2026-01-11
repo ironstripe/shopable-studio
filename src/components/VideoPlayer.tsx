@@ -964,10 +964,10 @@ const VideoPlayer = ({
             minHeight: videoSrc ? '200px' : undefined,
             // CRITICAL: Use 100dvh (dynamic viewport) - matches visible area on mobile browsers
             height: isMobile 
-              ? 'calc(100dvh - 56px - 140px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px)' 
+              ? 'calc(100dvh - 56px - 75px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))' 
               : undefined,
             maxHeight: isMobile 
-              ? 'calc(100dvh - 56px - 140px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px)' 
+              ? 'calc(100dvh - 56px - 75px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))' 
               : undefined,
             // Strict containment - no scroll under any circumstance
             contain: 'layout size',

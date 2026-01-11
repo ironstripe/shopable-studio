@@ -28,7 +28,7 @@ const MobileModeSwitcher = ({
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-neutral-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe-plus">
-      <div className="flex items-center justify-center gap-2 px-4 py-3">
+      <div className="flex items-center justify-center gap-2 px-4 py-2.5">
         {modes.map((mode) => {
           const isActive = activeMode === mode.id;
           
