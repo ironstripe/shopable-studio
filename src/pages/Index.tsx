@@ -397,12 +397,6 @@ const Index = () => {
   };
 
   const handleAddHotspot = (x: number, y: number, time: number) => {
-    // Only create hotspot if we're in TIME-NAVIGATION mode (video is playing/was playing)
-    if (interactionMode !== "time-navigation") {
-      console.log("[Index] handleAddHotspot called but not in TIME-NAVIGATION mode, ignoring");
-      return;
-    }
-    
     // Safe zone clamping is now handled in VideoPlayer with pixel-accurate dimensions
     // Just create the hotspot at the provided (already clamped) position
     const newHotspot = addHotspotCore(x, y, time);
