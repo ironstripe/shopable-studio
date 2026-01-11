@@ -12,7 +12,7 @@ import NextHotspotChip from "./NextHotspotChip";
 import HotspotSavedSnackbar from "./HotspotSavedSnackbar";
 import SceneStateBanner from "./SceneStateBanner";
 import { cn } from "@/lib/utils";
-import { Loader2, Check } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { formatPriceDisplay, type CurrencyCode } from "@/utils/price-utils";
 import { useLocale } from "@/lib/i18n";
 import { isHotspotComplete, SceneState } from "@/hooks/use-scene-state";
@@ -954,12 +954,12 @@ const VideoPlayer = ({
           )}
           style={{
             minHeight: videoSrc ? '200px' : undefined,
-            // CRITICAL: Fixed height calculation - video canvas NEVER scrolls
+            // CRITICAL: Use 100dvh (dynamic viewport) - matches visible area on mobile browsers
             height: isMobile 
-              ? 'calc(100vh - 56px - 140px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px)' 
+              ? 'calc(100dvh - 56px - 140px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px)' 
               : undefined,
             maxHeight: isMobile 
-              ? 'calc(100vh - 56px - 140px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px)' 
+              ? 'calc(100dvh - 56px - 140px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px)' 
               : undefined,
             // Strict containment - no scroll under any circumstance
             contain: 'layout size',

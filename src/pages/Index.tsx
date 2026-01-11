@@ -843,7 +843,7 @@ const Index = () => {
   // Mobile layout
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="h-[100dvh] bg-white flex flex-col overflow-hidden">
         <MobileHeader
           videoTitle={videoTitle}
           onTitleChange={setVideoTitle}
@@ -871,13 +871,12 @@ const Index = () => {
         )}
 
         {/* Main content area - accounts for header with safe area and bottom controls */}
-        {/* CRITICAL: overflow-hidden + maxHeight prevents nested scrolling */}
+        {/* CRITICAL: overflow-hidden + min-h-0 prevents nested scrolling in flex layout */}
         <main 
-          className="flex-1 flex items-center justify-center px-2 overflow-hidden"
+          className="flex-1 flex items-center justify-center px-2 overflow-hidden min-h-0"
           style={{
             paddingTop: 'calc(56px + env(safe-area-inset-top, 0px) + 8px)',
             paddingBottom: videoSrc ? 'calc(140px + env(safe-area-inset-bottom, 0px) + 8px)' : 'env(safe-area-inset-bottom, 0px)',
-            maxHeight: '100vh',
           }}
         >
           {/* Show upload zone if no video selected (entry screen) */}
@@ -966,16 +965,8 @@ const Index = () => {
           )}
         </main>
 
-        {/* Export Section - below video, above bottom controls */}
-        {videoSrc && editorMode === "edit" && (
-          <VideoExportSection
-            renderStatus={currentVideoRenderStatus}
-            renderUpdatedAt={currentVideoRenderUpdatedAt}
-            fileUrl={videoSrc}
-            isExporting={isExporting}
-            onExport={handleExportVideo}
-          />
-        )}
+        {/* Export Section - REMOVED on mobile per UX spec: "Bottom bar is the ONLY control surface" */}
+        {/* VideoExportSection disabled to prevent extra document height causing vertical scroll */}
 
         {/* Mobile bottom controls */}
         {videoSrc && (
