@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 type CallbackStatus = "processing" | "error" | "success";
 
 export default function OAuthCallbackPage() {
-  const navigate = useNavigate();
   const [status, setStatus] = useState<CallbackStatus>("processing");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [debugInfo, setDebugInfo] = useState<string>("");
@@ -28,7 +26,7 @@ export default function OAuthCallbackPage() {
       if (isRecovery) {
         console.log("[OAuthCallback] Recovery flow detected, redirecting to /reset-password");
         // Keep URL params for reset-password page
-        navigate(`/reset-password${window.location.search}${window.location.hash}`, { replace: true });
+        window.location.href = `/reset-password${window.location.search}${window.location.hash}`;
         return;
       }
 
@@ -37,12 +35,10 @@ export default function OAuthCallbackPage() {
         console.log("[OAuthCallback] No code found, checking existing session");
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          await redirectBasedOnCreator(session.user.id, cancelled);
+          await redirectBasedOnCreator(session.user.id);
         } else {
-          if (!cancelled) {
-            setStatus("error");
-            setErrorMessage("No authentication code found. Please try signing in again.");
-          }
+          setStatus("error");
+          setErrorMessage("No authentication code found. Please try signing in again.");
         }
         return;
       }
@@ -60,42 +56,51 @@ export default function OAuthCallbackPage() {
         
         if (exchangeError) {
           console.error("[OAuthCallback] Exchange error:", exchangeError);
-          if (!cancelled) {
-            setStatus("error");
-            setErrorMessage(exchangeError.message || "Failed to complete authentication");
-            setDebugInfo(JSON.stringify(exchangeError, null, 2));
-          }
+          setStatus("error");
+          setErrorMessage(exchangeError.message || "Failed to complete authentication");
+          setDebugInfo(JSON.stringify(exchangeError, null, 2));
           return;
         }
 
-        // Clean URL immediately after successful exchange
-        window.history.replaceState({}, document.title, window.location.pathname);
+        console.log("[OAuthCallback] Code exchange successful, waiting for auth state sync...");
+
+        // Wait for auth state to sync before continuing
+        await new Promise<void>((resolve) => {
+          const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            console.log("[OAuthCallback] Auth state change event:", event);
+            if (event === 'SIGNED_IN') {
+              subscription.unsubscribe();
+              resolve();
+            }
+          });
+          // Timeout in case event already fired
+          setTimeout(() => {
+            subscription.unsubscribe();
+            resolve();
+          }, 2000);
+        });
 
         // Get session to verify and get user ID
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError || !session) {
           console.error("[OAuthCallback] Session error after exchange:", sessionError);
-          if (!cancelled) {
-            setStatus("error");
-            setErrorMessage(sessionError?.message || "No session found after authentication");
-          }
+          setStatus("error");
+          setErrorMessage(sessionError?.message || "No session found after authentication");
           return;
         }
 
         console.log("[OAuthCallback] Session established for:", session.user.email);
-        await redirectBasedOnCreator(session.user.id, cancelled);
+        await redirectBasedOnCreator(session.user.id);
 
       } catch (err) {
         console.error("[OAuthCallback] Unexpected error:", err);
-        if (!cancelled) {
-          setStatus("error");
-          setErrorMessage(err instanceof Error ? err.message : "An unexpected error occurred");
-        }
+        setStatus("error");
+        setErrorMessage(err instanceof Error ? err.message : "An unexpected error occurred");
       }
     };
 
-    const redirectBasedOnCreator = async (userId: string, cancelled: boolean) => {
+    const redirectBasedOnCreator = async (userId: string) => {
       try {
         console.log("[OAuthCallback] Checking for creator profile...");
         const { data: creator, error: creatorError } = await supabase
@@ -108,32 +113,26 @@ export default function OAuthCallbackPage() {
           console.error("[OAuthCallback] Creator fetch error:", creatorError);
         }
 
-        if (cancelled) return;
-
         if (creator) {
-          console.log("[OAuthCallback] Creator found, redirecting to /");
+          console.log("[OAuthCallback] Creator found, using full page redirect to /");
           setStatus("success");
-          navigate("/", { replace: true });
+          // Use full page redirect to ensure clean context initialization
+          window.location.href = "/";
         } else {
-          console.log("[OAuthCallback] No creator, redirecting to /complete-profile");
+          console.log("[OAuthCallback] No creator, using full page redirect to /complete-profile");
           setStatus("success");
-          navigate("/complete-profile", { replace: true });
+          // Use full page redirect to ensure clean context initialization
+          window.location.href = "/complete-profile";
         }
       } catch (err) {
         console.error("[OAuthCallback] Creator check error:", err);
-        if (!cancelled) {
-          // Default to complete-profile if we can't check
-          navigate("/complete-profile", { replace: true });
-        }
+        // Default to complete-profile if we can't check
+        window.location.href = "/complete-profile";
       }
     };
 
     handleCallback();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [navigate]);
+  }, []);
 
   const handleRetry = () => {
     window.location.reload();
