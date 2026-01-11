@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LocaleProvider } from "@/lib/i18n";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { CreatorProvider, useCreator } from "@/contexts/CreatorContext";
-import { supabase } from "@/integrations/supabase/client";
+
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -100,49 +100,23 @@ function CompleteProfileRoute({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const { creator, loading: creatorLoading } = useCreator();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
-  const [codeExchanged, setCodeExchanged] = useState(false);
 
-  // Handle OAuth PKCE code exchange
+  // Clean URL if OAuth code parameter exists (Supabase handles exchange automatically)
   useEffect(() => {
-    const handleOAuthCallback = async () => {
-      const url = new URL(window.location.href);
-      const code = url.searchParams.get("code");
-      
-      if (code && !codeExchanged) {
-        try {
-          await supabase.auth.exchangeCodeForSession(code);
-          // Clean URL to prevent re-exchange
-          window.history.replaceState({}, document.title, window.location.pathname);
-          setCodeExchanged(true);
-        } catch (err) {
-          console.error("Code exchange failed:", err);
-          setCodeExchanged(true);
-        }
-      } else {
-        setCodeExchanged(true);
-      }
-    };
-    
-    handleOAuthCallback();
-  }, [codeExchanged]);
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("code")) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   // Add timeout protection to prevent infinite loading
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoadingTimeout(true);
-    }, 8000); // 8 second timeout
+    }, 8000);
 
     return () => clearTimeout(timer);
   }, []);
-
-  // Wait for code exchange before checking auth state
-  if (!codeExchanged) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Signing you in...</div>
-      </div>
-    );
-  }
 
   // Show loading state but with timeout protection
   if ((authLoading || creatorLoading) && !loadingTimeout) {
