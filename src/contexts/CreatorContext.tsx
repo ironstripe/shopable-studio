@@ -26,7 +26,10 @@ export function CreatorProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchCreator = async () => {
+    console.log("[Creator] fetchCreator called, user:", user?.email ?? "none");
+    
     if (!user) {
+      console.log("[Creator] No user, setting creator to null");
       setCreator(null);
       setLoading(false);
       return;
@@ -34,6 +37,7 @@ export function CreatorProvider({ children }: { children: React.ReactNode }) {
 
     setLoading(true);
     try {
+      console.log("[Creator] Fetching creator for user_id:", user.id);
       const { data, error } = await supabase
         .from("creators")
         .select("*")
@@ -41,13 +45,14 @@ export function CreatorProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (error) {
-        console.error("Failed to fetch creator:", error);
+        console.error("[Creator] Failed to fetch creator:", error);
         setCreator(null);
       } else {
+        console.log("[Creator] Fetched creator:", data?.creator_handle ?? "none found");
         setCreator(data);
       }
     } catch (err) {
-      console.error("Creator fetch exception:", err);
+      console.error("[Creator] Fetch exception:", err);
       setCreator(null);
     } finally {
       setLoading(false);
@@ -56,6 +61,7 @@ export function CreatorProvider({ children }: { children: React.ReactNode }) {
 
   // Only fetch when auth has finished loading and user state is determined
   useEffect(() => {
+    console.log("[Creator] useEffect triggered, authLoading:", authLoading, "user:", user?.email ?? "none");
     if (!authLoading) {
       fetchCreator();
     }
