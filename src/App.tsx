@@ -105,6 +105,7 @@ function CompleteProfileRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const url = new URL(window.location.href);
     if (url.searchParams.has("code")) {
+      console.log("[CompleteProfileRoute] Cleaning OAuth code from URL");
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
@@ -112,11 +113,20 @@ function CompleteProfileRoute({ children }: { children: React.ReactNode }) {
   // Add timeout protection to prevent infinite loading
   useEffect(() => {
     const timer = setTimeout(() => {
+      console.log("[CompleteProfileRoute] Loading timeout reached");
       setLoadingTimeout(true);
     }, 8000);
 
     return () => clearTimeout(timer);
   }, []);
+
+  console.log("[CompleteProfileRoute] State:", {
+    authLoading,
+    creatorLoading,
+    user: user?.email ?? "none",
+    creator: creator?.creator_handle ?? "none",
+    loadingTimeout
+  });
 
   // Show loading state but with timeout protection
   if ((authLoading || creatorLoading) && !loadingTimeout) {
@@ -129,14 +139,17 @@ function CompleteProfileRoute({ children }: { children: React.ReactNode }) {
 
   // Not logged in -> redirect to auth
   if (!user) {
+    console.log("[CompleteProfileRoute] No user, redirecting to /auth");
     return <Navigate to="/auth" replace />;
   }
 
   // Already has creator profile -> go to home
   if (creator) {
+    console.log("[CompleteProfileRoute] Creator exists, redirecting to /");
     return <Navigate to="/" replace />;
   }
 
+  console.log("[CompleteProfileRoute] Showing complete profile form");
   return <>{children}</>;
 }
 
