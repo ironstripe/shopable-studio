@@ -11,7 +11,7 @@ import HotspotNavigationPill from "./HotspotNavigationPill";
 import NextHotspotChip from "./NextHotspotChip";
 import HotspotSavedSnackbar from "./HotspotSavedSnackbar";
 import SceneStateBanner from "./SceneStateBanner";
-import InVideoPlayButton from "./InVideoPlayButton";
+import DraggableControlBar from "./DraggableControlBar";
 import StatusPill from "./StatusPill";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
@@ -1024,11 +1024,13 @@ const VideoPlayer = ({
             <SafeZoneOverlay />
           )}
 
-          {/* In-Video Play/Pause Button - mobile only, centered at bottom */}
+          {/* Draggable Control Bar - mobile only, compact pill */}
           {videoSrc && isVideoReady && !isPreviewMode && isMobile && onPlayPause && (
-            <InVideoPlayButton
-              isPlaying={isTimeNavigationMode}
-              onToggle={onPlayPause}
+            <DraggableControlBar
+              isPlaying={isPlaying}
+              currentTime={currentTime}
+              duration={videoRef.current?.duration || 0}
+              onPlayPause={onPlayPause}
             />
           )}
 
