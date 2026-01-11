@@ -397,6 +397,16 @@ const Index = () => {
   };
 
   const handleAddHotspot = (x: number, y: number, time: number) => {
+    // Check if a hotspot already exists at this time (within its duration)
+    const hasActiveHotspot = hotspots.some(
+      h => time >= h.timeStart && time <= h.timeEnd
+    );
+    
+    if (hasActiveHotspot) {
+      toast.info(t("hotspots.alreadyExists"));
+      return; // Block creation
+    }
+    
     // Safe zone clamping is now handled in VideoPlayer with pixel-accurate dimensions
     // Just create the hotspot at the provided (already clamped) position
     const newHotspot = addHotspotCore(x, y, time);
@@ -769,6 +779,11 @@ const Index = () => {
     return hotspots.filter(h => isHotspotComplete(h)).length;
   }, [hotspots]);
 
+  // Computed: check if a hotspot already exists at current time (block creation)
+  const hasActiveHotspot = useMemo(() => {
+    return hotspots.some(h => currentTime >= h.timeStart && currentTime <= h.timeEnd);
+  }, [hotspots, currentTime]);
+
   // Handle play/pause - ties interaction mode to playback state
   const handlePlayPause = () => {
     if (videoRef.current) {
@@ -1003,6 +1018,7 @@ const Index = () => {
               onSnackbarDismiss={() => setShowSavedSnackbar(false)}
               sceneState={sceneState}
               completeHotspotCount={completeHotspotCount}
+              hasActiveHotspot={hasActiveHotspot}
             />
           )}
         </main>
@@ -1268,6 +1284,7 @@ const Index = () => {
               onSnackbarDismiss={() => setShowSavedSnackbar(false)}
               sceneState={sceneState}
               completeHotspotCount={completeHotspotCount}
+              hasActiveHotspot={hasActiveHotspot}
             />
           )}
         </div>

@@ -80,6 +80,8 @@ interface VideoPlayerProps {
   sceneState?: SceneState;
   // Status pill props
   completeHotspotCount?: number;
+  // Block creation when hotspot already active at current time
+  hasActiveHotspot?: boolean;
 }
 
 const VideoPlayer = ({
@@ -132,6 +134,7 @@ const VideoPlayer = ({
   onSnackbarDismiss,
   sceneState,
   completeHotspotCount = 0,
+  hasActiveHotspot = false,
 }: VideoPlayerProps) => {
   const { t } = useLocale();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -1082,7 +1085,10 @@ const VideoPlayer = ({
           {/* Show placement cursor when in time-navigation mode */}
           {videoSrc && isVideoReady && !isPreviewMode && (
             <div
-              className="absolute inset-0 bottom-[50px] z-[5] hotspot-placement-cursor"
+              className={cn(
+                "absolute inset-0 bottom-[50px] z-[5]",
+                hasActiveHotspot ? "cursor-not-allowed" : "hotspot-placement-cursor"
+              )}
               onClick={handleOverlayClick}
               onTouchStart={(e) => {
                 // Check for horizontal swipe gesture vs tap
