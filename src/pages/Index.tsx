@@ -933,7 +933,7 @@ const Index = () => {
           className="flex-1 flex items-center justify-center px-2 overflow-hidden min-h-0"
           style={{
             paddingTop: 'calc(56px + env(safe-area-inset-top, 0px) + 8px)',
-            paddingBottom: videoSrc ? 'calc(140px + env(safe-area-inset-bottom, 0px) + 8px)' : 'env(safe-area-inset-bottom, 0px)',
+            paddingBottom: videoSrc ? 'calc(75px + env(safe-area-inset-bottom, 0px))' : 'env(safe-area-inset-bottom, 0px)',
           }}
         >
           {/* Show upload zone if no video selected (entry screen) */}
