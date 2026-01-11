@@ -39,7 +39,7 @@ export default function ResetPasswordPage() {
   const [sendingLink, setSendingLink] = useState(false);
   const [linkSent, setLinkSent] = useState(false);
 
-  // Initialize: Check for recovery code and exchange for session
+  // Initialize: Session-first, then URL-driven
   useEffect(() => {
     let cancelled = false;
 
@@ -54,50 +54,43 @@ export default function ResetPasswordPage() {
       // Check if this looks like a recovery link
       const hasRecoveryParams = code || type === "recovery" || hashType === "recovery" || accessToken;
 
-      if (!hasRecoveryParams) {
-        // User navigated here directly without a reset link
-        if (!cancelled) {
-          setStatus("invalid");
-          setErrorMessage(t("resetPassword.error.noLink"));
-        }
-        return;
-      }
-
-      // Try to exchange PKCE code for session
+      // Step 1: Try to exchange PKCE code for session (if present)
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         
+        // Clean URL immediately to prevent re-exchange attempts
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
         if (error) {
-          if (!cancelled) {
-            // Token expired or already used
-            setStatus("expired");
-            setErrorMessage(
-              error.message.includes("expired") || error.message.includes("invalid")
-                ? t("resetPassword.error.expired")
-                : error.message
-            );
-          }
-          return;
+          console.log("[ResetPassword] Code exchange failed:", error.message);
+          // Token expired or already used - but still check session below
         }
-
-        // Clean URL to prevent re-exchange on refresh
-        window.history.replaceState({}, document.title, "/reset-password");
       }
 
-      // Check if we have a valid session now
+      // Step 2: ALWAYS check for existing session first (handles refresh/reopen)
       const { data } = await supabase.auth.getSession();
       
       if (data.session) {
+        console.log("[ResetPassword] Session found - ready to reset password");
         if (!cancelled) {
           setStatus("ready");
         }
         return;
       }
 
-      // No session established - token was likely expired/used
+      // Step 3: No session - determine appropriate error state
       if (!cancelled) {
-        setStatus("expired");
-        setErrorMessage(t("resetPassword.error.expired"));
+        if (hasRecoveryParams) {
+          // Had recovery params but no session = expired/used token
+          console.log("[ResetPassword] Recovery params present but no session - expired");
+          setStatus("expired");
+          setErrorMessage(t("resetPassword.error.expired"));
+        } else {
+          // No params at all = direct navigation without link
+          console.log("[ResetPassword] No recovery params - invalid");
+          setStatus("invalid");
+          setErrorMessage(t("resetPassword.error.noLink"));
+        }
       }
     };
 
@@ -201,7 +194,7 @@ export default function ResetPasswordPage() {
                 ? t("resetPassword.subtitle")
                 : status === "expired"
                 ? t("resetPassword.expiredSubtitle")
-                : t("resetPassword.invalidSubtitle")}
+                : t("resetPassword.invalidRequestSubtitle")}
             </p>
           </div>
 
@@ -310,7 +303,7 @@ export default function ResetPasswordPage() {
             </div>
           )}
 
-          {/* Invalid State: No Link Present */}
+          {/* Invalid State: No Link Present - Also show request form */}
           {status === "invalid" && (
             <div className="space-y-4">
               {errorMessage && (
@@ -319,9 +312,39 @@ export default function ResetPasswordPage() {
                 </div>
               )}
 
-              <Button className="w-full h-11" onClick={() => navigate("/auth")}>
+              {linkSent ? (
+                <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg text-sm text-foreground text-center">
+                  {t("resetPassword.requestLink.sent")}
+                </div>
+              ) : (
+                <form onSubmit={handleRequestNewLink} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="emailInvalid">{t("resetPassword.requestLink.emailLabel")}</Label>
+                    <Input
+                      id="emailInvalid"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="h-11"
+                      placeholder={t("resetPassword.requestLink.emailPlaceholder")}
+                      autoComplete="email"
+                    />
+                  </div>
+
+                  <Button type="submit" className="w-full h-11" disabled={sendingLink}>
+                    {sendingLink ? t("resetPassword.requestLink.sending") : t("resetPassword.requestLink.button")}
+                  </Button>
+                </form>
+              )}
+
+              <button
+                type="button"
+                onClick={() => navigate("/auth")}
+                className="w-full text-center text-sm text-muted-foreground hover:underline"
+              >
                 {t("resetPassword.backToSignIn")}
-              </Button>
+              </button>
             </div>
           )}
         </div>
