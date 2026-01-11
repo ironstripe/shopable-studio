@@ -725,3 +725,20 @@ All colors MUST be HSL.
 .animate-commit-glow {
   animation: commit-button-glow 1.5s ease-in-out infinite;
 }
+
+/* Video canvas - NEVER scrolls (Critical UX requirement) */
+.video-canvas-fixed {
+  overflow: hidden !important;
+  contain: layout size !important;
+  touch-action: manipulation;
+  -webkit-overflow-scrolling: auto; /* Prevent iOS momentum scrolling */
+}
+
+/* Ensure no nested scrollbars appear inside video canvas */
+.video-canvas-fixed * {
+  overflow: visible;
+}
+
+.video-canvas-fixed video {
+  overflow: hidden;
+}

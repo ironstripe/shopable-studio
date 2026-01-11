@@ -12,7 +12,7 @@ import NextHotspotChip from "./NextHotspotChip";
 import HotspotSavedSnackbar from "./HotspotSavedSnackbar";
 import SceneStateBanner from "./SceneStateBanner";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
 import { formatPriceDisplay, type CurrencyCode } from "@/utils/price-utils";
 import { useLocale } from "@/lib/i18n";
 import { isHotspotComplete, SceneState } from "@/hooks/use-scene-state";
@@ -944,7 +944,7 @@ const VideoPlayer = ({
         <div
           ref={containerRef}
           className={cn(
-            "relative w-full min-h-[300px] overflow-hidden transition-all duration-200",
+            "relative w-full min-h-[300px] overflow-hidden transition-all duration-200 video-canvas-fixed",
             isMobile && "aspect-[9/16]",
             // Light neutral background while loading, then subtle container when ready
             videoSrc && !isVideoReady && "bg-neutral-100 rounded-[14px] flex items-center justify-center",
@@ -954,9 +954,16 @@ const VideoPlayer = ({
           )}
           style={{
             minHeight: videoSrc ? '200px' : undefined,
-            // Prevent nested scrolling - video canvas is a fixed viewport
-            contain: 'layout',
-            maxHeight: isMobile ? 'calc(100vh - 56px - 140px - 24px)' : undefined,
+            // CRITICAL: Fixed height calculation - video canvas NEVER scrolls
+            height: isMobile 
+              ? 'calc(100vh - 56px - 140px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px)' 
+              : undefined,
+            maxHeight: isMobile 
+              ? 'calc(100vh - 56px - 140px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px)' 
+              : undefined,
+            // Strict containment - no scroll under any circumstance
+            contain: 'layout size',
+            overflow: 'hidden',
           }}
         >
           {/* Loading indicator while video is processing */}
@@ -1077,8 +1084,9 @@ const VideoPlayer = ({
           )}
 
           {/* Scene state overlay - top right corner */}
+          {/* Includes "All done ✓" completion badge when all hotspots are complete */}
           {videoSrc && isVideoReady && !isPreviewMode && sceneState && onJumpToNext && (
-            <div className="absolute right-3 top-3 z-20">
+            <div className="absolute right-3 top-3 z-20 pointer-events-auto">
               <SceneStateBanner
                 sceneState={sceneState}
                 onJumpToNext={onJumpToNext}
