@@ -15,7 +15,7 @@ import DraggableControlBar from "./DraggableControlBar";
 import StatusPill from "./StatusPill";
 import CreationModeHint from "./CreationModeHint";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { formatPriceDisplay, type CurrencyCode } from "@/utils/price-utils";
 import { useLocale } from "@/lib/i18n";
 import { isHotspotComplete, SceneState } from "@/hooks/use-scene-state";
@@ -82,6 +82,8 @@ interface VideoPlayerProps {
   completeHotspotCount?: number;
   // Block creation when hotspot already active at current time
   hasActiveHotspot?: boolean;
+  // Exit preview mode callback
+  onExitPreview?: () => void;
 }
 
 const VideoPlayer = ({
@@ -135,6 +137,7 @@ const VideoPlayer = ({
   sceneState,
   completeHotspotCount = 0,
   hasActiveHotspot = false,
+  onExitPreview,
 }: VideoPlayerProps) => {
   const { t } = useLocale();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -964,10 +967,14 @@ const VideoPlayer = ({
             minHeight: videoSrc ? '200px' : undefined,
             // CRITICAL: Use 100dvh (dynamic viewport) - matches visible area on mobile browsers
             height: isMobile 
-              ? 'calc(100dvh - 56px - 75px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))' 
+              ? (isPreviewMode 
+                  ? 'calc(100dvh - 56px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))' 
+                  : 'calc(100dvh - 56px - 75px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))')
               : undefined,
             maxHeight: isMobile 
-              ? 'calc(100dvh - 56px - 75px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))' 
+              ? (isPreviewMode 
+                  ? 'calc(100dvh - 56px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))' 
+                  : 'calc(100dvh - 56px - 75px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))')
               : undefined,
             // Strict containment - no scroll under any circumstance
             contain: 'layout size',
@@ -1079,6 +1086,17 @@ const VideoPlayer = ({
                 </p>
               </div>
             </div>
+          )}
+
+          {/* Exit Preview floating button - only in preview mode */}
+          {videoSrc && isVideoReady && isPreviewMode && onExitPreview && (
+            <button
+              onClick={onExitPreview}
+              className="absolute top-3 right-3 z-[20] flex items-center gap-1.5 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white px-3 py-2 rounded-full text-sm font-medium transition-all shadow-lg"
+            >
+              <X className="w-4 h-4" />
+              <span>Exit Preview</span>
+            </button>
           )}
 
           {/* Unified click/touch overlay for hotspot creation and swipe scrubbing */}
