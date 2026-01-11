@@ -21,11 +21,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     console.log("[Auth] Setting up auth state listener...");
+    let authEventReceived = false;
     
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log("[Auth] State change:", event, "user:", session?.user?.email ?? "none");
+        authEventReceived = true;
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -40,7 +42,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Failsafe timeout: if no auth event received after 10s, force loading to false
+    const failsafeTimer = setTimeout(() => {
+      if (!authEventReceived) {
+        console.log("[Auth] Failsafe timeout: no auth event received, forcing loading=false");
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          console.log("[Auth] Failsafe session re-check:", session?.user?.email ?? "no session");
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        });
+      }
+    }, 10000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(failsafeTimer);
+    };
   }, []);
 
   const signUp = async (
