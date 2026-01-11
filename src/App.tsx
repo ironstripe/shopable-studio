@@ -10,6 +10,7 @@ import { CreatorProvider, useCreator } from "@/contexts/CreatorContext";
 
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
+import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import CompleteProfilePage from "./pages/CompleteProfilePage";
 import ReadyToPostPage from "./pages/ReadyToPostPage";
@@ -152,21 +153,12 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
 
 /**
  * Complete profile route - only accessible if logged in but no creator profile.
- * Includes PKCE code exchange for OAuth callbacks and timeout protection.
+ * OAuth code exchange is handled by OAuthCallbackPage, not here.
  */
 function CompleteProfileRoute({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading, signOut } = useAuth();
   const { creator, loading: creatorLoading } = useCreator();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
-
-  // Only clean URL AFTER auth has completed to allow PKCE code exchange
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    if (!authLoading && user && url.searchParams.has("code")) {
-      console.log("[CompleteProfileRoute] Auth complete, cleaning OAuth code from URL");
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, [authLoading, user]);
 
   // Add timeout protection to prevent infinite loading
   useEffect(() => {
@@ -264,6 +256,7 @@ function AppRoutes() {
           </AuthRoute>
         }
       />
+      <Route path="/auth/callback" element={<OAuthCallbackPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route
         path="/complete-profile"

@@ -22,53 +22,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log("[Auth] Setting up auth state listener...");
     let cancelled = false;
-    let authEventReceived = false;
 
-    // Set up auth state listener FIRST
+    // Set up auth state listener FIRST (before getSession)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("[Auth] State change:", event, "user:", session?.user?.email ?? "none");
-      authEventReceived = true;
-
       if (cancelled) return;
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // Initialize session (and handle PKCE redirects)
+    // Simple session check - NO URL parsing, NO code exchange
+    // OAuth code exchange is handled exclusively by OAuthCallbackPage
     const init = async () => {
       try {
-        const url = new URL(window.location.href);
-        const code = url.searchParams.get("code");
-        const searchType = url.searchParams.get("type");
-        const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
-        const hashType = hashParams.get("type");
-        const isRecovery = searchType === "recovery" || hashType === "recovery";
-
-        if (code) {
-          console.log("[Auth] PKCE code detected, exchanging for session...", {
-            isRecovery,
-            path: url.pathname,
-          });
-
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) {
-            console.error("[Auth] Code exchange failed:", error);
-          }
-
-          // Avoid repeated exchanges on refresh for OAuth callbacks.
-          // For password recovery we keep parameters because ResetPasswordPage handles its own URL cleanup.
-          if (!isRecovery) {
-            window.history.replaceState({}, document.title, window.location.pathname);
-          }
-        }
-
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
+        const { data: { session } } = await supabase.auth.getSession();
         console.log("[Auth] Initial session check:", session?.user?.email ?? "no session");
 
         if (cancelled) return;
@@ -87,19 +57,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     init();
 
-    // Failsafe timeout: if no auth event received after 10s, force loading to false
+    // Failsafe timeout: if no session established after 8s, force loading to false
     const failsafeTimer = setTimeout(() => {
-      if (!authEventReceived) {
-        console.log("[Auth] Failsafe timeout: no auth event received, forcing loading=false");
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          console.log("[Auth] Failsafe session re-check:", session?.user?.email ?? "no session");
-          if (cancelled) return;
-          setSession(session);
-          setUser(session?.user ?? null);
-          setLoading(false);
-        });
-      }
-    }, 10000);
+      console.log("[Auth] Failsafe timeout reached");
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        console.log("[Auth] Failsafe session re-check:", session?.user?.email ?? "no session");
+        if (cancelled) return;
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      });
+    }, 8000);
 
     return () => {
       cancelled = true;
@@ -160,8 +128,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        // Redirect to complete-profile for new OAuth users (existing users will be redirected to home by route guard)
-        redirectTo: `${window.location.origin}/complete-profile`,
+        // Redirect to dedicated callback page that handles code exchange
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
     return { error: error ? new Error(error.message) : null };
