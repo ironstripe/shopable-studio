@@ -147,12 +147,30 @@ export default function AuthPage() {
     // Clear local session only (faster, avoids network issues)
     await supabase.auth.signOut({ scope: "local" });
     
+    // Detect if we're in an embedded context (iframe)
+    let isEmbedded = false;
+    try {
+      isEmbedded = window.self !== window.top;
+    } catch {
+      isEmbedded = true;
+    }
+    
     const { error } = await signInWithGoogle();
     if (error) {
       setFormError(error.message);
       setLoading(false);
+      return;
     }
-    // Note: OAuth may open new tab in embedded context, or redirect in normal context
+    
+    // If embedded, OAuth opened in new tab - stop loading spinner and show message
+    if (isEmbedded) {
+      setLoading(false);
+      toast({
+        title: "Complete sign-in in the new tab",
+        description: "Google sign-in opened in a new browser tab. Complete it there, then this page will update automatically.",
+      });
+    }
+    // Note: In non-embedded context, the page will redirect, so no need to handle loading state
   };
 
   return (

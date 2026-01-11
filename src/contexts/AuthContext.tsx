@@ -170,9 +170,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    console.log("[Auth] Signing out...");
+    // First clear local state immediately for fast UI response
     setUser(null);
     setSession(null);
+    
+    try {
+      // Clear local session first (fast, always works)
+      await supabase.auth.signOut({ scope: "local" });
+      console.log("[Auth] Local session cleared");
+    } catch (err) {
+      console.warn("[Auth] Local signout error (continuing):", err);
+    }
+    
+    try {
+      // Then try global signout (best effort, may fail in embedded contexts)
+      await supabase.auth.signOut({ scope: "global" });
+      console.log("[Auth] Global signout complete");
+    } catch (err) {
+      console.warn("[Auth] Global signout error (non-critical):", err);
+    }
   };
 
   return (

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 
@@ -25,10 +25,9 @@ export function CreatorProvider({ children }: { children: React.ReactNode }) {
   const [creator, setCreator] = useState<Creator | null>(null);
   const [loading, setLoading] = useState(true);
   const fetchingRef = useRef(false);
-  const lastUserIdRef = useRef<string | null>(null);
 
-  const fetchCreator = async () => {
-    console.log("[Creator] fetchCreator called, user:", user?.email ?? "none");
+  const fetchCreator = useCallback(async (userId: string | undefined) => {
+    console.log("[Creator] fetchCreator called, userId:", userId ?? "none");
     
     // Prevent parallel fetches
     if (fetchingRef.current) {
@@ -36,8 +35,8 @@ export function CreatorProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     
-    if (!user) {
-      console.log("[Creator] No user, setting creator to null");
+    if (!userId) {
+      console.log("[Creator] No userId, setting creator to null");
       setCreator(null);
       setLoading(false);
       return;
@@ -47,13 +46,13 @@ export function CreatorProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     
     try {
-      console.log("[Creator] Fetching creator for user_id:", user.id);
+      console.log("[Creator] Fetching creator for user_id:", userId);
       
       // Race the DB call with a timeout
       const fetchPromise = supabase
         .from("creators")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .maybeSingle();
       
       const timeoutPromise = new Promise<never>((_, reject) => 
@@ -63,7 +62,7 @@ export function CreatorProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
 
       if (error) {
-        console.error("[Creator] Failed to fetch creator:", error);
+        console.error("[Creator] Failed to fetch creator:", error.message, error);
         setCreator(null);
       } else {
         console.log("[Creator] Fetched creator:", data?.creator_handle ?? "none found");
@@ -76,29 +75,65 @@ export function CreatorProvider({ children }: { children: React.ReactNode }) {
       fetchingRef.current = false;
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Only fetch when auth has finished loading and user.id changes
+  // Listen to auth state changes directly - this is more reliable than depending on user?.id
   useEffect(() => {
-    console.log("[Creator] useEffect triggered, authLoading:", authLoading, "user:", user?.email ?? "none");
+    console.log("[Creator] Setting up auth state listener for creator fetch");
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("[Creator] Auth state change:", event, "user:", session?.user?.email ?? "none");
+
+      if (event === "SIGNED_OUT") {
+        setCreator(null);
+        setLoading(false);
+        fetchingRef.current = false;
+        return;
+      }
+
+      // On any sign-in related event, fetch the creator
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED" || event === "INITIAL_SESSION") {
+        const userId = session?.user?.id;
+        if (userId) {
+          fetchCreator(userId);
+        } else {
+          setCreator(null);
+          setLoading(false);
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [fetchCreator]);
+
+  // Also handle initial state when auth is already loaded
+  useEffect(() => {
+    console.log("[Creator] Initial check - authLoading:", authLoading, "user:", user?.email ?? "none");
     
     if (authLoading) {
+      // Auth still loading, keep creator loading too
       return;
     }
-    
-    // Only refetch if user.id actually changed
-    const currentUserId = user?.id ?? null;
-    if (currentUserId === lastUserIdRef.current) {
-      console.log("[Creator] User ID unchanged, skipping fetch");
-      return;
+
+    // Auth finished loading - fetch creator if we have a user
+    if (user?.id) {
+      fetchCreator(user.id);
+    } else {
+      setCreator(null);
+      setLoading(false);
     }
-    
-    lastUserIdRef.current = currentUserId;
-    fetchCreator();
-  }, [user?.id, authLoading]);
+  }, [authLoading, user?.id, fetchCreator]);
+
+  const refetch = useCallback(async () => {
+    if (user?.id) {
+      await fetchCreator(user.id);
+    }
+  }, [user?.id, fetchCreator]);
 
   return (
-    <CreatorContext.Provider value={{ creator, loading, refetch: fetchCreator }}>
+    <CreatorContext.Provider value={{ creator, loading, refetch }}>
       {children}
     </CreatorContext.Provider>
   );
