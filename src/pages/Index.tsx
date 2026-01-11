@@ -933,7 +933,9 @@ const Index = () => {
           className="flex-1 flex items-center justify-center px-2 overflow-hidden min-h-0"
           style={{
             paddingTop: 'calc(56px + env(safe-area-inset-top, 0px) + 8px)',
-            paddingBottom: videoSrc ? 'calc(75px + env(safe-area-inset-bottom, 0px))' : 'env(safe-area-inset-bottom, 0px)',
+            paddingBottom: videoSrc 
+              ? (editorMode === 'preview' ? 'env(safe-area-inset-bottom, 0px)' : 'calc(75px + env(safe-area-inset-bottom, 0px))') 
+              : 'env(safe-area-inset-bottom, 0px)',
           }}
         >
           {/* Show upload zone if no video selected (entry screen) */}
@@ -1019,6 +1021,7 @@ const Index = () => {
               sceneState={sceneState}
               completeHotspotCount={completeHotspotCount}
               hasActiveHotspot={hasActiveHotspot}
+              onExitPreview={() => setEditorMode('edit')}
             />
           )}
         </main>
@@ -1026,8 +1029,8 @@ const Index = () => {
         {/* Export Section - REMOVED on mobile per UX spec: "Bottom bar is the ONLY control surface" */}
         {/* VideoExportSection disabled to prevent extra document height causing vertical scroll */}
 
-        {/* Mobile Mode Switcher - [Hotspots] Preview Post */}
-        {videoSrc && (
+        {/* Mobile Mode Switcher - Hidden in Preview mode for full-screen video */}
+        {videoSrc && editorMode !== 'preview' && (
           <MobileModeSwitcher
             activeMode={editorMode}
             onModeChange={handleModeChange}
@@ -1285,6 +1288,7 @@ const Index = () => {
               sceneState={sceneState}
               completeHotspotCount={completeHotspotCount}
               hasActiveHotspot={hasActiveHotspot}
+              onExitPreview={() => setEditorMode('edit')}
             />
           )}
         </div>
