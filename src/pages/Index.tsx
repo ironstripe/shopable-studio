@@ -135,16 +135,15 @@ const Index = () => {
     return hotspots.some(h => isHotspotComplete(h));
   }, [hotspots]);
   
-  // Computed: Show finalize button only when not actively editing
-  // Conditions: can finalize + not in CREATE mode + not in EDIT mode + no sheets open
+  // Computed: Show finalize button ONLY in Preview mode (user is done editing)
+  // "Ready to post" REMOVED during edit mode entirely per UX spec
   const showFinalizeButton = useMemo(() => {
     return canFinalize 
-      && interactionMode === "browse" 
+      && editorMode === "preview" // ONLY show when user is in Preview mode
       && !selectProductSheetOpen 
       && !layoutBehaviorSheetOpen 
-      && !newProductSheetOpen
-      && !selectedHotspotId;
-  }, [canFinalize, interactionMode, selectProductSheetOpen, layoutBehaviorSheetOpen, newProductSheetOpen, selectedHotspotId]);
+      && !newProductSheetOpen;
+  }, [canFinalize, editorMode, selectProductSheetOpen, layoutBehaviorSheetOpen, newProductSheetOpen]);
   
   // Get first product name for slug generation
   const firstProductName = useMemo(() => {
@@ -872,11 +871,13 @@ const Index = () => {
         )}
 
         {/* Main content area - accounts for header with safe area and bottom controls */}
+        {/* CRITICAL: overflow-hidden + maxHeight prevents nested scrolling */}
         <main 
-          className="flex-1 flex items-center justify-center px-2"
+          className="flex-1 flex items-center justify-center px-2 overflow-hidden"
           style={{
             paddingTop: 'calc(56px + env(safe-area-inset-top, 0px) + 8px)',
             paddingBottom: videoSrc ? 'calc(140px + env(safe-area-inset-bottom, 0px) + 8px)' : 'env(safe-area-inset-bottom, 0px)',
+            maxHeight: '100vh',
           }}
         >
           {/* Show upload zone if no video selected (entry screen) */}
