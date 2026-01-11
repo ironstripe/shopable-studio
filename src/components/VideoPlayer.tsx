@@ -1040,6 +1040,13 @@ const VideoPlayer = ({
               duration={videoRef.current?.duration || 0}
               onPlayPause={onPlayPause}
               onSeek={(time) => {
+                // Throttled seek during scrubbing - only update UI, video is throttled in DraggableControlBar
+                if (videoRef.current) {
+                  videoRef.current.currentTime = time;
+                }
+              }}
+              onSeekEnd={(time) => {
+                // Final seek when scrubbing ends - ensure exact position
                 if (videoRef.current) {
                   videoRef.current.currentTime = time;
                   setCurrentTime(time);
