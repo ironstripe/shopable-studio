@@ -1,7 +1,7 @@
-// Editor mode
-export type EditorMode = "edit" | "preview";
+// Editor mode - three explicit modes for clean UX
+export type EditorMode = "edit" | "preview" | "post";
 
-// Two-mode interaction system tied to playback state:
+// Two-mode interaction system tied to playback state (only active in Edit mode):
 // HOTSPOT-FOCUS (default, when paused): Select/edit hotspots, no creation, video static
 // TIME-NAVIGATION (when playing): Create hotspots by tapping, timeline active, hotspots not editable
 export type InteractionMode = "hotspot-focus" | "time-navigation";

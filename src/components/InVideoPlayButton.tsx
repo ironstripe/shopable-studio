@@ -5,13 +5,19 @@ import { cn } from "@/lib/utils";
 interface InVideoPlayButtonProps {
   isPlaying: boolean;
   onToggle: () => void;
+  size?: "default" | "large";
 }
 
 /**
- * Minimal in-video play/pause button.
- * Auto-fades after 1.5s of inactivity, reappears on tap.
+ * Large centered in-video play/pause button.
+ * Auto-fades after 1.5s of inactivity when playing, always visible when paused.
+ * Tap video → shows button, tap button → toggles play/pause.
  */
-const InVideoPlayButton = ({ isPlaying, onToggle }: InVideoPlayButtonProps) => {
+const InVideoPlayButton = ({ 
+  isPlaying, 
+  onToggle,
+  size = "large" 
+}: InVideoPlayButtonProps) => {
   const [isVisible, setIsVisible] = useState(true);
   const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -51,9 +57,12 @@ const InVideoPlayButton = ({ isPlaying, onToggle }: InVideoPlayButtonProps) => {
     }
   };
 
+  const buttonSize = size === "large" ? "w-20 h-20" : "w-14 h-14";
+  const iconSize = size === "large" ? "w-10 h-10" : "w-6 h-6";
+
   return (
     <div
-      className="absolute bottom-16 left-1/2 -translate-x-1/2 z-[25] pointer-events-auto"
+      className="absolute inset-0 flex items-center justify-center z-[25] pointer-events-auto"
       onClick={handleContainerTap}
       onTouchEnd={(e) => {
         e.preventDefault();
@@ -62,18 +71,19 @@ const InVideoPlayButton = ({ isPlaying, onToggle }: InVideoPlayButtonProps) => {
     >
       <button
         className={cn(
-          "w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300",
-          "bg-black/60 backdrop-blur-sm text-white shadow-lg",
-          "hover:bg-black/70 active:scale-95",
-          "border border-white/20",
+          buttonSize,
+          "rounded-full flex items-center justify-center transition-all duration-300",
+          "bg-black/50 backdrop-blur-sm text-white shadow-2xl",
+          "hover:bg-black/60 active:scale-95",
+          "border-2 border-white/30",
           isVisible ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"
         )}
         aria-label={isPlaying ? "Pause" : "Play"}
       >
         {isPlaying ? (
-          <Pause className="w-6 h-6" fill="currentColor" />
+          <Pause className={cn(iconSize)} fill="currentColor" />
         ) : (
-          <Play className="w-6 h-6 ml-1" fill="currentColor" />
+          <Play className={cn(iconSize, "ml-1")} fill="currentColor" />
         )}
       </button>
     </div>
