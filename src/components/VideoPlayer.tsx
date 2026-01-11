@@ -377,15 +377,29 @@ const VideoPlayer = ({
     }
   }, [hotspots, pendingDragPosition, draggingHotspot]);
 
-  // Handle click on overlay - creates hotspot in edit mode (tap-first approach)
+  // Handle click on overlay
+  // BROWSE mode: clicking empty space does nothing (deselects if something was selected)
+  // CREATE mode: creates hotspot, then exits to EDIT mode
+  // EDIT mode: clicking empty space deselects and returns to BROWSE
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Don't create hotspot if click originated from an existing hotspot element
+    // Don't handle if click originated from an existing hotspot element
     if ((e.target as HTMLElement).closest('.hotspot-draggable')) {
       console.log("[VideoPlayer] Click originated from hotspot, ignoring overlay click");
       return;
     }
     
-    console.log("[VideoPlayer] tap to add hotspot (click)", { 
+    // BROWSE mode: clicking empty space does NOTHING
+    // EDIT mode: clicking empty space deselects → return to BROWSE
+    if (!isAddingHotspot) {
+      console.log("[VideoPlayer] Not in CREATE mode, deselecting", { isAddingHotspot, selectedHotspotId });
+      if (selectedHotspotId) {
+        onSelectHotspot(null);
+      }
+      return;
+    }
+    
+    // CREATE mode: create ONE hotspot
+    console.log("[VideoPlayer] CREATE mode - placing hotspot", { 
       currentTime: videoRef.current?.currentTime,
       clientX: e.clientX,
       clientY: e.clientY 
@@ -432,17 +446,17 @@ const VideoPlayer = ({
       setTimeout(() => setSafeZoneTooltip(prev => ({ ...prev, show: false })), 2500);
     }
 
-    // Create real hotspot immediately
+    // Create hotspot (parent will handle mode transition CREATE → EDIT)
     onAddHotspot(safeX, safeY, actualTime);
     videoRef.current.pause();
     
-    // Exit add mode if it was active
-    onExitAddMode?.();
+    // Exit CREATE mode is handled by parent after hotspot creation
   };
 
-  // iOS touch event handler for hotspot placement - tap-first approach
+  // iOS touch event handler for hotspot placement
+  // Same three-mode logic as click handler
   const handleOverlayTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    // Don't create hotspot if touch originated from an existing hotspot element
+    // Don't handle if touch originated from an existing hotspot element
     if ((e.target as HTMLElement).closest('.hotspot-draggable')) {
       console.log("[VideoPlayer] Touch originated from hotspot, ignoring overlay touch");
       return;
@@ -453,11 +467,22 @@ const VideoPlayer = ({
     const touch = e.touches[0];
     if (!touch) return;
 
+    // BROWSE mode: do nothing
+    // EDIT mode: deselect → return to BROWSE
+    if (!isAddingHotspot) {
+      console.log("[VideoPlayer] Not in CREATE mode, deselecting (touch)", { isAddingHotspot, selectedHotspotId });
+      if (selectedHotspotId) {
+        onSelectHotspot(null);
+      }
+      return;
+    }
+
+    // CREATE mode: create ONE hotspot
     // Prevent default to stop click from firing and enable immediate interaction
     e.preventDefault();
     e.stopPropagation();
 
-    console.log('[VideoPlayer] TouchStart on overlay - creating real hotspot immediately');
+    console.log('[VideoPlayer] CREATE mode - placing hotspot (touch)');
     
     const actualTime = videoRef.current.currentTime;
     setCurrentTime(actualTime);
@@ -505,12 +530,11 @@ const VideoPlayer = ({
       hotspotCount: hotspots.length,
     });
 
-    // Create real hotspot immediately (no ghost hotspot)
+    // Create hotspot (parent will handle mode transition CREATE → EDIT)
     onAddHotspot(safeX, safeY, actualTime);
     videoRef.current.pause();
     
-    // Exit add mode if it was active
-    onExitAddMode?.();
+    // Exit CREATE mode is handled by parent after hotspot creation
   };
 
   // Mouse drag handlers
@@ -823,9 +847,10 @@ const VideoPlayer = ({
           break;
       }
     } else {
-      // In edit mode, clicking a hotspot selects it and exits add mode
+      // In edit mode, clicking a hotspot selects it (enters EDIT mode)
+      // This works from both BROWSE and CREATE mode
       onSelectHotspot(hotspot.id);
-      onExitAddMode?.();
+      // Note: onExitAddMode is no longer needed here - parent handles mode via onSelectHotspot
     }
   };
 

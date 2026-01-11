@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Hotspot, Product, VideoProject, VideoCTA, EditorMode, ClickBehavior } from "@/types/video";
+import { Hotspot, Product, VideoProject, VideoCTA, EditorMode, ClickBehavior, InteractionMode } from "@/types/video";
 import VideoPlayer from "@/components/VideoPlayer";
 import VideoGallery from "@/components/VideoGallery";
 import VideoUploadZone from "@/components/VideoUploadZone";
@@ -55,8 +55,12 @@ const Index = () => {
   const { transitionTo: transitionVideoState } = useVideoState();
   const { step: ftuxStep, isComplete: ftuxComplete, advanceStep, completeFTUX } = useFTUX();
   
-  // Two-mode system: "select" (default) vs "add" mode
-  const [isAddingHotspot, setIsAddingHotspot] = useState(false);
+  // Three-mode interaction system: BROWSE (default), CREATE, EDIT
+  const [interactionMode, setInteractionMode] = useState<InteractionMode>("browse");
+  
+  // Derived states for backward compatibility
+  const isAddingHotspot = interactionMode === "create";
+  const isEditingHotspot = interactionMode === "edit";
   
   // Toolbar visibility (can be closed via Done while keeping hotspot selected)
   const [showToolbar, setShowToolbar] = useState(true);
@@ -371,9 +375,18 @@ const Index = () => {
   };
 
   const handleAddHotspot = (x: number, y: number, time: number) => {
+    // Only create hotspot if we're in CREATE mode
+    if (interactionMode !== "create") {
+      console.log("[Index] handleAddHotspot called but not in CREATE mode, ignoring");
+      return;
+    }
+    
     // Safe zone clamping is now handled in VideoPlayer with pixel-accurate dimensions
     // Just create the hotspot at the provided (already clamped) position
     const newHotspot = addHotspotCore(x, y, time);
+    
+    // Exit CREATE mode → Enter EDIT mode for new hotspot
+    setInteractionMode("edit");
     
     // Defer toolbar and panel opening - allow drag first
     setIsDeferringToolbar(true);
@@ -383,17 +396,23 @@ const Index = () => {
   };
 
   const handleHotspotSelect = (hotspotId: string | null) => {
-    selectHotspot(hotspotId);
-    // Show toolbar when selecting a hotspot
     if (hotspotId) {
+      // Selecting a hotspot → enter EDIT mode
+      setInteractionMode("edit");
+      selectHotspot(hotspotId);
       setShowToolbar(true);
+    } else {
+      // Deselecting → return to BROWSE mode
+      setInteractionMode("browse");
+      selectHotspot(null);
     }
   };
 
-  // Handle toolbar "Done" button - hide toolbar, deselect hotspot, and show snackbar
+  // Handle toolbar "Done" button - hide toolbar, return to BROWSE mode, show snackbar
   const handleToolbarDone = () => {
     setShowToolbar(false);
     selectHotspot(null);
+    setInteractionMode("browse");
     setShowSavedSnackbar(true);
   };
 
@@ -690,27 +709,39 @@ const Index = () => {
 
   const handleToggleMode = () => {
     if (editorMode === "edit") {
-      // Switching to preview: close panels, clear selection, exit add mode
+      // Switching to preview: close panels, clear selection, return to BROWSE mode
       selectHotspot(null);
       setHotspotDrawerOpen(false);
       setVideoCTASheetOpen(false);
-      setIsAddingHotspot(false);
+      setInteractionMode("browse");
     }
     setEditorMode(editorMode === "edit" ? "preview" : "edit");
   };
 
-  // Exit add mode after hotspot is created
-  const handleExitAddMode = () => {
-    setIsAddingHotspot(false);
+  // Exit CREATE mode → return to BROWSE
+  const handleExitCreateMode = () => {
+    setInteractionMode("browse");
+  };
+  
+  // Toggle CREATE mode
+  const handleToggleCreateMode = () => {
+    if (interactionMode === "create") {
+      setInteractionMode("browse");
+    } else {
+      setInteractionMode("create");
+    }
   };
 
-  // ESC key handler to exit add mode and close panels
+  // ESC key handler to exit CREATE mode and close panels
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (isAddingHotspot) {
-          setIsAddingHotspot(false);
+        // Exit CREATE mode → BROWSE
+        if (interactionMode === "create") {
+          setInteractionMode("browse");
+          return;
         }
+        // Close panels but stay in current mode
         if (selectProductSheetOpen) setSelectProductSheetOpen(false);
         if (layoutBehaviorSheetOpen) setLayoutBehaviorSheetOpen(false);
         if (newProductSheetOpen) setNewProductSheetOpen(false);
@@ -720,7 +751,7 @@ const Index = () => {
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isAddingHotspot, selectProductSheetOpen, layoutBehaviorSheetOpen, newProductSheetOpen, videoCTASheetOpen]);
+  }, [interactionMode, selectProductSheetOpen, layoutBehaviorSheetOpen, newProductSheetOpen, videoCTASheetOpen]);
 
   const handleReplaceVideo = () => {
     // Clear all video-related state
@@ -898,8 +929,8 @@ const Index = () => {
               isDeferringToolbar={isDeferringToolbar}
               hotspotsLoading={hotspotsLoading}
               isAddingHotspot={isAddingHotspot}
-              onExitAddMode={handleExitAddMode}
-              onToggleAddMode={() => setIsAddingHotspot(!isAddingHotspot)}
+              onExitAddMode={handleExitCreateMode}
+              onToggleAddMode={handleToggleCreateMode}
               showToolbar={showToolbar}
               onToolbarDone={handleToolbarDone}
               showSavedIndicator={showSavedIndicator}
@@ -947,7 +978,7 @@ const Index = () => {
             onOpenCTASettings={() => setVideoCTASheetOpen(true)}
             hotspotCount={hotspots.length}
             isAddingHotspot={isAddingHotspot}
-            onToggleAddMode={() => setIsAddingHotspot(!isAddingHotspot)}
+            onToggleAddMode={handleToggleCreateMode}
           />
         )}
 
@@ -1160,8 +1191,8 @@ const Index = () => {
               isDeferringToolbar={isDeferringToolbar}
               hotspotsLoading={hotspotsLoading}
               isAddingHotspot={isAddingHotspot}
-              onExitAddMode={handleExitAddMode}
-              onToggleAddMode={() => setIsAddingHotspot(!isAddingHotspot)}
+              onExitAddMode={handleExitCreateMode}
+              onToggleAddMode={handleToggleCreateMode}
               showToolbar={showToolbar}
               onToolbarDone={handleToolbarDone}
               showSavedIndicator={showSavedIndicator}
