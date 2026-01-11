@@ -34,13 +34,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("[Auth] Initial session check:", session?.user?.email ?? "no session");
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // Handle PKCE code exchange for OAuth callbacks
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get("code");
+    if (code) {
+      console.log("[Auth] PKCE code detected, exchanging for session...");
+      supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
+        if (error) {
+          console.error("[Auth] Code exchange failed:", error);
+        } else {
+          console.log("[Auth] Code exchange successful:", data.session?.user?.email);
+          authEventReceived = true;
+          setSession(data.session);
+          setUser(data.session?.user ?? null);
+          setLoading(false);
+        }
+      });
+    } else {
+      // THEN check for existing session (only if no code to exchange)
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        console.log("[Auth] Initial session check:", session?.user?.email ?? "no session");
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      });
+    }
 
     // Failsafe timeout: if no auth event received after 10s, force loading to false
     const failsafeTimer = setTimeout(() => {

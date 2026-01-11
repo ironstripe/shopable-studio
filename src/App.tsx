@@ -157,14 +157,14 @@ function CompleteProfileRoute({ children }: { children: React.ReactNode }) {
   const { creator, loading: creatorLoading } = useCreator();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
 
-  // Clean URL if OAuth code parameter exists (Supabase handles exchange automatically)
+  // Only clean URL AFTER auth has completed to allow PKCE code exchange
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (url.searchParams.has("code")) {
-      console.log("[CompleteProfileRoute] Cleaning OAuth code from URL");
+    if (!authLoading && user && url.searchParams.has("code")) {
+      console.log("[CompleteProfileRoute] Auth complete, cleaning OAuth code from URL");
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, []);
+  }, [authLoading, user]);
 
   // Add timeout protection to prevent infinite loading
   useEffect(() => {
