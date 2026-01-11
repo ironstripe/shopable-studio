@@ -145,6 +145,20 @@ All colors MUST be HSL.
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Creation mode pulsing border animation */
+@keyframes creation-mode-pulse {
+  0%, 100% {
+    box-shadow: inset 0 0 0 2px hsla(215, 98%, 53%, 0.4);
+  }
+  50% {
+    box-shadow: inset 0 0 0 3px hsla(215, 98%, 53%, 0.7);
+  }
+}
+
+.animate-creation-mode-pulse {
+  animation: creation-mode-pulse 1.5s ease-in-out infinite;
+}
+
 @keyframes pulse-scale {
   0%, 100% {
     transform: scale(1);
