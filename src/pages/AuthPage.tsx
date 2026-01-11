@@ -142,6 +142,10 @@ export default function AuthPage() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setFormError(null);
+    
+    // Clear any existing session to prevent conflicts with 2FA
+    await supabase.auth.signOut();
+    
     const { error } = await signInWithGoogle();
     if (error) {
       setFormError(error.message);
