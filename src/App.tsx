@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LocaleProvider } from "@/lib/i18n";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { CreatorProvider, useCreator } from "@/contexts/CreatorContext";
+import { supabase } from "@/integrations/supabase/client";
 
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
@@ -18,6 +19,57 @@ import HelpPage from "./pages/HelpPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+/**
+ * Global safety net: Consumes OAuth tokens from URL hash if present.
+ * This handles edge cases where Google redirects to / instead of /auth/callback.
+ */
+function AuthUrlSessionHandler() {
+  useEffect(() => {
+    const consumeHashTokens = async () => {
+      const hash = window.location.hash;
+      if (!hash) return;
+
+      const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+      const hashType = hashParams.get("type");
+
+      // Skip if this is a recovery flow
+      if (hashType === "recovery") {
+        console.log("[AuthUrlSessionHandler] Recovery flow detected, skipping");
+        return;
+      }
+
+      // If we have tokens in the hash, consume them
+      if (accessToken && refreshToken) {
+        console.log("[AuthUrlSessionHandler] Found tokens in URL hash, setting session...");
+        
+        try {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          // Clean the URL
+          window.history.replaceState(null, "", window.location.pathname);
+
+          if (error) {
+            console.error("[AuthUrlSessionHandler] Failed to set session:", error);
+          } else {
+            console.log("[AuthUrlSessionHandler] Session set successfully from hash tokens");
+          }
+        } catch (err) {
+          console.error("[AuthUrlSessionHandler] Error consuming hash tokens:", err);
+        }
+      }
+    };
+
+    consumeHashTokens();
+  }, []);
+
+  return null;
+}
 
 /**
  * Protected route wrapper that checks for authentication and creator profile.
@@ -116,11 +168,10 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
     const searchCode = url.searchParams.get("code");
     const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
     const hashType = hashParams.get("type");
-    const hashAccessToken = hashParams.get("access_token");
 
-    // IMPORTANT: OAuth callbacks also use `?code=`.
-    // Only treat it as password recovery when `type=recovery` (or hash-based recovery) is present.
-    return (searchType === "recovery" && Boolean(searchCode)) || hashType === "recovery" || Boolean(hashAccessToken);
+    // Only treat as password recovery when type=recovery is explicitly present
+    // OAuth tokens in hash should NOT be treated as recovery
+    return (searchType === "recovery" && Boolean(searchCode)) || hashType === "recovery";
   })();
 
   // Never redirect away during password recovery flow
@@ -297,6 +348,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <AuthUrlSessionHandler />
               <AppRoutes />
             </BrowserRouter>
           </CreatorProvider>
