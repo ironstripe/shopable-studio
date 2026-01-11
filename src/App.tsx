@@ -22,10 +22,30 @@ const queryClient = new QueryClient();
  * Protected route wrapper that checks for authentication and creator profile.
  */
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading: authLoading } = useAuth();
-  const { creator, loading: creatorLoading } = useCreator();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { creator, loading: creatorLoading, refetch: refetchCreator } = useCreator();
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
-  if (authLoading || creatorLoading) {
+  // Add timeout protection to prevent infinite loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      console.log("[ProtectedRoute] Loading timeout reached");
+      setLoadingTimeout(true);
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  console.log("[ProtectedRoute] State:", {
+    authLoading,
+    creatorLoading,
+    user: user?.email ?? "none",
+    creator: creator?.creator_handle ?? "none",
+    loadingTimeout
+  });
+
+  // Show loading state but with timeout protection
+  if ((authLoading || creatorLoading) && !loadingTimeout) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
@@ -33,13 +53,49 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // If timeout reached while still loading, show recovery panel
+  if (loadingTimeout && (authLoading || creatorLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4 p-6 max-w-md">
+          <p className="text-muted-foreground">Loading is taking longer than expected.</p>
+          <div className="text-xs text-muted-foreground/70 bg-muted p-3 rounded font-mono text-left">
+            authLoading: {String(authLoading)}<br/>
+            creatorLoading: {String(creatorLoading)}<br/>
+            user: {user?.email ?? "none"}<br/>
+            creator: {creator?.creator_handle ?? "none"}
+          </div>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => refetchCreator()}
+              className="w-full px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+            >
+              Retry
+            </button>
+            <button
+              onClick={async () => {
+                await signOut();
+                window.location.href = "/auth";
+              }}
+              className="w-full px-4 py-2 bg-muted text-muted-foreground rounded hover:bg-muted/80"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Not logged in -> redirect to auth
   if (!user) {
+    console.log("[ProtectedRoute] No user, redirecting to /auth");
     return <Navigate to="/auth" replace />;
   }
 
   // Logged in but no creator profile -> redirect to complete profile
   if (!creator) {
+    console.log("[ProtectedRoute] No creator, redirecting to /complete-profile");
     return <Navigate to="/complete-profile" replace />;
   }
 
