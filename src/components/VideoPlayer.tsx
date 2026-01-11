@@ -13,6 +13,7 @@ import HotspotSavedSnackbar from "./HotspotSavedSnackbar";
 import SceneStateBanner from "./SceneStateBanner";
 import DraggableControlBar from "./DraggableControlBar";
 import StatusPill from "./StatusPill";
+import CreationModeHint from "./CreationModeHint";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { formatPriceDisplay, type CurrencyCode } from "@/utils/price-utils";
@@ -949,7 +950,9 @@ const VideoPlayer = ({
             videoSrc && !isVideoReady && "bg-neutral-100 rounded-[14px] flex items-center justify-center",
             videoSrc && isVideoReady && "bg-neutral-100 rounded-[14px] p-1",
             videoSrc && isVideoReady && "shadow-[0_4px_16px_rgba(0,0,0,0.08)]",
-            videoSrc && isVideoReady && !isPreviewMode && "ring-2 ring-[rgba(59,130,246,0.4)]"
+            videoSrc && isVideoReady && !isPreviewMode && "ring-2 ring-[rgba(59,130,246,0.4)]",
+            // Pulsing border when in time-navigation (creation) mode
+            videoSrc && isVideoReady && !isPreviewMode && isTimeNavigationMode && "animate-creation-mode-pulse"
           )}
           style={{
             minHeight: videoSrc ? '200px' : undefined,
@@ -1022,6 +1025,11 @@ const VideoPlayer = ({
           {/* Safe Zone Overlay - Edit mode only, when video is ready */}
           {videoSrc && isVideoReady && !isPreviewMode && showSafeZones && (
             <SafeZoneOverlay />
+          )}
+
+          {/* Creation Mode Hint - shown when in time-navigation (creation) mode */}
+          {videoSrc && isVideoReady && !isPreviewMode && (
+            <CreationModeHint isVisible={isTimeNavigationMode} />
           )}
 
           {/* Draggable Control Bar - mobile only, compact pill */}
