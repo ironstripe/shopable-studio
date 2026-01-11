@@ -11,6 +11,10 @@ interface HotspotSavedSnackbarProps {
   allComplete: boolean;
   onJump: () => void;
   onDismiss: () => void;
+  /** Current hotspot index (1-based) for context */
+  currentHotspotIndex?: number;
+  /** Total hotspot count for progress context */
+  totalHotspotCount?: number;
 }
 
 const HotspotSavedSnackbar = ({
@@ -20,6 +24,8 @@ const HotspotSavedSnackbar = ({
   allComplete,
   onJump,
   onDismiss,
+  currentHotspotIndex,
+  totalHotspotCount,
 }: HotspotSavedSnackbarProps) => {
   const { t } = useLocale();
   const [isVisible, setIsVisible] = useState(false);
@@ -101,12 +107,16 @@ const HotspotSavedSnackbar = ({
     );
   }
 
-  // Fallback: Just show saved
+  // Fallback: Just show saved with progress context
+  const progressText = currentHotspotIndex && totalHotspotCount 
+    ? `Hotspot ${currentHotspotIndex} of ${totalHotspotCount} saved`
+    : "Hotspot saved";
+    
   return (
     <div className="absolute bottom-[120px] left-1/2 -translate-x-1/2 z-[30] animate-in fade-in slide-in-from-bottom-2 duration-200">
       <div className="flex items-center gap-2 bg-white/95 border border-border/50 px-4 py-2.5 rounded-full shadow-lg">
         <Check className="w-4 h-4 text-green-600" />
-        <span className="text-sm text-foreground">Hotspot saved</span>
+        <span className="text-sm text-foreground">{progressText}</span>
       </div>
     </div>
   );

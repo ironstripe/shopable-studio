@@ -45,6 +45,8 @@ interface MobileHeaderProps {
   isExporting?: boolean;
   renderStatus?: RenderStatus | null;
   canFinalize?: boolean;
+  /** Only show finalize button when user is not actively editing */
+  showFinalize?: boolean;
 }
 
 const MobileHeader = ({
@@ -60,6 +62,7 @@ const MobileHeader = ({
   isExporting = false,
   renderStatus,
   canFinalize = false,
+  showFinalize,
 }: MobileHeaderProps) => {
   const { signOut } = useAuth();
   const { t, locale, setLocale } = useLocale();
@@ -157,8 +160,8 @@ const MobileHeader = ({
 
           {/* Right: Finalize button + My Videos button + Three-dot menu */}
           <div className="flex items-center gap-1">
-            {/* Finalize button with exit framing - show when video has complete hotspots */}
-            {hasVideo && canFinalize && onFinalize && (
+            {/* Finalize button with exit framing - show only when not actively editing */}
+            {hasVideo && (showFinalize ?? canFinalize) && onFinalize && (
               <div className="flex flex-col items-end gap-0.5">
                 <button
                   onClick={onFinalize}

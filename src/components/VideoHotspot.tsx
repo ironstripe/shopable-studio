@@ -126,11 +126,9 @@ const VideoHotspot = ({
         "absolute select-none pointer-events-auto hotspot-draggable",
         isDragging ? "" : "transition-all duration-150",
         isSelected ? "hotspot-pulse" : "hotspot-pulse",
-        // Cursor: pointer in adding mode (to select), grab for edit mode, pointer for preview/dimmed
+        // Cursor: pointer when hovering hotspots (always selectable), grab only when selected in edit mode
         isDragging ? "cursor-grabbing opacity-80" 
-          : isAddingHotspot ? "cursor-pointer"
-          : isDimmed ? "cursor-pointer" 
-          : isEditMode ? "cursor-grab" 
+          : isSelected && isEditMode && !isDragging ? "cursor-grab"
           : "cursor-pointer",
         showPopIn && "animate-hotspot-pop-in",
         showSelectionHalo && "animate-selection-halo",
