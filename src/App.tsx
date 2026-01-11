@@ -117,7 +117,9 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
     const hashType = hashParams.get("type");
     const hashAccessToken = hashParams.get("access_token");
 
-    return searchType === "recovery" || hashType === "recovery" || Boolean(searchCode) || Boolean(hashAccessToken);
+    // IMPORTANT: OAuth callbacks also use `?code=`.
+    // Only treat it as password recovery when `type=recovery` (or hash-based recovery) is present.
+    return (searchType === "recovery" && Boolean(searchCode)) || hashType === "recovery" || Boolean(hashAccessToken);
   })();
 
   // Never redirect away during password recovery flow
@@ -153,7 +155,7 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
  * Includes PKCE code exchange for OAuth callbacks and timeout protection.
  */
 function CompleteProfileRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const { creator, loading: creatorLoading } = useCreator();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
 
@@ -189,6 +191,40 @@ function CompleteProfileRoute({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
+  // If timeout reached while still loading, show recovery panel (instead of bouncing to /auth)
+  if (loadingTimeout && (authLoading || creatorLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4 p-6 max-w-md">
+          <p className="text-muted-foreground">Sign-in is taking longer than expected.</p>
+          <div className="text-xs text-muted-foreground/70 bg-muted p-3 rounded font-mono text-left">
+            authLoading: {String(authLoading)}<br />
+            creatorLoading: {String(creatorLoading)}<br />
+            user: {user?.email ?? "none"}<br />
+            creator: {creator?.creator_handle ?? "none"}
+          </div>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+            >
+              Retry
+            </button>
+            <button
+              onClick={async () => {
+                await signOut();
+                window.location.href = "/auth";
+              }}
+              className="w-full px-4 py-2 bg-muted text-muted-foreground rounded hover:bg-muted/80"
+            >
+              Start Over
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

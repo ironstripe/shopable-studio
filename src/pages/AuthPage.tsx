@@ -36,7 +36,9 @@ export default function AuthPage() {
     const hashType = hashParams.get("type");
     const hashAccessToken = hashParams.get("access_token");
 
-    return searchType === "recovery" || hashType === "recovery" || Boolean(searchCode) || Boolean(hashAccessToken);
+    // IMPORTANT: OAuth callbacks also use `?code=`.
+    // Only treat it as password recovery when `type=recovery` (or hash-based recovery) is present.
+    return (searchType === "recovery" && Boolean(searchCode)) || hashType === "recovery" || Boolean(hashAccessToken);
   }, []);
 
   // If we landed here via a password reset link, route to the reset screen.
