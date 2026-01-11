@@ -1031,6 +1031,12 @@ const VideoPlayer = ({
               currentTime={currentTime}
               duration={videoRef.current?.duration || 0}
               onPlayPause={onPlayPause}
+              onSeek={(time) => {
+                if (videoRef.current) {
+                  videoRef.current.currentTime = time;
+                  setCurrentTime(time);
+                }
+              }}
             />
           )}
 
