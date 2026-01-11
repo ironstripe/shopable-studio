@@ -137,6 +137,7 @@ const VideoPlayer = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isScrubbingRef = useRef(false); // Track scrubbing to prevent event listener conflicts
+  const hasInitializedRef = useRef(false); // Track if initial load completed (prevents reset on subsequent canplay)
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
@@ -302,14 +303,18 @@ const VideoPlayer = ({
     const video = videoRef.current;
     if (video && videoSrc) {
       console.log('[VideoPlayer] Loading video source:', videoSrc.substring(0, 50));
+      // Reset initialization flag when video source changes
+      hasInitializedRef.current = false;
       video.load();
       
       // iOS Safari: wait for loadedmetadata event before allowing interaction
       const handleLoadedMetadata = () => {
         console.log('[VideoPlayer] Video metadata loaded successfully');
-        // Explicitly pause and seek to beginning
-        video.pause();
-        video.currentTime = 0;
+        // Only reset to 0 on initial load, not after seeking
+        if (!hasInitializedRef.current) {
+          video.pause();
+          video.currentTime = 0;
+        }
       };
       
       const handleError = (e: Event) => {
@@ -319,12 +324,16 @@ const VideoPlayer = ({
       
       const handleCanPlay = () => {
         console.log('[VideoPlayer] Video can play - marking as ready');
-        // Ensure video is paused at 0:00
-        video.pause();
-        if (video.currentTime !== 0) {
-          video.currentTime = 0;
+        // Only reset to 0:00 on first canplay after source load
+        // Subsequent canplay events (from seeking/buffering) should NOT reset position
+        if (!hasInitializedRef.current) {
+          video.pause();
+          if (video.currentTime !== 0) {
+            video.currentTime = 0;
+          }
+          hasInitializedRef.current = true;
         }
-        // Mark video as ready to display
+        // Always mark video as ready to display
         setIsVideoReady(true);
       };
       
@@ -1046,6 +1055,8 @@ const VideoPlayer = ({
               onPlayPause={onPlayPause}
               onScrubStart={() => {
                 isScrubbingRef.current = true;
+                // Pause video when scrubbing starts
+                videoRef.current?.pause();
               }}
               onSeek={(time) => {
                 // Throttled seek during scrubbing - update both video and UI
@@ -1055,9 +1066,10 @@ const VideoPlayer = ({
                 }
               }}
               onSeekEnd={(time) => {
-                // Final seek when scrubbing ends - ensure exact position
+                // Final seek when user releases - ensure we're at exact position and paused
                 if (videoRef.current) {
                   videoRef.current.currentTime = time;
+                  videoRef.current.pause(); // Keep paused at release position
                   setCurrentTime(time);
                 }
                 isScrubbingRef.current = false; // Resume event listening
