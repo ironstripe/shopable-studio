@@ -21,7 +21,7 @@ interface CreatorContextType {
 const CreatorContext = createContext<CreatorContextType | undefined>(undefined);
 
 export function CreatorProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [creator, setCreator] = useState<Creator | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,23 +33,33 @@ export function CreatorProvider({ children }: { children: React.ReactNode }) {
     }
 
     setLoading(true);
-    const { data, error } = await supabase
-      .from("creators")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase
+        .from("creators")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
-    if (error) {
-      console.error("Failed to fetch creator:", error);
+      if (error) {
+        console.error("Failed to fetch creator:", error);
+        setCreator(null);
+      } else {
+        setCreator(data);
+      }
+    } catch (err) {
+      console.error("Creator fetch exception:", err);
+      setCreator(null);
+    } finally {
+      setLoading(false);
     }
-    
-    setCreator(data);
-    setLoading(false);
   };
 
+  // Only fetch when auth has finished loading and user state is determined
   useEffect(() => {
-    fetchCreator();
-  }, [user]);
+    if (!authLoading) {
+      fetchCreator();
+    }
+  }, [user, authLoading]);
 
   return (
     <CreatorContext.Provider value={{ creator, loading, refetch: fetchCreator }}>

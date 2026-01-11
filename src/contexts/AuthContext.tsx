@@ -91,7 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/`,
+        // Redirect to complete-profile for new OAuth users (existing users will be redirected to home by route guard)
+        redirectTo: `${window.location.origin}/complete-profile`,
       },
     });
     return { error: error ? new Error(error.message) : null };
