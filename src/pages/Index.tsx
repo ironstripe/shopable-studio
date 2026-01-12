@@ -319,6 +319,44 @@ const Index = () => {
     fetchVideos();
   }, [fetchVideos]);
 
+  // Auto-restore last edited video on mount
+  useEffect(() => {
+    // Skip if already have a video loaded, still loading, or no videos
+    if (videoSrc || videosLoading || videos.length === 0) return;
+    
+    const lastVideoId = localStorage.getItem("shopable_last_video_id");
+    
+    if (lastVideoId) {
+      const lastVideo = videos.find(v => v.id === lastVideoId);
+      if (lastVideo && lastVideo.fileUrl) {
+        // Auto-select the last edited video (don't use handleSelectVideoFromGallery to avoid redundant localStorage write)
+        if (lastVideo.state === "ready_to_post" || lastVideo.state === "posted") {
+          navigate(`/ready/${lastVideo.id}`);
+          return;
+        }
+        setVideoSrc(lastVideo.fileUrl);
+        setCurrentVideoId(lastVideo.id);
+        setVideoTitle(lastVideo.title || t("header.untitled"));
+        setCurrentVideoRenderStatus(lastVideo.renderStatus || null);
+        setCurrentVideoRenderUpdatedAt(lastVideo.renderUpdatedAt || null);
+        return;
+      }
+    }
+    
+    // Fallback: Select newest video in "editing" or "draft" state
+    const editingVideo = videos.find(v => 
+      (v.state === "editing" || v.state === "draft") && v.fileUrl
+    );
+    if (editingVideo && editingVideo.fileUrl) {
+      localStorage.setItem("shopable_last_video_id", editingVideo.id);
+      setVideoSrc(editingVideo.fileUrl);
+      setCurrentVideoId(editingVideo.id);
+      setVideoTitle(editingVideo.title || t("header.untitled"));
+      setCurrentVideoRenderStatus(editingVideo.renderStatus || null);
+      setCurrentVideoRenderUpdatedAt(editingVideo.renderUpdatedAt || null);
+    }
+  }, [videos, videosLoading, videoSrc, navigate, t]);
+
   // Handle selecting a video from the gallery
   const handleSelectVideoFromGallery = (video: VideoDto) => {
     // STATE MACHINE GUARD: If video is already ready_to_post, redirect to exit flow
@@ -332,6 +370,9 @@ const Index = () => {
       setCurrentVideoId(video.id);
       setVideoTitle(video.title || t("header.untitled"));
       setShowVideoGallerySheet(false);
+      
+      // Persist selection to localStorage
+      localStorage.setItem("shopable_last_video_id", video.id);
       
       // Set render status from selected video
       setCurrentVideoRenderStatus(video.renderStatus || null);
@@ -391,6 +432,9 @@ const Index = () => {
     setVideoSrc(src);
     if (videoId) {
       setCurrentVideoId(videoId);
+      
+      // Persist selection to localStorage
+      localStorage.setItem("shopable_last_video_id", videoId);
       
       // Track video_created event for new uploads
       if (creator) {
@@ -851,6 +895,9 @@ const Index = () => {
   }, [selectProductSheetOpen, layoutBehaviorSheetOpen, newProductSheetOpen, videoCTASheetOpen]);
 
   const handleReplaceVideo = () => {
+    // Clear persisted video ID
+    localStorage.removeItem("shopable_last_video_id");
+    
     // Clear all video-related state
     setVideoSrc(null);
     setCurrentVideoId(null);
