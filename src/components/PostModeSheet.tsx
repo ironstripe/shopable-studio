@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Download, Copy, Image, Check, Link2 } from "lucide-react";
+import { Copy, Check, Link2, ExternalLink, Rocket } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { VideoCTA as VideoCTAType } from "@/types/video";
@@ -21,8 +21,9 @@ interface PostModeSheetProps {
   videoCTA?: VideoCTAType;
   caption?: string;
   hotspotCount: number;
-  onDownloadVideo?: () => void;
-  onSaveToGallery?: () => void;
+  onPublish?: () => void;
+  isPublishing?: boolean;
+  isPublished?: boolean;
   creatorKuerzel?: string;
   videoSlug?: string;
 }
@@ -34,11 +35,10 @@ Tap the link to explore the products from this video.
 
 /**
  * Post mode bottom sheet.
- * Shows video preview summary and actions:
- * - Download video
- * - Save to gallery
+ * Shows video preview summary and publishing actions:
+ * - Publish to landing page
  * - Copy caption
- * - Copy shop link
+ * - Copy/open shop link
  */
 const PostModeSheet = ({
   open,
@@ -49,8 +49,9 @@ const PostModeSheet = ({
   videoCTA,
   caption: initialCaption,
   hotspotCount,
-  onDownloadVideo,
-  onSaveToGallery,
+  onPublish,
+  isPublishing = false,
+  isPublished = false,
   creatorKuerzel,
   videoSlug,
 }: PostModeSheetProps) => {
@@ -78,6 +79,7 @@ const PostModeSheet = ({
     : creatorKuerzel
       ? `shop.one/${creatorKuerzel}`
       : `shopable.link/${videoId}`;
+  const fullShopLink = `https://${shopLink}`;
 
   const handleCopyCaption = async () => {
     if (!localCaption.trim()) {
@@ -97,7 +99,7 @@ const PostModeSheet = ({
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(shopLink);
+      await navigator.clipboard.writeText(fullShopLink);
       setCopiedLink(true);
       toast.success("Link copied!");
       setTimeout(() => setCopiedLink(false), 2000);
@@ -106,19 +108,15 @@ const PostModeSheet = ({
     }
   };
 
-  const handleDownload = () => {
-    if (onDownloadVideo) {
-      onDownloadVideo();
-    } else {
-      toast.info("Download feature coming soon");
-    }
+  const handleOpenLandingPage = () => {
+    window.open(fullShopLink, "_blank", "noopener,noreferrer");
   };
 
-  const handleSaveToGallery = () => {
-    if (onSaveToGallery) {
-      onSaveToGallery();
+  const handlePublish = () => {
+    if (onPublish) {
+      onPublish();
     } else {
-      toast.info("Save to gallery feature coming soon");
+      toast.info("Publishing...");
     }
   };
 
@@ -127,13 +125,13 @@ const PostModeSheet = ({
       <SheetContent side="bottom" className="h-auto max-h-[90vh] rounded-t-[20px] px-6 py-5 overflow-y-auto">
         <SheetHeader className="pb-4">
           <SheetTitle className="text-lg font-semibold text-center">
-            🎉 Ready to Post
+            {isPublished ? "🎉 Published" : "🚀 Ready to publish"}
           </SheetTitle>
         </SheetHeader>
 
         <div className="space-y-5">
           {/* Video Preview Summary */}
-          <div className="bg-neutral-50 rounded-xl p-4 space-y-3">
+          <div className="bg-muted/50 rounded-xl p-4 space-y-3">
             <div className="flex items-center gap-3">
               {videoSrc && (
                 <div className="w-16 h-28 bg-black rounded-lg overflow-hidden flex-shrink-0">
@@ -159,84 +157,40 @@ const PostModeSheet = ({
             </div>
           </div>
 
-          {/* Caption Section - Editable */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Caption</label>
-            <Textarea
-              value={localCaption}
-              onChange={(e) => setLocalCaption(e.target.value)}
-              placeholder="Write your caption..."
-              className="min-h-[100px] bg-neutral-50 border-neutral-200 rounded-xl text-sm resize-none"
-            />
-            <p className="text-xs text-muted-foreground">
-              Edit the caption above, then copy to your post
-            </p>
-          </div>
+          {/* Primary CTA - Publish Button (only show if not published) */}
+          {!isPublished && (
+            <div className="space-y-2">
+              <Button
+                onClick={handlePublish}
+                disabled={isPublishing}
+                className="w-full h-14 rounded-xl font-semibold text-base"
+              >
+                <Rocket className="w-5 h-5 mr-2" />
+                {isPublishing ? "Publishing..." : "Publish to landing page"}
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                Your Shop Link will go live instantly.
+              </p>
+            </div>
+          )}
 
           {/* Shop Link Section */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Shop Link</label>
-            <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-3 flex items-center gap-2">
+            <label className="text-sm font-medium text-foreground">Your Shop Link</label>
+            <div className="bg-muted/50 border border-border/50 rounded-xl p-3 flex items-center gap-2">
               <Link2 className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               <span className="text-sm text-foreground font-mono truncate flex-1">
                 {shopLink}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Paste this link into your bio or post description
-            </p>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="space-y-3 pt-2">
-            {/* Primary: Download */}
-            <Button
-              onClick={handleDownload}
-              className="w-full h-12 rounded-xl font-medium"
-              variant="default"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Download Video
-            </Button>
-
-            {/* Secondary row: Save to Gallery */}
-            <Button
-              onClick={handleSaveToGallery}
-              variant="outline"
-              className="w-full h-12 rounded-xl font-medium"
-            >
-              <Image className="w-4 h-4 mr-2" />
-              Save to Gallery
-            </Button>
-
-            {/* Copy buttons row */}
-            <div className="flex gap-3">
-              <Button
-                onClick={handleCopyCaption}
-                variant="outline"
-                className={cn(
-                  "flex-1 h-12 rounded-xl font-medium transition-colors",
-                  copiedCaption && "bg-green-50 border-green-200 text-green-700"
-                )}
-              >
-                {copiedCaption ? (
-                  <>
-                    <Check className="w-4 h-4 mr-2" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Caption
-                  </>
-                )}
-              </Button>
-
+            
+            {/* Link Actions */}
+            <div className="flex gap-2">
               <Button
                 onClick={handleCopyLink}
                 variant="outline"
                 className={cn(
-                  "flex-1 h-12 rounded-xl font-medium transition-colors",
+                  "flex-1 h-11 rounded-xl font-medium transition-colors",
                   copiedLink && "bg-green-50 border-green-200 text-green-700"
                 )}
               >
@@ -247,12 +201,55 @@ const PostModeSheet = ({
                   </>
                 ) : (
                   <>
-                    <Link2 className="w-4 h-4 mr-2" />
-                    Copy Link
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy link
                   </>
                 )}
               </Button>
+              <Button
+                onClick={handleOpenLandingPage}
+                variant="outline"
+                className="flex-1 h-11 rounded-xl font-medium"
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Open landing page
+              </Button>
             </div>
+          </div>
+
+          {/* Caption Section */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Caption</label>
+            <Textarea
+              value={localCaption}
+              onChange={(e) => setLocalCaption(e.target.value)}
+              placeholder="Write your caption..."
+              className="min-h-[100px] bg-muted/50 border-border/50 rounded-xl text-sm resize-none"
+            />
+            <p className="text-xs text-muted-foreground">
+              Copy this caption into your social post.
+            </p>
+            <Button
+              onClick={handleCopyCaption}
+              variant="outline"
+              className={cn(
+                "w-full h-11 rounded-xl font-medium transition-colors",
+                copiedCaption && "bg-green-50 border-green-200 text-green-700"
+              )}
+              disabled={!localCaption.trim()}
+            >
+              {copiedCaption ? (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy caption
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </SheetContent>
