@@ -2,11 +2,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 type EventName = 
   | "video_created"
+  | "video_published"
   | "hotspots_completed"
   | "slug_confirmed"
   | "caption_generated"
   | "caption_copied"
   | "bio_link_copied"
+  | "shop_link_copied"
+  | "landing_page_opened"
   | "shortlink_clicked";
 
 interface TrackEventParams {
