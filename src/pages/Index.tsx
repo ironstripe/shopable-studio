@@ -127,7 +127,13 @@ const Index = () => {
   const [currentVideoRenderUpdatedAt, setCurrentVideoRenderUpdatedAt] = useState<string | null>(null);
   
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
-  const [editorMode, setEditorMode] = useState<EditorMode>("edit");
+  const [editorMode, setEditorMode] = useState<EditorMode>(() => {
+    const saved = localStorage.getItem("shopable_editor_mode");
+    if (saved && ["edit", "preview", "post"].includes(saved)) {
+      return saved as EditorMode;
+    }
+    return "edit";
+  });
   const [videoTitle, setVideoTitle] = useState<string>("Untitled Video");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [shouldAutoOpenProductPanel, setShouldAutoOpenProductPanel] = useState(false);
@@ -872,6 +878,7 @@ const Index = () => {
       setPostModeSheetOpen(true);
     }
     
+    localStorage.setItem("shopable_editor_mode", newMode);
     setEditorMode(newMode);
   };
 
@@ -964,6 +971,7 @@ const Index = () => {
       position: { x: 0.85, y: 0.85 },
     });
     setVideoTitle(t("header.untitled"));
+    localStorage.removeItem("shopable_editor_mode");
     setEditorMode("edit");
     setShouldAutoOpenProductPanel(false);
     setShowReplaceVideoDialog(false);
