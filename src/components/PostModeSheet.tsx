@@ -72,12 +72,12 @@ const PostModeSheet = ({
       .slice(0, 50);
   };
 
-  // Tiny URL format: shop.one/{kuerzel}/{slug}
+  // Tiny URL format: shopable.one/{kuerzel}/{slug}
   const effectiveSlug = videoSlug || generateSlugFromTitle(videoTitle);
   const shopLink = creatorKuerzel && effectiveSlug
-    ? `shop.one/${creatorKuerzel}/${effectiveSlug}`
+    ? `shopable.one/${creatorKuerzel}/${effectiveSlug}`
     : creatorKuerzel
-      ? `shop.one/${creatorKuerzel}`
+      ? `shopable.one/${creatorKuerzel}`
       : `shopable.link/${videoId}`;
   const fullShopLink = `https://${shopLink}`;
 

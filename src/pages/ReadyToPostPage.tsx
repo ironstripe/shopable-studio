@@ -79,7 +79,7 @@ export default function ReadyToPostPage() {
     );
   }
 
-  const shopLink = `shop.one/${creator.creator_kuerzel}/${video.custom_slug}`;
+  const shopLink = `shopable.one/${creator.creator_kuerzel}/${video.custom_slug}`;
   const fullShopLink = `https://${shopLink}`;
   const isPublished = video.state === "posted";
 

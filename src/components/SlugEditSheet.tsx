@@ -115,7 +115,7 @@ export default function SlugEditSheet({
 
     setSaving(true);
 
-    const videoUrl = `shop.one/${creator.creator_kuerzel}/${slug}`;
+    const videoUrl = `shopable.one/${creator.creator_kuerzel}/${slug}`;
     const productTitle = productName || videoTitle || "my latest pick";
     
     // Format price for display
@@ -233,7 +233,7 @@ ${hashtags}`;
 
   if (!creator) return null;
 
-  const previewUrl = `shop.one/${creator.creator_kuerzel}/${slug || "..."}`;
+  const previewUrl = `shopable.one/${creator.creator_kuerzel}/${slug || "..."}`;
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
