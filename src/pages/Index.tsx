@@ -141,6 +141,48 @@ const Index = () => {
   const [layoutBehaviorSheetOpen, setLayoutBehaviorSheetOpen] = useState(false);
   const [layoutEditingHotspotId, setLayoutEditingHotspotId] = useState<string | null>(null);
   const [pendingPanelHotspotId, setPendingPanelHotspotId] = useState<string | null>(null);
+
+  // Persist sheet state for tab-switch recovery
+  useEffect(() => {
+    if (selectProductSheetOpen && productAssignmentHotspotId) {
+      localStorage.setItem("shopable_open_sheet", JSON.stringify({
+        type: "selectProduct",
+        hotspotId: productAssignmentHotspotId
+      }));
+    } else if (newProductSheetOpen) {
+      localStorage.setItem("shopable_open_sheet", JSON.stringify({
+        type: "newProduct"
+      }));
+    } else {
+      localStorage.removeItem("shopable_open_sheet");
+    }
+  }, [selectProductSheetOpen, productAssignmentHotspotId, newProductSheetOpen]);
+
+  // Restore sheet state on mount (after video loads)
+  useEffect(() => {
+    if (!videoSrc || hotspotsLoading) return;
+    
+    const savedSheet = localStorage.getItem("shopable_open_sheet");
+    if (savedSheet) {
+      try {
+        const { type, hotspotId } = JSON.parse(savedSheet);
+        if (type === "selectProduct" && hotspotId) {
+          // Verify hotspot still exists
+          const hotspotExists = hotspots.some(h => h.id === hotspotId);
+          if (hotspotExists) {
+            setProductAssignmentHotspotId(hotspotId);
+            setSelectProductSheetOpen(true);
+          } else {
+            localStorage.removeItem("shopable_open_sheet");
+          }
+        } else if (type === "newProduct") {
+          setNewProductSheetOpen(true);
+        }
+      } catch {
+        localStorage.removeItem("shopable_open_sheet");
+      }
+    }
+  }, [videoSrc, hotspotsLoading, hotspots]);
   const [isDeferringToolbar, setIsDeferringToolbar] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
