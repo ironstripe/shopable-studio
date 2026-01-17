@@ -11,3 +11,7 @@ verify_jwt = false
 [functions.shortlink-redirect]
 enabled = true
 verify_jwt = false
+
+[functions.extract-product-data]
+enabled = true
+verify_jwt = false

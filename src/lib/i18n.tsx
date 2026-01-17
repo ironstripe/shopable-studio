@@ -119,6 +119,11 @@ const translations: Record<Locale, Record<string, string>> = {
     "product.created": "Product created",
     "product.updated": "Product updated",
     "product.removed": "Product removed from hotspot",
+    "product.fetchFromUrl": "Fetch",
+    "product.fetchingData": "Loading product data...",
+    "product.fetchSuccess": "Product data loaded!",
+    "product.fetchError": "Could not load product data",
+    "product.urlHintAuto": "Paste a product link to auto-fill details",
 
     // Families
     "family.ecommerce.name": "E-Commerce",
@@ -424,6 +429,11 @@ const translations: Record<Locale, Record<string, string>> = {
     "product.created": "Produkt erstellt",
     "product.updated": "Produkt aktualisiert",
     "product.removed": "Produkt vom Hotspot entfernt",
+    "product.fetchFromUrl": "Abrufen",
+    "product.fetchingData": "Lade Produktdaten...",
+    "product.fetchSuccess": "Produktdaten geladen!",
+    "product.fetchError": "Produktdaten konnten nicht geladen werden",
+    "product.urlHintAuto": "Füge einen Produkt-Link ein, um Daten automatisch auszufüllen",
 
     // Families
     "family.ecommerce.name": "E-Commerce",

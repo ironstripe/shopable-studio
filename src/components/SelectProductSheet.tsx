@@ -2,12 +2,14 @@ import { useState, useEffect, useRef } from "react";
 import { Product, ProductCategory } from "@/types/video";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Plus, Check, Package, ImageIcon, ArrowLeft, ChevronDown } from "lucide-react";
+import { Search, Plus, Check, Package, ImageIcon, ArrowLeft, ChevronDown, Wand2, Loader2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocale } from "@/lib/i18n";
 import { SUPPORTED_CURRENCIES, DEFAULT_CURRENCY, CURRENCY_SYMBOLS, normalizePrice, type CurrencyCode } from "@/utils/price-utils";
+import { extractProductData } from "@/lib/api/product-extract";
+import { toast } from "sonner";
 
 const PRODUCT_CATEGORIES: { value: ProductCategory; labelEn: string; labelDe: string; emoji: string }[] = [
   { value: "fashion", labelEn: "Fashion", labelDe: "Mode", emoji: "👗" },
@@ -63,6 +65,8 @@ const SelectProductSheet = ({
     category: "other" as ProductCategory,
   });
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [isFetching, setIsFetching] = useState(false);
+  const [fetchSuccess, setFetchSuccess] = useState(false);
 
   // Draft persistence key based on hotspot/product context
   const draftKey = `shopable_product_draft_${assignedProductId || "new"}`;
@@ -192,6 +196,55 @@ const SelectProductSheet = ({
     }, 150);
   };
 
+  const isValidUrl = (url: string): boolean => {
+    if (!url.trim()) return false;
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+      return false;
+    }
+  };
+
+  // Handle URL fetch for product data extraction
+  const handleFetchProductData = async () => {
+    if (!isValidUrl(editFormData.link) || isFetching) return;
+    
+    setIsFetching(true);
+    setFetchSuccess(false);
+    
+    try {
+      const result = await extractProductData(editFormData.link);
+      
+      if (result.success && result.data) {
+        const { title, description, price, currency, imageUrl } = result.data;
+        
+        // Auto-fill form fields with extracted data (don't override existing values)
+        setEditFormData(prev => ({
+          ...prev,
+          title: prev.title || title || "",
+          description: prev.description || description || "",
+          price: prev.price || (price ? price.replace(/[^\d.,]/g, "") : ""),
+          currency: prev.currency !== DEFAULT_CURRENCY ? prev.currency : (currency as CurrencyCode) || prev.currency,
+          thumbnail: prev.thumbnail || imageUrl || "",
+        }));
+        
+        setFetchSuccess(true);
+        toast.success(t("product.fetchSuccess"));
+        
+        // Reset success indicator after 3 seconds
+        setTimeout(() => setFetchSuccess(false), 3000);
+      } else {
+        toast.error(t("product.fetchError"));
+      }
+    } catch (error) {
+      console.error("Failed to fetch product data:", error);
+      toast.error(t("product.fetchError"));
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
   const hasProducts = productList.length > 0;
   const hasSearchResults = filteredProducts.length > 0;
   const canSave = editFormData.title.trim() && editFormData.link.trim();
@@ -293,6 +346,46 @@ const SelectProductSheet = ({
           {viewMode === "edit" && assignedProductId && (
             <div className="h-full overflow-y-auto overscroll-contain">
               <div className="px-4 py-4 space-y-4 pb-32">
+                {/* Product URL with Fetch Button - at top for auto-fill workflow */}
+                <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-3 border border-primary/20">
+                  <label className="text-[12px] font-medium text-[#666666] mb-1.5 block">
+                    {t("product.field.url")} <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={editFormData.link}
+                      onChange={(e) => setEditFormData({...editFormData, link: e.target.value})}
+                      placeholder="https://shop.example.com/product..."
+                      className="h-10 text-[14px] bg-white border-[#E0E0E0] text-[#111111]"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleFetchProductData}
+                      disabled={!isValidUrl(editFormData.link) || isFetching}
+                      size="sm"
+                      className={cn(
+                        "h-10 px-3 min-w-[90px] transition-all",
+                        fetchSuccess && "bg-green-500 hover:bg-green-600"
+                      )}
+                    >
+                      {isFetching ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : fetchSuccess ? (
+                        <CheckCircle2 className="w-4 h-4" />
+                      ) : (
+                        <>
+                          <Wand2 className="w-3.5 h-3.5 mr-1" />
+                          {t("product.fetchFromUrl")}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-primary/80 mt-1.5 flex items-center gap-1">
+                    <Wand2 className="w-3 h-3" />
+                    {t("product.urlHintAuto")}
+                  </p>
+                </div>
+
                 {/* Thumbnail + Image URL */}
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-[#F5F5F5] overflow-hidden border border-[#E5E5E5]">
@@ -394,18 +487,7 @@ const SelectProductSheet = ({
                   />
                 </div>
 
-                {/* Product URL */}
-                <div>
-                  <label className="text-[12px] font-medium text-[#666666] mb-1.5 block">
-                    {t("product.field.url")} <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    value={editFormData.link}
-                    onChange={(e) => setEditFormData({...editFormData, link: e.target.value})}
-                    placeholder="https://…"
-                    className="h-11 text-[15px] bg-white border-[#E0E0E0] text-[#111111]"
-                  />
-                </div>
+                {/* Product URL - now at top with fetch button */}
 
                 {/* Category */}
                 <div>

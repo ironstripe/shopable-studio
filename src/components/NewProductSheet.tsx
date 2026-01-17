@@ -4,10 +4,12 @@ import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Camera, ExternalLink, ChevronDown } from "lucide-react";
+import { Camera, ExternalLink, ChevronDown, Wand2, Loader2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/lib/i18n";
 import { SUPPORTED_CURRENCIES, DEFAULT_CURRENCY, CURRENCY_SYMBOLS, normalizePrice, type CurrencyCode } from "@/utils/price-utils";
+import { extractProductData } from "@/lib/api/product-extract";
+import { toast } from "sonner";
 
 interface NewProductSheetProps {
   open: boolean;
@@ -44,6 +46,8 @@ const NewProductSheet = ({
   const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
   const [nameTouched, setNameTouched] = useState(false);
   const [urlTouched, setUrlTouched] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const [fetchSuccess, setFetchSuccess] = useState(false);
 
   const isEditMode = !!editingProduct;
   
@@ -153,6 +157,49 @@ const NewProductSheet = ({
     }
   };
 
+  // Handle URL fetch for product data extraction
+  const handleFetchProductData = async () => {
+    if (!isValidUrl(formData.link) || isFetching) return;
+    
+    setIsFetching(true);
+    setFetchSuccess(false);
+    
+    try {
+      const result = await extractProductData(formData.link);
+      
+      if (result.success && result.data) {
+        const { title, description, price, currency, imageUrl } = result.data;
+        
+        // Auto-fill form fields with extracted data (don't override existing values)
+        setFormData(prev => ({
+          ...prev,
+          title: prev.title || title || "",
+          description: prev.description || description || "",
+          price: prev.price || (price ? price.replace(/[^\d.,]/g, "") : ""),
+          currency: prev.currency !== DEFAULT_CURRENCY ? prev.currency : (currency as CurrencyCode) || prev.currency,
+          thumbnail: prev.thumbnail || imageUrl || "",
+        }));
+        
+        if (imageUrl && !thumbnailPreview) {
+          setThumbnailPreview(imageUrl);
+        }
+        
+        setFetchSuccess(true);
+        toast.success(t("product.fetchSuccess"));
+        
+        // Reset success indicator after 3 seconds
+        setTimeout(() => setFetchSuccess(false), 3000);
+      } else {
+        toast.error(t("product.fetchError"));
+      }
+    } catch (error) {
+      console.error("Failed to fetch product data:", error);
+      toast.error(t("product.fetchError"));
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
   const handleSave = () => {
     if (!isFormValid) return;
 
@@ -246,6 +293,59 @@ const NewProductSheet = ({
         <ScrollArea className="flex-1">
           <div className="px-4 py-5 space-y-5">
             
+            {/* 0) PRODUCT URL with Fetch Button - Moved to top for auto-fill workflow */}
+            <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-2xl p-4 border border-primary/20">
+              <label className="text-[13px] font-medium text-[#666666] mb-1.5 block">
+                {t("product.field.url")} <span className="text-red-500">*</span>
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  value={formData.link}
+                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                  onBlur={() => setUrlTouched(true)}
+                  placeholder="https://shop.example.com/product..."
+                  className={cn(
+                    "h-12 text-[15px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl",
+                    "focus:border-primary focus:ring-2 focus:ring-primary/20",
+                    showUrlError && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                  )}
+                />
+                <Button
+                  type="button"
+                  onClick={handleFetchProductData}
+                  disabled={!isValidUrl(formData.link) || isFetching}
+                  className={cn(
+                    "h-12 px-4 rounded-xl min-w-[100px] transition-all",
+                    fetchSuccess && "bg-green-500 hover:bg-green-600"
+                  )}
+                >
+                  {isFetching ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : fetchSuccess ? (
+                    <CheckCircle2 className="w-4 h-4" />
+                  ) : (
+                    <>
+                      <Wand2 className="w-4 h-4 mr-1.5" />
+                      {t("product.fetchFromUrl")}
+                    </>
+                  )}
+                </Button>
+              </div>
+              <p className="text-[12px] text-primary/80 mt-2 flex items-center gap-1.5">
+                <Wand2 className="w-3 h-3" />
+                {t("product.urlHintAuto")}
+              </p>
+              {showUrlError && (
+                <p className="text-[12px] text-red-500 mt-1">{t("product.field.urlInvalid")}</p>
+              )}
+              {domain && !showUrlError && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-[12px] text-[#666666]">
+                  <ExternalLink className="w-3 h-3" />
+                  <span>{domain}</span>
+                </div>
+              )}
+            </div>
+
             {/* A) HERO IMAGE UPLOAD - Premium light design */}
             <div className="w-full">
               <input
@@ -395,35 +495,7 @@ const NewProductSheet = ({
               />
             </div>
 
-            {/* E) PRODUCT URL (required) */}
-            <div>
-              <label className="text-[13px] font-medium text-[#666666] mb-1.5 block">
-                {t("product.field.url")} <span className="text-red-500">*</span>
-              </label>
-              <Input
-                value={formData.link}
-                onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                onBlur={() => setUrlTouched(true)}
-                placeholder="https://…"
-                className={cn(
-                  "h-12 text-[15px] bg-white border-[#E0E0E0] text-[#111111] placeholder:text-[#AAAAAA] rounded-xl",
-                  "focus:border-primary focus:ring-2 focus:ring-primary/20",
-                  showUrlError && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                )}
-              />
-              <p className="text-[12px] text-[#888888] mt-1.5">
-                {t("product.field.urlHint")}
-              </p>
-              {showUrlError && (
-                <p className="text-[12px] text-red-500 mt-1">{t("product.field.urlInvalid")}</p>
-              )}
-              {domain && !showUrlError && (
-                <div className="flex items-center gap-1.5 mt-1.5 text-[12px] text-[#666666]">
-                  <ExternalLink className="w-3 h-3" />
-                  <span>{domain}</span>
-                </div>
-              )}
-            </div>
+            {/* E) PRODUCT URL - now just a simple display since it's at the top */}
 
             {/* F) BUTTON LABEL (optional) */}
             <div>
