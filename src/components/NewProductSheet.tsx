@@ -46,10 +46,24 @@ const NewProductSheet = ({
   const [urlTouched, setUrlTouched] = useState(false);
 
   const isEditMode = !!editingProduct;
+  
+  // Draft persistence key
+  const draftKey = `shopable_new_product_draft_${editingProduct?.id || "new"}`;
 
-  // Populate form when editing
+  // Populate form when editing - with draft restoration
   useEffect(() => {
     if (editingProduct) {
+      // Check for saved draft first
+      const savedDraft = localStorage.getItem(draftKey);
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          setFormData(draft);
+          setThumbnailPreview(draft.thumbnail || "");
+          return;
+        } catch {}
+      }
+      
       setFormData({
         title: editingProduct.title || "",
         description: editingProduct.description || "",
@@ -61,10 +75,27 @@ const NewProductSheet = ({
         promoCode: editingProduct.promoCode || "",
       });
       setThumbnailPreview(editingProduct.thumbnail || "");
+    } else {
+      // For new product, check for draft
+      const savedDraft = localStorage.getItem(draftKey);
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          setFormData(draft);
+          setThumbnailPreview(draft.thumbnail || "");
+        } catch {}
+      }
     }
-  }, [editingProduct]);
+  }, [editingProduct, draftKey]);
 
-  const resetForm = () => {
+  // Persist form data to localStorage on every change (while sheet is open)
+  useEffect(() => {
+    if (open) {
+      localStorage.setItem(draftKey, JSON.stringify(formData));
+    }
+  }, [formData, open, draftKey]);
+
+  const resetForm = (clearDraft = false) => {
     setFormData({
       title: "",
       description: "",
@@ -78,10 +109,16 @@ const NewProductSheet = ({
     setThumbnailPreview("");
     setNameTouched(false);
     setUrlTouched(false);
+    
+    // Only clear draft when explicitly requested (after save)
+    if (clearDraft) {
+      localStorage.removeItem(draftKey);
+    }
   };
 
   const handleClose = () => {
-    resetForm();
+    // Don't clear draft on close - preserve for next open
+    resetForm(false);
     onOpenChange(false);
   };
 
@@ -146,7 +183,12 @@ const NewProductSheet = ({
       // Pass currency separately for hotspot assignment
       onProductCreated?.(newId, { ...productData, currency: formData.currency } as any);
     }
-    handleClose();
+    
+    // Clear draft after successful save
+    localStorage.removeItem(draftKey);
+    
+    resetForm(true);
+    onOpenChange(false);
   };
 
   const handleDelete = () => {

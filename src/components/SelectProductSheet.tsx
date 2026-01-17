@@ -64,26 +64,54 @@ const SelectProductSheet = ({
   });
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Determine initial mode when sheet opens
+  // Draft persistence key based on hotspot/product context
+  const draftKey = `shopable_product_draft_${assignedProductId || "new"}`;
+
+  // Determine initial mode when sheet opens - with draft restoration
   useEffect(() => {
     if (open) {
       setSearchQuery("");
+      
+      // Check for saved draft first
+      const savedDraft = localStorage.getItem(draftKey);
       
       if (assignedProductId && products[assignedProductId]) {
         // Has assigned product - start in edit mode
         const product = products[assignedProductId];
         setViewMode("edit");
-        setEditFormData({
-          title: product.title || "",
-          description: product.description || "",
-          link: product.link || "",
-          ctaLabel: product.ctaLabel || "Shop Now",
-          price: product.price || "",
-          currency: ((product as any).currency as CurrencyCode) || DEFAULT_CURRENCY,
-          thumbnail: product.thumbnail || "",
-          promoCode: product.promoCode || "",
-          category: product.category || "other",
-        });
+        
+        // Restore draft if exists, otherwise use product data
+        if (savedDraft) {
+          try {
+            const draft = JSON.parse(savedDraft);
+            setEditFormData(draft);
+          } catch {
+            // Fallback to product data
+            setEditFormData({
+              title: product.title || "",
+              description: product.description || "",
+              link: product.link || "",
+              ctaLabel: product.ctaLabel || "Shop Now",
+              price: product.price || "",
+              currency: ((product as any).currency as CurrencyCode) || DEFAULT_CURRENCY,
+              thumbnail: product.thumbnail || "",
+              promoCode: product.promoCode || "",
+              category: product.category || "other",
+            });
+          }
+        } else {
+          setEditFormData({
+            title: product.title || "",
+            description: product.description || "",
+            link: product.link || "",
+            ctaLabel: product.ctaLabel || "Shop Now",
+            price: product.price || "",
+            currency: ((product as any).currency as CurrencyCode) || DEFAULT_CURRENCY,
+            thumbnail: product.thumbnail || "",
+            promoCode: product.promoCode || "",
+            category: product.category || "other",
+          });
+        }
       } else {
         // No assigned product - start in select mode
         setViewMode("select");
@@ -93,7 +121,14 @@ const SelectProductSheet = ({
         }, 150);
       }
     }
-  }, [open, assignedProductId, products]);
+  }, [open, assignedProductId, products, draftKey]);
+
+  // Persist edit form data to localStorage on every change (while sheet is open in edit mode)
+  useEffect(() => {
+    if (open && viewMode === "edit") {
+      localStorage.setItem(draftKey, JSON.stringify(editFormData));
+    }
+  }, [editFormData, open, viewMode, draftKey]);
 
   const productList = Object.values(products);
   const filteredProducts = productList.filter((p) =>
@@ -135,6 +170,10 @@ const SelectProductSheet = ({
     };
     
     onUpdateProduct(updatedProduct as Product);
+    
+    // Clear draft after successful save
+    localStorage.removeItem(draftKey);
+    
     onOpenChange(false);
   };
 
