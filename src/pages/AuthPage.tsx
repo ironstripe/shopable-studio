@@ -319,7 +319,7 @@ export default function AuthPage() {
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Your unique URL: shop.one/{creatorHandle || "yourname"}
+                    Your unique URL: shopable.one/{creatorHandle || "yourname"}
                   </p>
                 </div>
 
