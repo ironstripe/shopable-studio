@@ -178,6 +178,205 @@ export type Database = {
           },
         ]
       }
+      partner_api_keys: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          partner_id: string
+          scopes: string[]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          partner_id: string
+          scopes?: string[]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          partner_id?: string
+          scopes?: string[]
+        }
+        Relationships: []
+      }
+      partner_hotspots: {
+        Row: {
+          created_at: string
+          id: string
+          is_draft: boolean
+          partner_id: string
+          payload: Json
+          t_end: number
+          t_start: number
+          type: string
+          updated_at: string
+          video_id: string
+          x: number
+          y: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_draft?: boolean
+          partner_id: string
+          payload?: Json
+          t_end: number
+          t_start: number
+          type?: string
+          updated_at?: string
+          video_id: string
+          x: number
+          y: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_draft?: boolean
+          partner_id?: string
+          payload?: Json
+          t_end?: number
+          t_start?: number
+          type?: string
+          updated_at?: string
+          video_id?: string
+          x?: number
+          y?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_hotspots_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "partner_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_idempotency_keys: {
+        Row: {
+          created_at: string
+          endpoint: string
+          expires_at: string
+          id: string
+          idempotency_key: string
+          partner_id: string
+          response_body: Json
+          response_status: number
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          expires_at?: string
+          id?: string
+          idempotency_key: string
+          partner_id: string
+          response_body: Json
+          response_status: number
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          expires_at?: string
+          id?: string
+          idempotency_key?: string
+          partner_id?: string
+          response_body?: Json
+          response_status?: number
+        }
+        Relationships: []
+      }
+      partner_published_revisions: {
+        Row: {
+          created_at: string
+          id: string
+          manifest_json: Json
+          partner_id: string
+          public_url: string
+          state: string
+          tiny_url: string | null
+          version: number
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          manifest_json: Json
+          partner_id: string
+          public_url: string
+          state?: string
+          tiny_url?: string | null
+          version: number
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          manifest_json?: Json
+          partner_id?: string
+          public_url?: string
+          state?: string
+          tiny_url?: string | null
+          version?: number
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_published_revisions_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "partner_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_videos: {
+        Row: {
+          created_at: string
+          external_id: string | null
+          external_url: string
+          id: string
+          partner_id: string
+          source: string
+          status: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          external_id?: string | null
+          external_url: string
+          id?: string
+          partner_id: string
+          source?: string
+          status?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          external_id?: string | null
+          external_url?: string
+          id?: string
+          partner_id?: string
+          source?: string
+          status?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       videos: {
         Row: {
           caption: string | null
