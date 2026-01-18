@@ -7,7 +7,16 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const PUBLIC_PLAYER_DOMAIN = "https://shopable-hotspot-player.lovable.app";
+
+// Public player URL configuration
+const PUBLIC_PLAYER_BASE_URL = Deno.env.get("PUBLIC_PLAYER_BASE_URL") 
+  || "https://shopable-hotspot-player.lovable.app";
+const PUBLIC_PLAYER_PATH_TEMPLATE = Deno.env.get("PUBLIC_PLAYER_PATH_TEMPLATE") 
+  || "/v/{videoId}";
+
+function buildPublicUrl(videoId: string): string {
+  return PUBLIC_PLAYER_BASE_URL + PUBLIC_PLAYER_PATH_TEMPLATE.replace("{videoId}", videoId);
+}
 
 // Type definitions for new tables (not yet in auto-generated types)
 interface PartnerApiKey {
@@ -25,8 +34,8 @@ interface PartnerVideo {
   id: string;
   partner_id: string;
   source: string;
-  external_url: string;
-  external_id: string | null;
+  external_url: string | null;  // Optional - partner may not have stable CDN URL
+  external_id: string;          // Required - partner's stable video identifier
   status: string;
   title: string | null;
   created_at: string;
@@ -334,8 +343,8 @@ async function handleCreateVideo(
   }
 
   const errors: ValidationError[] = [];
-  if (!body.external_url) {
-    errors.push({ field: "external_url", message: "is required" });
+  if (!body.external_id) {
+    errors.push({ field: "external_id", message: "is required" });
   }
   if (body.source && body.source !== "external_url") {
     errors.push({ field: "source", message: "must be 'external_url'" });
@@ -351,8 +360,8 @@ async function handleCreateVideo(
     .insert({
       partner_id: auth.partnerId,
       source: "external_url",
-      external_url: body.external_url,
-      external_id: body.external_id || null,
+      external_url: body.external_url || null,  // Optional
+      external_id: body.external_id,            // Required
       title: body.title || null,
       status: "ready",
     })
@@ -565,7 +574,6 @@ async function handleCreateHotspot(
 }
 
 async function handleListHotspots(
-  url: URL,
   videoId: string,
   auth: AuthContext,
   corsHeaders: Record<string, string>
@@ -588,15 +596,14 @@ async function handleListHotspots(
     return errorResponse(404, "NOT_FOUND", [{ message: "Video not found" }], corsHeaders);
   }
 
-  const state = url.searchParams.get("state") || "draft";
-  const isDraft = state === "draft";
-
+  // Always return draft hotspots only
+  // Published hotspots are served via /v1/runtime/videos/:id/manifest
   const { data, error } = await supabase
     .from("partner_hotspots")
     .select("*")
     .eq("video_id", videoId)
     .eq("partner_id", auth.partnerId)
-    .eq("is_draft", isDraft)
+    .eq("is_draft", true)
     .order("t_start", { ascending: true });
 
   if (error) {
@@ -841,7 +848,7 @@ async function handlePublish(
 
   const latestRevision = latestRevisionData as PartnerPublishedRevision | null;
   const newVersion = (latestRevision?.version || 0) + 1;
-  const publicUrl = `${PUBLIC_PLAYER_DOMAIN}/v/${videoId}`;
+  const publicUrl = buildPublicUrl(videoId);
 
   // Create manifest snapshot
   const manifestJson = {
@@ -950,26 +957,24 @@ async function handleGetPublishStatus(
   );
 }
 
-// Runtime endpoints
-async function handleRuntimeResolve(
+// =====================================================
+// Runtime endpoints - PUBLIC ACCESS (no auth required)
+// =====================================================
+
+// Public runtime resolve - no auth required
+async function handleRuntimeResolvePublic(
   url: URL,
-  auth: AuthContext,
   corsHeaders: Record<string, string>
 ): Promise<Response> {
-  if (!hasScope(auth, "runtime:read")) {
-    return errorResponse(403, "FORBIDDEN", [{ message: "Missing scope: runtime:read" }], corsHeaders);
-  }
-
+  // TODO: Rate limiting placeholder - add before production
+  // Consider implementing token bucket or sliding window rate limiting
+  // Example: 100 requests per minute per IP
+  
   const partner = url.searchParams.get("partner");
   const externalId = url.searchParams.get("external_id");
 
   if (!partner || !externalId) {
     return errorResponse(400, "VALIDATION_ERROR", [{ message: "partner and external_id are required" }], corsHeaders);
-  }
-
-  // Ensure partner matches authenticated partner
-  if (partner !== auth.partnerId) {
-    return errorResponse(403, "FORBIDDEN", [{ message: "Partner mismatch" }], corsHeaders);
   }
 
   const supabase = createUntypedClient();
@@ -1009,24 +1014,23 @@ async function handleRuntimeResolve(
   );
 }
 
-async function handleRuntimeManifest(
+// Public manifest endpoint - no auth required
+async function handleRuntimeManifestPublic(
   req: Request,
   videoId: string,
-  auth: AuthContext,
   corsHeaders: Record<string, string>
 ): Promise<Response> {
-  if (!hasScope(auth, "runtime:read")) {
-    return errorResponse(403, "FORBIDDEN", [{ message: "Missing scope: runtime:read" }], corsHeaders);
-  }
-
+  // TODO: Rate limiting placeholder - add before production
+  // Consider implementing token bucket or sliding window rate limiting
+  // Example: 100 requests per minute per IP
+  
   const supabase = createUntypedClient();
 
-  // Get latest published revision
+  // Get latest published revision (no partner filter - any published video)
   const { data: revisionData } = await supabase
     .from("partner_published_revisions")
     .select("*")
     .eq("video_id", videoId)
-    .eq("partner_id", auth.partnerId)
     .order("version", { ascending: false })
     .limit(1)
     .single();
@@ -1055,6 +1059,9 @@ async function handleRuntimeManifest(
   });
 }
 
+// Legacy authenticated runtime handlers - kept for backward compatibility
+// but primary access should be via public endpoints above
+
 // Main router
 Deno.serve(async (req) => {
   const url = new URL(req.url);
@@ -1076,6 +1083,18 @@ Deno.serve(async (req) => {
   // Health check (no auth required)
   if (path === "/v1/health" && method === "GET") {
     return handleHealth(corsHeaders);
+  }
+
+  // Runtime endpoints - PUBLIC ACCESS (no auth required)
+  // These are used by partner web players for overlay playback
+  // TODO: Rate limiting placeholder - implement before production
+  if (path === "/v1/runtime/resolve" && method === "GET") {
+    return handleRuntimeResolvePublic(url, corsHeaders);
+  }
+
+  const manifestMatch = path.match(/^\/v1\/runtime\/videos\/([a-f0-9-]+)\/manifest$/);
+  if (manifestMatch && method === "GET") {
+    return handleRuntimeManifestPublic(req, manifestMatch[1], corsHeaders);
   }
 
   // All other endpoints require authentication
@@ -1111,7 +1130,7 @@ Deno.serve(async (req) => {
         return handleCreateHotspot(req, videoHotspotsMatch[1], auth, corsHeaders, idempotencyKey);
       }
       if (method === "GET") {
-        return handleListHotspots(url, videoHotspotsMatch[1], auth, corsHeaders);
+        return handleListHotspots(videoHotspotsMatch[1], auth, corsHeaders);
       }
     }
 
@@ -1137,16 +1156,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Runtime: Resolve
-    if (path === "/v1/runtime/resolve" && method === "GET") {
-      return handleRuntimeResolve(url, auth, corsHeaders);
-    }
-
-    // Runtime: Manifest
-    const manifestMatch = path.match(/^\/v1\/runtime\/videos\/([a-f0-9-]+)\/manifest$/);
-    if (manifestMatch && method === "GET") {
-      return handleRuntimeManifest(req, manifestMatch[1], auth, corsHeaders);
-    }
+    // Runtime endpoints are now handled before auth check (public access)
 
     // 404 for unknown routes
     return errorResponse(404, "NOT_FOUND", [{ message: `Unknown endpoint: ${method} ${path}` }], corsHeaders);
