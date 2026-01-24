@@ -17,6 +17,7 @@ import CompleteProfilePage from "./pages/CompleteProfilePage";
 import ReadyToPostPage from "./pages/ReadyToPostPage";
 import HelpPage from "./pages/HelpPage";
 import NotFound from "./pages/NotFound";
+import SSOCallbackPage from "./pages/SSOCallbackPage";
 
 const queryClient = new QueryClient();
 
@@ -322,6 +323,7 @@ function AppRoutes() {
         }
       />
       <Route path="/auth/callback" element={<OAuthCallbackPage />} />
+      <Route path="/sso-callback" element={<SSOCallbackPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route
         path="/complete-profile"
